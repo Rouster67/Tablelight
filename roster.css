@@ -1,0 +1,64 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
+.roster-note {
+  margin-bottom: 22px;
+}
+.roster-note p {
+  margin-top: 7px;
+}
+.roster-toolbar {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 220px;
+  gap: 20px;
+}
+.roster-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 24px;
+  border-top: 1px solid var(--line);
+}
+.roster-row .portrait {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+}
+.roster-player {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.roster-player b {
+  font-size: 16px;
+}
+.roster-player p {
+  margin-top: 3px;
+}
+.roster-active {
+  color: var(--mint);
+}
+.roster-pagination {
+  border-top: 1px solid var(--line);
+}
+.roster-actions {
+  justify-content: flex-end;
+}
+.roster-create {
+  margin-bottom: 20px;
+}
+.empty-roster {
+  padding: 32px;
+  border-top: 1px solid var(--line);
+}
+.empty-roster p {
+  margin-top: 8px;
+}
+@media (max-width: 1150px) {
+  .roster-row {
+    flex-wrap: wrap;
+  }
+  .roster-actions {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 64px;
+  }
+}

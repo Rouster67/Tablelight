@@ -1,0 +1,290 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
+/* Controls belong to each character's transformed container, never the entire TV. */
+.overlay-body.overlay-interactive .hud-position {
+  pointer-events: auto;
+}
+.hud-position.is-editable {
+  user-select: none;
+  touch-action: none;
+}
+.hud-position.is-editable .portrait {
+  cursor: grab;
+}
+.hud-position.is-editable .portrait:active,
+.hud-drag-handle:active {
+  cursor: grabbing;
+}
+.hud-position.is-collapsed {
+  width: 142px;
+  text-align: center;
+}
+.is-collapsed .hud-collapsed {
+  margin: 0 auto;
+}
+.bubble-name {
+  color: #e5e9da;
+  text-shadow: 0 2px 3px #000;
+  font-size: 11px;
+  max-width: 142px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 5px 3px;
+}
+.bubble-controls {
+  display: inline-flex;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid #8d855c;
+  border-radius: 9px;
+  background: #10201ff0;
+}
+.bubble-controls button {
+  min-width: 27px;
+  height: 26px;
+  padding: 2px;
+  font-size: 17px;
+  color: #d9c692;
+  border-radius: 5px;
+  border: 1px solid #42564b;
+  background: #20332c;
+}
+.hud-toolstrip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 45px;
+  width: var(--hud-expanded-width, 880px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  background: #142623f5;
+  border: 1px solid #8d855c;
+  border-radius: 9px;
+  margin-bottom: 5px;
+  color: #ddd1ac;
+}
+.hud-toolstrip button {
+  font-size: 14px;
+  min-height: 28px;
+  min-width: 29px;
+  padding: 4px 7px;
+  background: #23372e;
+  border-color: #59624b;
+  color: #e0d1a4;
+}
+.hud-drag-handle {
+  cursor: grab;
+  flex: 1;
+}
+.hud-rotate-handle {
+  cursor: crosshair !important;
+}
+.hud-angle {
+  min-width: 39px;
+  font-size: 11px;
+  text-align: center;
+}
+.hud-position.is-editable .hud-card button {
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 10px;
+  line-height: 1.25;
+  background: #2c4035;
+  border-color: #5b6b52;
+  color: #e2e3c7;
+  min-height: 24px;
+}
+.hud-position.is-editable .hud-card button:hover,
+.bubble-controls button:hover,
+.hud-toolstrip button:hover {
+  background: #486248;
+  border-color: #d4b579;
+}
+.hud-position.is-editable .hud-card button:disabled {
+  opacity: 0.35;
+}
+.hud-vitals-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  margin: -5px 0 12px;
+  color: #a9b9a9;
+}
+.hud-inline-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 7px;
+  flex-wrap: wrap;
+}
+.hud-position.is-editable .hud-economy > div {
+  padding: 8px 3px;
+}
+.hud-position.is-editable .hud-economy .hud-inline-buttons button {
+  font-size: 9px;
+  padding: 3px;
+}
+.hud-position.is-editable .hud-economy .spent {
+  opacity: 1;
+  filter: none;
+  background: #242b29;
+}
+.hud-position.is-editable .hud-economy .spent > b,
+.hud-position.is-editable .hud-economy .spent > small,
+.hud-position.is-editable .hud-economy .spent > i {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+.hud-position.is-editable .hud-option.spent {
+  opacity: 0.65;
+}
+.hud-position.is-editable .hud-option {
+  cursor: pointer;
+}
+.hud-position.is-editable .hud-option:hover {
+  border-color: #d4b579;
+}
+.hud-position.is-editable .hud-slots {
+  gap: 8px;
+}
+.hud-position.is-editable .hud-slots > div {
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.hud-position.is-editable .hud-slots button {
+  padding: 1px 5px;
+  min-height: 20px;
+}
+.hud-nav {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid #59624b;
+}
+.hud-browser .hud-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.hud-nav-label {
+  display: block;
+  padding: 6px;
+  border: 1px solid #5b6b52;
+  border-radius: 4px;
+  background: #2c4035;
+  color: #e2e3c7;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.25;
+}
+.hud-nav .chosen {
+  background: #54603b !important;
+  border-color: #b2a174 !important;
+}
+.hud-use-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.hud-use-controls small {
+  color: #d5ac9c;
+  width: 100%;
+  font-size: 10px;
+}
+.hud-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  margin-top: 12px;
+  color: #b9b698;
+}
+.hud-size-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 14px;
+  border-top: 1px solid #425444;
+  padding-top: 9px;
+}
+.hud-size-controls > span {
+  font-size: 8px;
+  color: #97ad9e;
+  flex: 1;
+  text-align: right;
+}
+.hud-resource .hud-inline-buttons {
+  margin: 0;
+  flex-wrap: nowrap;
+}
+#overlay-notice {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  background: #392a20ee;
+  color: #ffe0b1;
+  border: 1px solid #ac8c5a;
+  border-radius: 10px;
+  max-width: 500px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+#overlay-notice.visible {
+  opacity: 1;
+}
+.character-hero .hero-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 350px;
+}
+.character-hero .hero-tools button {
+  font-size: 12px;
+}
+.preview .hud-position.is-editable {
+  pointer-events: auto;
+}
+.topbar > .row {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+@media (max-width: 1190px) {
+  .character-hero .hero-tools {
+    max-width: 290px;
+  }
+  .topbar .breadcrumb {
+    max-width: 180px;
+  }
+  .topbar > .row {
+    gap: 6px;
+  }
+}
+@media (max-width: 1000px) {
+  .character-hero {
+    gap: 12px;
+  }
+  .character-hero h1 {
+    font-size: 27px;
+  }
+  .character-hero .hero-tools {
+    max-width: 245px;
+    flex-shrink: 0;
+  }
+  .character-hero .hero-tools button {
+    padding: 7px;
+    font-size: 11px;
+  }
+}
