@@ -6,6 +6,13 @@
   "main": "main.js",
   "private": true,
   "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rouster67/Tablelight.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Rouster67/Tablelight/issues"
+  },
   "author": "Tablelight contributors",
   "engines": {
     "node": ">=24"
