@@ -67,6 +67,8 @@ The application is written in **JavaScript**, with **HTML** screens and **CSS** 
 
 See [architecture and save format](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), and [release instructions](docs/RELEASING.md).
 
+See the [roadmap](docs/ROADMAP.md) for proposed features, design questions, and ideas under consideration. These are planning notes, not announcements of implemented features or promised release dates.
+
 ## Privacy and saves
 
 Character data, portraits, and the shared library stay on your laptop in `%APPDATA%\Tablelight\party.json`. A previous-save backup is kept alongside it. All saved players, active party membership, and the library are included in the same atomic save and exported backup. Deleting a player does not delete library entries. Restoring a complete backup replaces the entire roster, party, and library after confirmation.
