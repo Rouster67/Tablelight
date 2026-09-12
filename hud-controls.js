@@ -72,7 +72,7 @@
       .querySelector('.hp-track')
       .insertAdjacentHTML(
         'afterend',
-        `<div class="hud-vitals-controls"><span>HP</span>${control(c, '−1', 'hp', { amount: -1 })}${control(c, '−5', 'hp', { amount: -5 })}${control(c, '+1', 'hp', { amount: 1 })}${control(c, '+5', 'hp', { amount: 5 })}${control(c, 'Start turn', 'turn')}</div>`
+        `<div class="hud-vitals-controls"><span>HP</span><span class="damage-controls">${HUD.damageConcentrationReminder(c)}${control(c, '−1', 'hp', { amount: -1 })}${control(c, '−5', 'hp', { amount: -5 })}</span>${control(c, '+1', 'hp', { amount: 1 })}${control(c, '+5', 'hp', { amount: 5 })}${control(c, 'Start turn', 'turn')}</div>`
       );
     card
       .querySelector('.hud-vitals-controls')

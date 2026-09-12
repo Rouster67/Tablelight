@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a gently pulsing concentration icon beside the DM Damage button, the damage dialog's Apply button, and the player HUD's HP decrease buttons. Hovering shows the selected ability when available. The icon follows live concentration changes and Undo, keeps the controls in place, and stays steady with reduced motion enabled. Damage and concentration outcomes remain manual.
+
 ## 1.9.2 — 2026-09-10
 
 - Avoid rebuilding Windows HUD click regions for ordinary HP, resource, and menu-text updates. Geometry changes and interaction-mode switches still update immediately; new geometry is validated and calculated once.

@@ -366,6 +366,50 @@ button.rank-bubble.filled {
   margin-top: 12px;
 }
 
+.damage-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.hp-controls {
+  flex-wrap: wrap;
+}
+.damage-concentration-reminder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  font-size: 18px;
+  line-height: 1;
+  color: #ffe6a8;
+  visibility: hidden;
+}
+.damage-concentration-reminder.is-active {
+  visibility: visible;
+}
+.damage-concentration-reminder.is-active > span {
+  animation: concentration-reminder-pulse 2s ease-in-out infinite;
+}
+@keyframes concentration-reminder-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    text-shadow: none;
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 6px #d4b474;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .damage-concentration-reminder.is-active > span {
+    animation: none;
+  }
+}
+
 .concentration-toggle {
   display: inline-flex;
   align-items: center;

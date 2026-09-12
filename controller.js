@@ -141,6 +141,7 @@ function render() {
   restoreSidebarState(sidebarState);
   refreshConditionPicker();
   refreshConcentrationPicker();
+  refreshDamageReminder();
 }
 function renderWelcome() {
   return `<div class="empty-state"><div class="eyebrow">A new adventure starts here</div><div class="empty-art space-top">✧</div><h1>Your table. Their adventure.</h1><p>A quiet control room for you. A living character HUD for every player. Add your first adventurer, then bring your tabletop to life.</p>${button('+ Create a character', 'add-character', 'primary')} ${button('Choose saved players', 'view-roster', 'subtle')} <div class="empty-features"><div><b>Build your party</b><p>Enter your own stats, spells, actions, and features. Save as many players as you need. Bring up to eight into the active party.</p></div><div><b>Set the table</b><p>Place and rotate each portrait to face its player, right from your laptop.</p></div><div><b>Run the moment</b><p>Reveal choices. Spend resources. Keep the map available beneath the HUD.</p></div></div></div>`;
@@ -150,7 +151,7 @@ function economyTile(c, k) {
   return `<div class="combat-tile economy-tile ${c.turn[k] ? '' : 'spent'}"><div class="tile-label">${title}<span>${symbols[k]}</span></div><div class="tile-value">${c.turn[k] ? 'Ready' : 'Spent'}</div><div class="tile-toggle">${button('Show options', 'panel', 'small', `data-panel="${k}"`)}${button(c.turn[k] ? 'Spend' : 'Restore', 'toggle-economy', 'small', `data-key="${k}"`)}</div></div>`;
 }
 function renderCharacter(c) {
-  return `<div class="character-hero" style="--accent:${c.accent}">${portrait(c)}<div><div class="eyebrow">${c.id === state.activeId ? 'Current turn' : 'Party member'}</div><h1>${esc(c.name)}</h1><p class="muted">Level ${c.level} ${esc(c.className || 'adventurer')}${c.species ? ' · ' + esc(c.species) : ''}</p></div><div class="hero-tools">${button(c.hud.visible ? 'Hide this bubble' : 'Show this bubble', 'toggle-character-visible', 'subtle')}${button('Position & rotate', 'position-character', 'subtle')}${button('Edit character', 'edit-character', 'subtle')}${button('Remove from party', 'roster-remove', 'subtle', `data-id="${esc(c.id)}"`)}${button('Delete character', 'roster-delete', 'danger subtle', `data-id="${esc(c.id)}"`)}${button(c.hud.expanded ? 'Collapse to portrait' : 'Expand player HUD', 'toggle-expand', c.hud.expanded ? 'active' : 'primary')}</div></div><div class="combat-strip"><div class="combat-tile"><div class="tile-label">Hit points<span>♡</span></div><div class="tile-value">${c.hp}<small>/ ${c.maxHp}</small></div><div class="tile-toggle">${button('− Damage', 'hp-damage', 'small')}${button('+ Heal', 'hp-heal', 'small')}</div>${button('Temp HP: ' + c.tempHp, 'temp-hp', 'small temp-hp-button')}</div>${economyTile(c, 'action')}${economyTile(c, 'bonus')}${economyTile(c, 'reaction')}<div class="combat-tile"><div class="tile-label">Movement <span>➝</span></div><div class="tile-value">${c.turn.movement}<small>/ ${c.speed} ft</small></div><div class="tile-toggle">${button('− 5', 'move', 'small', 'data-amount="-5"')}${button('+ 5', 'move', 'small', 'data-amount="5"')}${button('Set', 'move-set', 'small')}</div></div></div><div class="spread wrap" style="margin-bottom:19px"><div class="quick-tools">${button('↻ Start turn', 'start-turn')}${button('Next turn →', 'next-turn')}${button('Short rest', 'short-rest', 'subtle')}${button('Long rest', 'long-rest', 'subtle')}</div><span class="hint">${c.hud.expanded ? 'HUD expanded' : 'Portrait only'} · ${c.hud.visible ? 'Visible on TV' : 'Hidden on TV'}</span></div><div class="work-grid"><div class="gap"><section class="card"><div class="tabs" role="tablist">${[
+  return `<div class="character-hero" style="--accent:${c.accent}">${portrait(c)}<div><div class="eyebrow">${c.id === state.activeId ? 'Current turn' : 'Party member'}</div><h1>${esc(c.name)}</h1><p class="muted">Level ${c.level} ${esc(c.className || 'adventurer')}${c.species ? ' · ' + esc(c.species) : ''}</p></div><div class="hero-tools">${button(c.hud.visible ? 'Hide this bubble' : 'Show this bubble', 'toggle-character-visible', 'subtle')}${button('Position & rotate', 'position-character', 'subtle')}${button('Edit character', 'edit-character', 'subtle')}${button('Remove from party', 'roster-remove', 'subtle', `data-id="${esc(c.id)}"`)}${button('Delete character', 'roster-delete', 'danger subtle', `data-id="${esc(c.id)}"`)}${button(c.hud.expanded ? 'Collapse to portrait' : 'Expand player HUD', 'toggle-expand', c.hud.expanded ? 'active' : 'primary')}</div></div><div class="combat-strip"><div class="combat-tile"><div class="tile-label">Hit points<span>♡</span></div><div class="tile-value">${c.hp}<small>/ ${c.maxHp}</small></div><div class="tile-toggle hp-controls"><span class="damage-controls">${HUD.damageConcentrationReminder(c)}${button('− Damage', 'hp-damage', 'small')}</span>${button('+ Heal', 'hp-heal', 'small')}</div>${button('Temp HP: ' + c.tempHp, 'temp-hp', 'small temp-hp-button')}</div>${economyTile(c, 'action')}${economyTile(c, 'bonus')}${economyTile(c, 'reaction')}<div class="combat-tile"><div class="tile-label">Movement <span>➝</span></div><div class="tile-value">${c.turn.movement}<small>/ ${c.speed} ft</small></div><div class="tile-toggle">${button('− 5', 'move', 'small', 'data-amount="-5"')}${button('+ 5', 'move', 'small', 'data-amount="5"')}${button('Set', 'move-set', 'small')}</div></div></div><div class="spread wrap" style="margin-bottom:19px"><div class="quick-tools">${button('↻ Start turn', 'start-turn')}${button('Next turn →', 'next-turn')}${button('Short rest', 'short-rest', 'subtle')}${button('Long rest', 'long-rest', 'subtle')}</div><span class="hint">${c.hud.expanded ? 'HUD expanded' : 'Portrait only'} · ${c.hud.visible ? 'Visible on TV' : 'Hidden on TV'}</span></div><div class="work-grid"><div class="gap"><section class="card"><div class="tabs" role="tablist">${[
     ['action', 'Actions'],
     ['bonus', 'Bonus'],
     ['reaction', 'Reactions'],
@@ -415,17 +416,29 @@ function confirmAction(title, text, handler, label = 'Confirm') {
     handler();
   };
 }
-function amountModal(title, initial, handler) {
+function amountModal(title, initial, handler, damageCharacterId = '') {
   modal(
     title,
     `<form id="amount-form">${field('Amount', 'amount', initial, 'number', 'min="0" max="9999" required autofocus')}</form>`,
-    `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button type="submit" form="amount-form" class="primary">Apply</button></div>`,
+    `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}${damageCharacterId ? `<span class="damage-controls" data-damage-character="${esc(damageCharacterId)}">${HUD.damageConcentrationReminder(state.characters.find((c) => c.id === damageCharacterId))}` : ''}<button type="submit" form="amount-form" class="primary">Apply</button>${damageCharacterId ? '</span>' : ''}</div>`,
     true
   );
   submitForm('amount-form', (data) => {
     handler(Number(data.get('amount')));
     closeModal();
   });
+}
+function refreshDamageReminder() {
+  const controls = document.querySelector('[data-damage-character]');
+  if (!controls) return;
+  const c = state.characters.find((c) => c.id === controls.dataset.damageCharacter);
+  if (!c) {
+    closeModal();
+    return;
+  }
+  controls.querySelector('.damage-concentration-reminder').outerHTML =
+    HUD.damageConcentrationReminder(c);
+  document.getElementById('modal-title').textContent = 'Damage · ' + c.name;
 }
 function showItem(id) {
   const c = selected(),
@@ -661,8 +674,19 @@ document.addEventListener('click', async (event) => {
         );
         break;
       case 'hp-damage':
-        amountModal('Damage · ' + esc(c.name), 1, (amount) =>
-          commit(() => TL.damage(selected(), amount), 'Damage applied')
+        amountModal(
+          'Damage · ' + esc(c.name),
+          1,
+          (amount) =>
+            commit(
+              () =>
+                TL.damage(
+                  state.characters.find((target) => target.id === c.id),
+                  amount
+                ),
+              'Damage applied'
+            ),
+          c.id
         );
         break;
       case 'hp-heal':
