@@ -470,17 +470,33 @@ function useItem(id) {
     toast(reason, true);
     return;
   }
-  const apply = (level) => {
-    commit(() => {
-      const target = selected();
-      TL.spend(
-        target,
-        target.items.find((i) => i.id === id),
-        level
+  const apply = (level, confirmedConcentration = '') => {
+    const target = state.characters.find((target) => target.id === c.id),
+      ability = target?.items.find((i) => i.id === id);
+    if (!ability) {
+      toast('This ability is no longer available for that character.', true);
+      return;
+    }
+    const reason = TL.availability(target, ability, level);
+    if (reason) {
+      toast(reason, true);
+      return;
+    }
+    const warning = TL.concentrationUseWarning(target, ability);
+    if (warning && confirmedConcentration !== warning.token) {
+      confirmAction(
+        'End current concentration?',
+        `${esc(warning.message)} Continue?`,
+        () => apply(level, warning.token),
+        'Use ability'
       );
-      expand(target, it.economy, it.id);
-    }, it.name + ' used');
-    closeModal();
+      return;
+    }
+    const success = commit(() => {
+      TL.spend(target, ability, level, confirmedConcentration);
+      expand(target, ability.economy, ability.id);
+    }, ability.name + ' used');
+    if (success) closeModal();
   };
   if (it.kind === 'spell' && it.level > 0 && it.usesSlot) {
     modal(

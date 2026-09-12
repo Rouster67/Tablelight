@@ -607,11 +607,27 @@
     }
     return '';
   }
-  function spend(c, it, slotLevel) {
+  function concentrationUseWarning(c, it) {
+    if (!c.concentrating || !it.requiresConcentration) return null;
+    return {
+      message: `Using ${it.name} will end concentration on ${c.concentration || 'your current ability'}.`,
+      token: JSON.stringify([
+        c.id,
+        it.id,
+        it.name,
+        c.concentrationItemId || '',
+        c.concentration || '',
+      ]),
+    };
+  }
+  function spend(c, it, slotLevel, confirmedConcentration = '') {
     const reason = availability(c, it, slotLevel);
     if (reason) throw new Error(reason);
     if (it.kind === 'spell' && it.level > 0 && it.usesSlot && slotLevel === undefined)
       throw new Error('Choose a spell slot level.');
+    const warning = concentrationUseWarning(c, it);
+    if (warning && confirmedConcentration !== warning.token)
+      throw new Error('Review the concentration warning before using this ability.');
     if (it.economy !== 'free') c.turn[it.economy] = false;
     if (it.resourceId) c.resources.find((r) => r.id === it.resourceId).current -= it.resourceCost;
     if (it.kind === 'spell' && it.level > 0 && it.usesSlot)
@@ -872,7 +888,7 @@
       case 'use': {
         const it = c.items.find((i) => i.id === command.itemId);
         if (!it) throw new Error('Ability not found.');
-        spend(c, it, command.level);
+        spend(c, it, command.level, command.confirmedConcentration);
         break;
       }
       default:
@@ -922,6 +938,7 @@
     normalize,
     empty,
     availability,
+    concentrationUseWarning,
     spend,
     damage,
     heal,

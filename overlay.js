@@ -9,6 +9,81 @@ const stage = document.getElementById('overlay-stage');
 let publishedRegions = '';
 let concentrationPicker = null;
 let conditionPicker = null;
+let useWarning = null;
+const pendingUses = new Set();
+function focusUseControl(value) {
+  const button = [...stage.querySelectorAll('[data-hud-command]')].find((el) => {
+    const command = JSON.parse(el.dataset.hudCommand);
+    return (
+      command.type === 'use' &&
+      command.characterId === value.characterId &&
+      command.itemId === value.itemId &&
+      command.level === value.level
+    );
+  });
+  button?.focus({ preventScroll: true });
+}
+function cancelUseWarning() {
+  const value = useWarning?.value;
+  useWarning = null;
+  paint();
+  if (value) focusUseControl(value);
+}
+function paintUseWarning(focus) {
+  if (!useWarning) return;
+  const c = state.characters.find((c) => c.id === useWarning.value.characterId),
+    it = c?.items.find((it) => it.id === useWarning.value.itemId),
+    root = [...stage.children].find((el) => el.dataset.hudId === c?.id);
+  if (
+    !it ||
+    !root ||
+    !c.hud.expanded ||
+    !state.settings.overlayInteractive ||
+    c.hud.detailId !== it.id
+  ) {
+    useWarning = null;
+    return;
+  }
+  const warning = TL.concentrationUseWarning(c, it);
+  if (!warning) {
+    useWarning = null;
+    return;
+  }
+  useWarning.token = warning.token;
+  const reason = TL.availability(c, it, useWarning.value.level);
+  root.insertAdjacentHTML(
+    'beforeend',
+    `<div class="hud-use-warning-backdrop"><section class="hud-use-warning" role="alertdialog" aria-label="End current concentration?" aria-describedby="use-warning-${HUD.esc(c.id)}"><h3>End current concentration?</h3><p id="use-warning-${HUD.esc(c.id)}">${HUD.esc(warning.message)} Continue?</p>${reason ? `<p class="form-error">${HUD.esc(reason)}</p>` : ''}<div class="row"><button type="button" data-hud-use-cancel>Cancel</button><button type="button" data-hud-use-confirm class="primary" ${reason ? 'disabled' : ''}>Use ability</button></div></section></div>`
+  );
+  if (focus) root.querySelector(`[data-hud-use-${focus}]`)?.focus({ preventScroll: true });
+}
+async function useAbility(value, confirmedConcentration = '') {
+  if (pendingUses.has(value.characterId)) return;
+  const c = state.characters.find((c) => c.id === value.characterId),
+    it = c?.items.find((it) => it.id === value.itemId);
+  if (!it) return;
+  const reason = TL.availability(c, it, value.level);
+  if (reason) {
+    notice(reason);
+    return;
+  }
+  const warning = TL.concentrationUseWarning(c, it);
+  if (warning && warning.token !== confirmedConcentration) {
+    useWarning = { value, token: warning.token };
+    paint();
+    stage.querySelector('[data-hud-use-cancel]')?.focus({ preventScroll: true });
+    return;
+  }
+  useWarning = null;
+  pendingUses.add(value.characterId);
+  paint();
+  try {
+    await command({ ...value, confirmedConcentration });
+  } finally {
+    pendingUses.delete(value.characterId);
+    focusUseControl(value);
+  }
+}
 function renderConcentrationResults() {
   const list = stage.querySelector('[data-concentration-results]');
   const c = state.characters.find((c) => c.id === concentrationPicker?.id);
@@ -135,6 +210,11 @@ function paint() {
     ])
   );
   const conditionField = stage.querySelector('[data-hud-condition-search]');
+  const useFocus = document.activeElement?.hasAttribute('data-hud-use-confirm')
+    ? 'confirm'
+    : document.activeElement?.hasAttribute('data-hud-use-cancel')
+      ? 'cancel'
+      : '';
   const conditionFocus = conditionField && {
     focused: document.activeElement === conditionField,
     start: conditionField.selectionStart,
@@ -167,6 +247,7 @@ function paint() {
     }
   }
   paintConditionPicker(conditionFocus);
+  paintUseWarning(useFocus);
   // Restore after transient forms are mounted, so their extra height does not get clamped away.
   for (const el of stage.children) {
     const summary = el.querySelector('.hud-summary');
@@ -226,6 +307,15 @@ gesture = HUDControls.gestures(stage, {
 });
 stage.addEventListener('click', async (event) => {
   if (!state?.settings.overlayInteractive) return;
+  if (event.target.closest('[data-hud-use-cancel]')) {
+    cancelUseWarning();
+    return;
+  }
+  if (event.target.closest('[data-hud-use-confirm]')) {
+    if (useWarning && !event.target.closest('button').disabled)
+      await useAbility(useWarning.value, useWarning.token);
+    return;
+  }
   const addConditions = event.target.closest('[data-hud-conditions]');
   if (addConditions) {
     conditionPicker = {
@@ -288,7 +378,8 @@ stage.addEventListener('click', async (event) => {
     paint();
     stage.querySelector('[data-concentration-search]')?.focus();
     stage.querySelector('.hud-concentration-menu')?.scrollIntoView({ block: 'nearest' });
-  } else command(value);
+  } else if (value.type === 'use') await useAbility(value);
+  else command(value);
 });
 stage.addEventListener('input', (event) => {
   if (event.target.matches('[data-concentration-search]') && concentrationPicker) {
@@ -304,6 +395,21 @@ stage.addEventListener('input', (event) => {
   searchHudConditions();
 });
 stage.addEventListener('keydown', (event) => {
+  if (useWarning && event.key === 'Escape') {
+    event.preventDefault();
+    cancelUseWarning();
+    return;
+  }
+  if (event.key === 'Tab' && event.target.closest('.hud-use-warning')) {
+    const buttons = [...stage.querySelectorAll('.hud-use-warning button:not(:disabled)')];
+    if (event.shiftKey && document.activeElement === buttons[0]) {
+      event.preventDefault();
+      buttons.at(-1)?.focus();
+    } else if (!event.shiftKey && document.activeElement === buttons.at(-1)) {
+      event.preventDefault();
+      buttons[0]?.focus();
+    }
+  }
   if (event.key === 'Escape' && (concentrationPicker || conditionPicker)) {
     concentrationPicker = null;
     conditionPicker = null;
@@ -335,6 +441,7 @@ window.tablelight.onOverlay((value) => {
   if (!value.visible) {
     concentrationPicker = null;
     conditionPicker = null;
+    useWarning = null;
     gesture.cancel();
     hit(false);
     paint();

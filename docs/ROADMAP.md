@@ -138,6 +138,14 @@ controls do not get this icon.
 ability names and generic labels, normal damage and Undo, per-character behavior, fixed HUD size
 and rotation, and reduced motion. Implementation is recorded under Unreleased in `CHANGELOG.md`.
 
+**Agreed follow-up (September 12, 2026):** Before using any flagged concentration ability while
+already concentrating, show a warning naming the old ability, with Cancel and Use ability.
+Show it on the initiating screen; the TV warning stays inside the acting character's rotated HUD.
+Cancel spends nothing. Continuing rechecks availability and concentration before spending the
+normal costs and leaves the concentration tracker unchanged, including when using the same ability
+again. Commit and push this warning separately. Only after that checkpoint, implement automatic
+concentration selection on use, then commit it separately before final review and a possible merge.
+
 ## F07 — Character-based attack bonuses and save DCs
 
 **Requested:** Derive an ability's attack bonus and save DC from the character using it. Add a
