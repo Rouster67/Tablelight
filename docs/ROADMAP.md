@@ -142,9 +142,14 @@ and rotation, and reduced motion. Implementation is recorded under Unreleased in
 already concentrating, show a warning naming the old ability, with Cancel and Use ability.
 Show it on the initiating screen; the TV warning stays inside the acting character's rotated HUD.
 Cancel spends nothing. Continuing rechecks availability and concentration before spending the
-normal costs and leaves the concentration tracker unchanged, including when using the same ability
-again. Commit and push this warning separately. Only after that checkpoint, implement automatic
-concentration selection on use, then commit it separately before final review and a possible merge.
+normal costs, including when using the same ability again. The warning-only change was committed
+and pushed separately before starting automatic concentration selection.
+
+**Automatic selection:** A successful use of any flagged ability now starts or switches
+concentration to that character's ability assignment. Cancel, unavailable abilities, and failed
+uses preserve concentration and costs. Unflagged uses preserve existing concentration. The
+change uses the existing save format and updates both screens; Undo restores concentration and
+costs together. Commit this step separately before final review and a possible merge.
 
 ## F07 — Character-based attack bonuses and save DCs
 

@@ -628,6 +628,7 @@
     const warning = concentrationUseWarning(c, it);
     if (warning && confirmedConcentration !== warning.token)
       throw new Error('Review the concentration warning before using this ability.');
+    if (it.requiresConcentration) setConcentration(c, true, it.id);
     if (it.economy !== 'free') c.turn[it.economy] = false;
     if (it.resourceId) c.resources.find((r) => r.id === it.resourceId).current -= it.resourceCost;
     if (it.kind === 'spell' && it.level > 0 && it.usesSlot)

@@ -21,7 +21,7 @@ function fixture() {
   TL.setConcentration(c, true, c.items[0].id);
   return c;
 }
-test('a concentration use requires confirmation before any action, slot or charge is spent', () => {
+test('a confirmed concentration use switches the tracked ability and spends its costs together', () => {
   const c = fixture(),
     before = TL.clone(c),
     it = c.items[1];
@@ -34,8 +34,8 @@ test('a concentration use requires confirmation before any action, slot or charg
   assert.equal(c.slots[0].current, 1);
   assert.equal(c.resources[0].current, 1);
   assert.equal(c.concentrating, true);
-  assert.equal(c.concentrationItemId, before.concentrationItemId);
-  assert.equal(c.concentration, 'Old ward');
+  assert.equal(c.concentrationItemId, it.id);
+  assert.equal(c.concentration, 'New ward');
 });
 test('HUD uses reject missing and stale confirmations without changing state', () => {
   const c = fixture(),
@@ -59,9 +59,10 @@ test('HUD uses reject missing and stale confirmations without changing state', (
     confirmedConcentration: TL.concentrationUseWarning(c, c.items[1]).token,
   });
   assert.equal(c.slots[0].current, 1);
-  assert.equal(c.concentrationItemId, c.items[2].id);
+  assert.equal(c.concentrationItemId, c.items[1].id);
+  assert.equal(c.concentration, 'New ward');
 });
-test('ordinary uses and first concentration casts remain manual and need no warning', () => {
+test('ordinary uses preserve concentration and first concentration casts start it without a warning', () => {
   const c = fixture(),
     it = c.items[1];
   it.requiresConcentration = false;
@@ -73,17 +74,23 @@ test('ordinary uses and first concentration casts remain manual and need no warn
   it.requiresConcentration = true;
   assert.equal(TL.concentrationUseWarning(c, it), null);
   TL.spend(c, it, 1);
-  assert.equal(c.concentrating, false);
-  assert.equal(c.concentrationItemId, '');
+  assert.equal(c.concentrating, true);
+  assert.equal(c.concentrationItemId, it.id);
+  assert.equal(c.concentration, it.name);
 });
 test('reusing the same concentration ability and legacy unnamed concentration still warn', () => {
   const c = fixture();
   assert.ok(TL.concentrationUseWarning(c, c.items[0]));
   assert.throws(() => TL.spend(c, c.items[0]), /concentration warning/);
+  TL.spend(c, c.items[0], undefined, TL.concentrationUseWarning(c, c.items[0]).token);
+  assert.equal(c.concentrationItemId, c.items[0].id);
   c.concentrationItemId = '';
   c.concentration = '';
   assert.match(TL.concentrationUseWarning(c, c.items[1]).message, /your current ability/);
   assert.throws(() => TL.spend(c, c.items[1], 1), /concentration warning/);
+  TL.spend(c, c.items[1], 1, TL.concentrationUseWarning(c, c.items[1]).token);
+  assert.equal(c.concentrationItemId, c.items[1].id);
+  assert.equal(c.concentration, c.items[1].name);
 });
 test('confirmation does not bypass availability or apply to another character or ability', () => {
   const c = fixture(),
@@ -96,4 +103,59 @@ test('confirmation does not bypass availability or apply to another character or
   const before = TL.clone(c);
   assert.throws(() => TL.spend(c, it, 1, token), /spell slot/);
   assert.deepEqual(c, before);
+});
+
+test('failed concentration uses preserve both the old concentration and every cost', () => {
+  for (const failure of [
+    'missing slot',
+    'empty slot',
+    'disabled',
+    'empty resource',
+    'spent action',
+    'unassigned',
+  ]) {
+    const c = fixture(),
+      it = c.items[1];
+    if (failure === 'empty slot') c.slots[0].current = 0;
+    if (failure === 'disabled') it.disabled = true;
+    if (failure === 'empty resource') c.resources[0].current = 0;
+    if (failure === 'spent action') c.turn.action = false;
+    if (failure === 'unassigned') c.items.splice(1, 1);
+    const before = TL.clone(c),
+      token = TL.concentrationUseWarning(c, it).token;
+    assert.throws(
+      () => TL.spend(c, it, failure === 'missing slot' ? undefined : 1, token),
+      failure
+    );
+    assert.deepEqual(c, before, failure);
+  }
+});
+
+test('automatic concentration applies to every flagged ability type and persists only for its user', () => {
+  for (const definition of [
+    { kind: 'action', economy: 'action' },
+    { kind: 'feature', economy: 'bonus' },
+    { kind: 'spell', level: 0, economy: 'free' },
+    { kind: 'spell', level: 2, usesSlot: false, economy: 'reaction', resourceId: 'focus' },
+  ]) {
+    const a = TL.character(),
+      b = TL.character();
+    for (const c of [a, b]) {
+      c.resources = [{ id: 'focus', name: 'Focus', current: 2, max: 2, reset: 'manual' }];
+      c.items = [TL.item({ ...definition, name: 'Shared focus', requiresConcentration: true })];
+    }
+    const s = TL.normalize({ version: 1, characters: [a, b], settings: {} });
+    const c = s.characters[0],
+      otherBefore = TL.clone(s.characters[1]);
+    assert.equal(c.items[0].libraryId, s.characters[1].items[0].libraryId);
+    TL.hudCommand(s, { type: 'use', characterId: c.id, itemId: c.items[0].id });
+    assert.equal(c.concentrating, true);
+    assert.equal(c.concentrationItemId, c.items[0].id);
+    assert.equal(c.concentration, 'Shared focus');
+    assert.deepEqual(s.characters[1], otherBefore);
+    const loaded = TL.normalize(TL.toBackup(s));
+    assert.equal(loaded.characters[0].concentrationItemId, c.items[0].id);
+    assert.equal(loaded.characters[0].concentration, 'Shared focus');
+    assert.equal(loaded.characters[1].concentrating, false);
+  }
 });

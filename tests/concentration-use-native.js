@@ -43,6 +43,36 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     character().concentrationItemId,
     character().concentration,
   ];
+  const expectConcentration = async (id, name) => {
+    assert.deepEqual(concentration(), [Boolean(id), id, name]);
+    await wait(() =>
+      tv(
+        `return state.characters[0].concentrationItemId===${JSON.stringify(id)}&&state.characters[0].concentration===${JSON.stringify(name)};`
+      )
+    );
+    for (const query of [run, tv]) {
+      assert.equal(
+        await query(`return document.querySelector('.concentration-toggle').title;`),
+        id ? name : 'Not concentrating'
+      );
+      assert.equal(
+        await query(
+          `return document.querySelector('.damage-concentration-reminder').classList.contains('is-active');`
+        ),
+        Boolean(id)
+      );
+      if (id)
+        assert.equal(
+          await query(`return document.querySelector('.damage-concentration-reminder').title;`),
+          'Concentrating: ' + name
+        );
+    }
+    const saved = store.load().state.characters[0];
+    assert.deepEqual(
+      [saved.concentrating, saved.concentrationItemId, saved.concentration],
+      [Boolean(id), id, name]
+    );
+  };
   const geometry = `return [...stage.children].map(el=>[el.offsetWidth,el.offsetHeight,el.style.transform]);`;
   try {
     await wait(() => run('return !!state;'));
@@ -98,12 +128,17 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     assert.equal(character().slots[0].current, 3);
     assert.equal(character().slots[1].current, 2);
     assert.equal(character().resources[0].current, 2);
-    assert.deepEqual(concentration(), oldConcentration);
+    await expectConcentration(spellId, 'New ward');
     assert.equal(await run(`return document.getElementById('modal-root').childElementCount;`), 0);
+    await run(`document.querySelector('.concentration-toggle').scrollIntoView({block:'center'});`);
+    await shot('03-dm-auto-concentration', controller);
+    await shot('04-tv-auto-concentration', overlay);
+    await run(`window.scrollTo(0,0);`);
     await click('[data-action="undo"]');
     assert.equal(costs(), initialCosts);
+    await expectConcentration(oldId, 'Old ward');
     results.push(
-      'DM spell use warns before spending, Cancel spends nothing, Continue spends the selected higher slot and normal costs once, and concentration remains unchanged.'
+      'DM confirmation spends the chosen higher slot and normal costs once, switches concentration and both screens’ reminders, and saves the new ability; one Undo restores the old concentration and all costs.'
     );
 
     await use(featureId);
@@ -121,8 +156,9 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await click('#confirm-action');
     assert.equal(character().turn.bonus, false);
     assert.equal(character().resources[0].current, 2);
-    assert.equal(character().concentrationItemId, spellId);
+    await expectConcentration(featureId, 'Focus feature');
     await click('[data-action="undo"]');
+    await expectConcentration(spellId, 'New ward');
     await run(
       `commit(()=>TL.setConcentration(selected(),true,${JSON.stringify(oldId)}));await saveQueue;`
     );
@@ -136,6 +172,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await run(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));`);
     assert.equal(await run(`return document.getElementById('modal-root').childElementCount;`), 0);
     assert.equal(costs(), initialCosts);
+    await expectConcentration(oldId, 'Old ward');
     results.push(
       'Features and repeated use of the current ability also warn; DM detail use and Escape work, and a changed concentration requires reviewing a new warning before spending.'
     );
@@ -158,6 +195,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await shot('02-rotated-hud-warning', overlay);
     await tv(`document.querySelector('[data-hud-use-cancel]').click();`);
     assert.equal(costs(), initialCosts);
+    await expectConcentration(oldId, 'Old ward');
     assert.equal(await tv(`return !!document.querySelector('.hud-use-warning');`), false);
     await hudUse(2);
     await tv(
@@ -185,13 +223,13 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     await wait(() => character().slots[1].current === 2);
     assert.equal(character().resources[0].current, 2);
-    assert.equal(character().concentrationItemId, oldId);
-    assert.equal(character().concentration, renamed);
+    await expectConcentration(spellId, 'New ward');
     assert.equal(await tv(`return !!document.querySelector('.hud-use-warning');`), false);
     await click('[data-action="undo"]');
     assert.equal(costs(), initialCosts);
+    await expectConcentration(oldId, renamed);
     results.push(
-      'The TV warning stays inside the acting player’s rotated HUD, supports Cancel and Escape, follows live escaped names, and confirms a use only once without changing concentration.'
+      'The TV warning stays inside the acting player’s rotated HUD, supports Cancel and Escape, follows live escaped names, and switches concentration only on successful use; Undo restores the previous named ability.'
     );
 
     await wait(() => tv(`return state.characters[0].slots[1].current===3;`));
@@ -200,6 +238,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(() => tv(`return document.querySelector('[data-hud-use-confirm]').disabled;`));
     assert.equal(character().turn.action, true);
     assert.equal(character().resources[0].current, 3);
+    await expectConcentration(oldId, renamed);
     await tv(`document.querySelector('[data-hud-use-cancel]').click();`);
     await click('[data-action="undo"]');
     await wait(() => tv(`return state.characters[0].slots[1].current===3;`));
@@ -232,21 +271,26 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await use(spellId);
     await cast(1);
     assert.equal(character().slots[0].current, 2);
-    assert.equal(character().concentrating, false);
-    assert.equal(character().concentrationItemId, '');
+    await expectConcentration(spellId, 'New ward');
     assert.equal(await run(`return document.getElementById('modal-root').childElementCount;`), 0);
     await click('[data-action="undo"]');
+    await expectConcentration('', '');
     await wait(() =>
       tv(`return !state.characters[0].concentrating&&state.characters[0].turn.action;`)
     );
     await hudUse(1);
     await wait(() => character().slots[0].current === 2);
     assert.equal(await tv(`return !!document.querySelector('.hud-use-warning');`), false);
-    assert.equal(character().concentrating, false);
+    await expectConcentration(spellId, 'New ward');
+    await run(`commit(()=>selected().hud.detailId=${JSON.stringify(plainId)});await saveQueue;`);
+    await wait(() => tv(`return state.characters[0].hud.detailId===${JSON.stringify(plainId)};`));
+    await hudUse();
+    await wait(() => tv(`return pendingUses.size===0;`));
+    await expectConcentration(spellId, 'New ward');
     assert.equal(JSON.stringify(getState().characters[1]), otherBefore);
     assert.deepEqual(await tv(geometry), frames);
     results.push(
-      'Unnamed concentration gets a readable fallback; unflagged uses and first concentration casts need no warning, do not auto-select concentration, and leave other characters unchanged.'
+      'First concentration casts start concentration from either screen without a warning; Undo can restore no concentration, and ordinary abilities preserve it while other characters stay unchanged.'
     );
     fs.writeFileSync(
       path.join(dir, 'concentration-use-results.json'),
