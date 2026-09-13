@@ -1,7 +1,8 @@
 # Tablelight roadmap
 
-These ideas were collected on September 11, 2026. This document tracks planning and agreed
-implementation progress; entries do not assign a release version or authorize implementation.
+The initial ideas were collected on September 11, 2026; class overlay themes were added on
+September 13, 2026. This document tracks planning and agreed implementation progress; entries do
+not assign a release version or authorize implementation.
 
 - **Planned candidate:** The requested direction is clear enough to outline. Details and priority
   still need agreement before development.
@@ -31,6 +32,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F09 | Uploaded icons for abilities                       | Planned candidate |
 | F10 | DM notice and targeted undo for player ability use | Considering       |
 | F11 | Easier access to spell slots and custom resources  | Considering       |
+| F12 | Class overlay color themes                         | Planned candidate |
 
 ## F01 — Passive abilities section
 
@@ -150,8 +152,9 @@ confirmation defaulting to No. Both choices remove the installed program, its sh
 cache. Confirmed removal includes all characters, ability and condition libraries, resources, notes,
 settings, and the previous save for the current Windows user. Exported backups outside Tablelight's
 folders remain.
-Updates always preserve data and skip this choice; silent uninstalls keep saves. Implemented and
-tested; prepared for 1.10.2, with publication pending. The preceding 1.10.0-to-1.10.1 user test passed:
+Updates always preserve data and skip this choice; silent uninstalls keep saves. Implemented,
+tested, and released in [1.10.2](https://github.com/Rouster67/Tablelight/releases/tag/v1.10.2).
+The preceding 1.10.0-to-1.10.1 user test passed:
 newly created character, ability, condition, and resource data survived updating and another restart.
 
 **Release boundary:** A push or merge alone never publishes an application update. Publish a
@@ -307,6 +310,38 @@ should be a per-character layout choice or a single default. Compare portraits, 
 and resources with both short and long names, small and large resource counts, and several HUD
 rotations at realistic TV sizes. Compact resource controls still need usable click targets.
 
+## F12 — Class overlay color themes
+
+**Requested (September 13, 2026):** Add a Theme dropdown to the character creator that changes
+that character's overlay appearance through recoloring. Include one theme per class, including
+Artificer, built into the program.
+
+**Built-in class themes:** Artificer, Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin,
+Ranger, Rogue, Sorcerer, Warlock, and Wizard.
+
+**Suggested approach:**
+
+- Offer the same Theme dropdown in Edit character so an existing character's theme can be changed.
+  Keep the choice per character, independent of the entered class, so multiclass and homebrew
+  characters can choose whichever palette they prefer.
+- Recolor the collapsed bubble and expanded HUD using coordinated background, panel, border,
+  text, and highlight colors. Keep the current layout, dimensions, position, rotation, and
+  interactions intact. The DM's HUD preview should show the selected colors too.
+- Include a Default option that preserves the existing appearance and existing character colors.
+  Older saves without a theme should keep that appearance when loaded.
+- Save the selected theme with the character and include it in exported backups. Supply all
+  palettes with the app so they work offline without downloading assets.
+- Keep text readable at TV viewing distances and retain clear warning, concentration, unavailable,
+  and resource states across every palette.
+
+**Open decisions:** Choose the colors for each class and decide how class themes interact with
+the existing Player color setting and custom resource colors. This feature is scoped to recoloring;
+custom theme editors, class artwork, and layout changes would be separate ideas.
+
+**Completion checks:** Verify all 13 class choices and Default, creation and editing, independent
+themes on several characters, matching previews, save/backup round trips, older saves, and readable
+controls in collapsed, expanded, rotated, and click-through HUDs without changing their geometry.
+
 ## Additional suggestions for discussion
 
 These suggestions are not part of the accepted feature list.
@@ -322,11 +357,13 @@ These suggestions are not part of the accepted feature list.
 
 This is a discussion aid, not a release schedule.
 
-1. Publish the prepared 1.10.2 uninstaller data-choice follow-up after review and merge.
-   The 1.10.1 update-folder fix is released.
-   The version display, installer/updater, and
-   concentration reminder (F03, F04, F06) were released in 1.10.0.
-2. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
+The version display, installer/updater, and concentration reminder (F03, F04, F06) were released
+in 1.10.0. The update-folder fix was released in 1.10.1, and the uninstaller data-choice follow-up
+was released in 1.10.2.
+
+1. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
+2. Choose and preview the class color palettes and their interaction with existing character and
+   resource colors before implementing the Theme dropdown (F12).
 3. Design passive abilities and character-based calculations together where they affect the shared
    library and character assignments (F01, F07).
 4. Prototype messages, player-use review, and the resources layout with the actual TV setup
