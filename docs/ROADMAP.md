@@ -10,6 +10,7 @@ implementation progress; entries do not assign a release version or authorize im
 - **Agreed design:** The behavior is agreed and awaits implementation and testing.
 - **Implemented locally:** The agreed change is in the source and awaits testing and release.
 - **Merged; release pending:** The change is in `main`; a public app release is still pending.
+- **Released:** The change is available in a public stable app release.
 
 The identifiers below are references within this document, not GitHub issue numbers. When work is
 scheduled, create a focused issue with its decisions and completion checklist, then link it here.
@@ -17,19 +18,19 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                               | Status                  |
-| --- | -------------------------------------------------- | ----------------------- |
-| F01 | Passive abilities section                          | Considering             |
-| F02 | Messages sent to individual player overlays        | Considering             |
-| F03 | Visible application version on the DM screen       | Merged; release pending |
-| F04 | Launch update prompt and Windows installer         | Merged; release pending |
-| F05 | Source reference on abilities                      | Planned candidate       |
-| F06 | Concentration reminder when applying damage        | Merged; release pending |
-| F07 | Character-based attack bonuses and save DCs        | Considering             |
-| F08 | Upcast and level-based upgrade text                | Planned candidate       |
-| F09 | Uploaded icons for abilities                       | Planned candidate       |
-| F10 | DM notice and targeted undo for player ability use | Considering             |
-| F11 | Easier access to spell slots and custom resources  | Considering             |
+| ID  | Idea                                               | Status            |
+| --- | -------------------------------------------------- | ----------------- |
+| F01 | Passive abilities section                          | Considering       |
+| F02 | Messages sent to individual player overlays        | Considering       |
+| F03 | Visible application version on the DM screen       | Released          |
+| F04 | Launch update prompt and Windows installer         | Released          |
+| F05 | Source reference on abilities                      | Planned candidate |
+| F06 | Concentration reminder when applying damage        | Released          |
+| F07 | Character-based attack bonuses and save DCs        | Considering       |
+| F08 | Upcast and level-based upgrade text                | Planned candidate |
+| F09 | Uploaded icons for abilities                       | Planned candidate |
+| F10 | DM notice and targeted undo for player ability use | Considering       |
+| F11 | Easier access to spell slots and custom resources  | Considering       |
 
 ## F01 — Passive abilities section
 
@@ -83,8 +84,8 @@ package version. The HTML title must not replace the native title with an unvers
 Browser-only development previews identify themselves as previews instead of claiming a version.
 
 **Status:** Merged with F04 in [PR #3](https://github.com/Rouster67/Tablelight/pull/3).
-The title and sidebar were verified in the native tests and working program. Included in the
-prepared 1.10.0 release; public release is pending.
+The title and sidebar were verified in the native tests and working program. Released in
+[1.10.0](https://github.com/Rouster67/Tablelight/releases/tag/v1.10.0).
 
 ## F04 — Launch update prompt and Windows installer
 
@@ -114,14 +115,13 @@ of the first updater-enabled release.
 - Preserve the existing `%APPDATA%\Tablelight` save location and user-authored data. Test on
   isolated data first, then back up the real saved data before updating the working program.
 
-**Planned internet requests:** Checks retrieve public release information and update metadata
+**Internet requests:** Checks retrieve public release information and update metadata
 from GitHub. After the user chooses Update and restart, the app downloads release files from
 GitHub and its release-asset hosting. Opening the release-page link launches the user's browser.
 GitHub receives ordinary connection information such as the public IP address and request
 headers. No characters, parties, portraits, notes, messages, or library content are sent. No
 Tablelight account, analytics, or telemetry is added. Local play and saves remain available
-without internet. The final user and security documentation must identify the implemented
-requests and controls before the updater ships.
+without internet. [Network use](UPDATES.md) documents the requests and controls.
 
 **Status:** Merged in [PR #3](https://github.com/Rouster67/Tablelight/pull/3). The Windows NSIS installer, stable-release checker, DM
 offer, sidebar icon, manual check, disable setting, progress, cancellation, save barrier, and
@@ -135,9 +135,18 @@ download/install/relaunch regression test. Saved data and settings were preserve
 Application Control blocked earlier unsigned builds, so retain the compatibility warning: unsigned
 installers can still be blocked on some computers.
 
+Released in [1.10.0](https://github.com/Rouster67/Tablelight/releases/tag/v1.10.0).
+The follow-up in [PR #5](https://github.com/Rouster67/Tablelight/pull/5) pins updates to the running
+installation folder, including custom locations when Windows installation-path records are
+missing. It is merged and prepared for 1.10.1; publication is pending. The real installer test
+verifies active and saved players, assigned and unused ability and condition libraries, portraits,
+resources, slots, concentration, notes, settings, the previous save, and the update preference.
+The working-program update also passed: closing and reopening the same shortcut retained the new
+version, and the current party file was unchanged.
+
 **Release boundary:** A push or merge alone never publishes an application update. Publish a
 versioned stable GitHub Release with its installer and metadata deliberately. The first
-updater-enabled release is prepared as 1.10.0 and still needs publication. Code signing and automatic
+updater-enabled release was 1.10.0. Code signing and automatic
 rollback are not included. See [network use](UPDATES.md) and [release instructions](RELEASING.md).
 
 ## F05 — Source reference on abilities
@@ -168,7 +177,7 @@ controls do not get this icon.
 **Completion checks:** Verify all three locations, live changes while the damage dialog is open,
 ability names and generic labels, normal damage and Undo, per-character behavior, fixed HUD size
 and rotation, and reduced motion. Merged in [PR #2](https://github.com/Rouster67/Tablelight/pull/2)
-and included in the prepared 1.10.0 changelog; public release is pending.
+and released in [1.10.0](https://github.com/Rouster67/Tablelight/releases/tag/v1.10.0).
 
 **Agreed follow-up (September 12, 2026):** Before using any flagged concentration ability while
 already concentrating, show a warning naming the old ability, with Cancel and Use ability.
@@ -181,7 +190,7 @@ and pushed separately before starting automatic concentration selection.
 concentration to that character's ability assignment. Cancel, unavailable abilities, and failed
 uses preserve concentration and costs. Unflagged uses preserve existing concentration. The
 change uses the existing save format and updates both screens; Undo restores concentration and
-costs together. Commit this step separately before final review and a possible merge.
+costs together. This follow-up was also released in 1.10.0.
 
 ## F07 — Character-based attack bonuses and save DCs
 
@@ -303,10 +312,9 @@ These suggestions are not part of the accepted feature list.
 
 This is a discussion aid, not a release schedule.
 
-1. Finish review and release of the implemented version display and installer/updater (F03, F04).
-   The concentration reminder (F06) is merged. Consider the remaining source, upgrade-text,
-   and icon changes (F05, F08, F09).
-2. Publish the first installer-enabled release after the new version and release notes are agreed.
+1. Publish the prepared 1.10.1 update-folder fix. The version display, installer/updater, and
+   concentration reminder (F03, F04, F06) were released in 1.10.0.
+2. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
 3. Design passive abilities and character-based calculations together where they affect the shared
    library and character assignments (F01, F07).
 4. Prototype messages, player-use review, and the resources layout with the actual TV setup
