@@ -4,6 +4,7 @@ const fs = require('node:fs'),
   path = require('node:path'),
   assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
+const nextVersion = require('semver').inc(require('../package.json').version, 'minor');
 module.exports = async ({
   app,
   controller,
@@ -49,7 +50,9 @@ module.exports = async ({
     assert.equal(await run("return Boolean(document.getElementById('update-dialog'));"), false);
     await click('[data-action="close-modal"]');
     await wait(() => run("return Boolean(document.getElementById('update-dialog'));"));
-    assert.match(await run("return document.querySelector('.modal').textContent;"), /1\.10\.0/);
+    assert.ok(
+      (await run("return document.querySelector('.modal').textContent;")).includes(nextVersion)
+    );
     await shot('01-update-offer');
     assert.equal(updateAdapter.downloads, 0);
     await click('.modal-footer [data-action="close-modal"]');
@@ -57,7 +60,7 @@ module.exports = async ({
       await run(
         "return document.querySelector('#update-indicator button').getAttribute('aria-label');"
       ),
-      'Update available: v1.10.0'
+      `Update available: v${nextVersion}`
     );
     results.push(
       'Launch offer waits for an open editor; Later keeps the accessible update icon without downloading.'
@@ -113,7 +116,7 @@ module.exports = async ({
     );
     setOverlay(false);
     updateAdapter.offline = false;
-    updateAdapter.version = '1.10.0';
+    updateAdapter.version = nextVersion;
     await updates.check();
     await click('[data-action="update-offer"]');
     await click('[data-action="update-download"]');
@@ -165,7 +168,7 @@ module.exports = async ({
 module.exports.makeAdapter = () => {
   const adapter = new EventEmitter();
   Object.assign(adapter, {
-    version: '1.10.0',
+    version: nextVersion,
     checks: 0,
     downloads: 0,
     installs: 0,

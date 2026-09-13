@@ -9,6 +9,7 @@ implementation progress; entries do not assign a release version or authorize im
 - **Additional suggestion:** An optional idea proposed during planning, not an accepted requirement.
 - **Agreed design:** The behavior is agreed and awaits implementation and testing.
 - **Implemented locally:** The agreed change is in the source and awaits testing and release.
+- **Merged; release pending:** The change is in `main`; a public app release is still pending.
 
 The identifiers below are references within this document, not GitHub issue numbers. When work is
 scheduled, create a focused issue with its decisions and completion checklist, then link it here.
@@ -16,19 +17,19 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                               | Status              |
-| --- | -------------------------------------------------- | ------------------- |
-| F01 | Passive abilities section                          | Considering         |
-| F02 | Messages sent to individual player overlays        | Considering         |
-| F03 | Visible application version on the DM screen       | Implemented locally |
-| F04 | Launch update prompt and Windows installer         | Implemented locally |
-| F05 | Source reference on abilities                      | Planned candidate   |
-| F06 | Concentration reminder when applying damage        | Implemented locally |
-| F07 | Character-based attack bonuses and save DCs        | Considering         |
-| F08 | Upcast and level-based upgrade text                | Planned candidate   |
-| F09 | Uploaded icons for abilities                       | Planned candidate   |
-| F10 | DM notice and targeted undo for player ability use | Considering         |
-| F11 | Easier access to spell slots and custom resources  | Considering         |
+| ID  | Idea                                               | Status                  |
+| --- | -------------------------------------------------- | ----------------------- |
+| F01 | Passive abilities section                          | Considering             |
+| F02 | Messages sent to individual player overlays        | Considering             |
+| F03 | Visible application version on the DM screen       | Merged; release pending |
+| F04 | Launch update prompt and Windows installer         | Merged; release pending |
+| F05 | Source reference on abilities                      | Planned candidate       |
+| F06 | Concentration reminder when applying damage        | Merged; release pending |
+| F07 | Character-based attack bonuses and save DCs        | Considering             |
+| F08 | Upcast and level-based upgrade text                | Planned candidate       |
+| F09 | Uploaded icons for abilities                       | Planned candidate       |
+| F10 | DM notice and targeted undo for player ability use | Considering             |
+| F11 | Easier access to spell slots and custom resources  | Considering             |
 
 ## F01 — Passive abilities section
 
@@ -81,9 +82,9 @@ Keep the existing sidebar version label below Setup & help and read both from th
 package version. The HTML title must not replace the native title with an unversioned label.
 Browser-only development previews identify themselves as previews instead of claiming a version.
 
-**Checkpoint 1:** Implemented locally on `codex/f04-update-check`, together with the agreed F04
-design below. Verify the title and sidebar at launch and after changing DM pages, including the
-working program, before committing. No release-version bump is included in this checkpoint.
+**Status:** Merged with F04 in [PR #3](https://github.com/Rouster67/Tablelight/pull/3).
+The title and sidebar were verified in the native tests and working program. Included in the
+prepared 1.10.0 release; public release is pending.
 
 ## F04 — Launch update prompt and Windows installer
 
@@ -122,17 +123,21 @@ Tablelight account, analytics, or telemetry is added. Local play and saves remai
 without internet. The final user and security documentation must identify the implemented
 requests and controls before the updater ships.
 
-**Checkpoint 2:** Implemented locally. The Windows NSIS installer, stable-release checker, DM
+**Status:** Merged in [PR #3](https://github.com/Rouster67/Tablelight/pull/3). The Windows NSIS installer, stable-release checker, DM
 offer, sidebar icon, manual check, disable setting, progress, cancellation, save barrier, and
 restart flow are in place. Source runs and unpacked previews do not check or install updates.
 Unit, native UI, and real transport tests cover version filtering, opt-out, failures, and request
 privacy. An actual update between two isolated installed versions verifies install/relaunch,
 byte-for-byte save preservation, and the retained opt-out; test uninstall also preserves saves.
-Review the working program and commit this checkpoint before PR review.
+The final redirect fix passed the transport tests and GitHub checks. Release verification for
+1.10.0 passed the full desktop suite, installation into the working folder, and the redirected
+download/install/relaunch regression test. Saved data and settings were preserved. Windows
+Application Control blocked earlier unsigned builds, so retain the compatibility warning: unsigned
+installers can still be blocked on some computers.
 
 **Release boundary:** A push or merge alone never publishes an application update. Publish a
 versioned stable GitHub Release with its installer and metadata deliberately. The first
-updater-enabled release still needs a release version and publication. Code signing and automatic
+updater-enabled release is prepared as 1.10.0 and still needs publication. Code signing and automatic
 rollback are not included. See [network use](UPDATES.md) and [release instructions](RELEASING.md).
 
 ## F05 — Source reference on abilities
@@ -162,7 +167,8 @@ controls do not get this icon.
 
 **Completion checks:** Verify all three locations, live changes while the damage dialog is open,
 ability names and generic labels, normal damage and Undo, per-character behavior, fixed HUD size
-and rotation, and reduced motion. Implementation is recorded under Unreleased in `CHANGELOG.md`.
+and rotation, and reduced motion. Merged in [PR #2](https://github.com/Rouster67/Tablelight/pull/2)
+and included in the prepared 1.10.0 changelog; public release is pending.
 
 **Agreed follow-up (September 12, 2026):** Before using any flagged concentration ability while
 already concentrating, show a warning naming the old ability, with Cancel and Use ability.
