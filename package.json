@@ -24,10 +24,16 @@
     "check": "node scripts/check.cjs && node --test tests/*.test.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "build:windows": "node scripts/build-windows.cjs"
+    "build:windows": "node scripts/build-windows.cjs",
+    "test:installed-update": "node scripts/test-installed-update.cjs"
   },
   "devDependencies": {
     "electron": "44.3.0",
+    "electron-builder": "26.15.3",
     "prettier": "3.6.2"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9",
+    "semver": "7.8.5"
   }
 }

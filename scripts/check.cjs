@@ -5,7 +5,20 @@ const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 function check(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (['node_modules', 'dist', 'test-results', 'test-data', '.git'].includes(entry.name))
+    if (
+      [
+        'node_modules',
+        'dist',
+        'test-results',
+        'test-data',
+        '.git',
+        '.cache',
+        '.npm-cache',
+        'backups',
+        'work',
+        'outputs',
+      ].includes(entry.name)
+    )
       continue;
     const file = path.join(dir, entry.name);
     if (entry.isDirectory()) check(file);

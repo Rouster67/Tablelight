@@ -5,3 +5,8 @@ test-data/
 LICENSE
 LICENSE.electron.txt
 package-lock.json
+backups/
+.cache/
+.npm-cache/
+work/
+outputs/

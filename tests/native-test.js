@@ -11,7 +11,22 @@ module.exports = async function ({
   screen,
   setOverlay,
   store,
+  updates,
+  updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'updates-transport')
+    return require('./updates-transport-native')({ app, store });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'updates')
+    return require('./updates-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+      updates,
+      updateAdapter,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'concentration-use')
     return require('./concentration-use-native')({
       app,
@@ -192,6 +207,20 @@ module.exports = async function ({
     await wait(() =>
       run(`return Boolean(document.querySelector('[data-action="add-character"]'));`)
     );
+    const version = require('../package.json').version;
+    const title = `Tablelight ${version} — DM Console`;
+    assert.equal(controller.getTitle(), title);
+    assert.equal(await run('return document.title;'), title);
+    assert.equal(
+      await run("return document.getElementById('app-version').textContent;"),
+      `Tablelight ${version}`
+    );
+    await run("document.title='A title without the app version';");
+    assert.equal(controller.getTitle(), title);
+    await run(`document.title=${JSON.stringify(title)};`);
+    results.push(
+      'DM title bar and sidebar show the package version; document title changes cannot hide it.'
+    );
     controller.setBounds({ width: 1440, height: 950 });
     controller.showInactive();
     await shot('01-welcome');
@@ -299,6 +328,11 @@ module.exports = async function ({
     assert.equal(getState().characters.length, 6);
     results.push('Six players coexist and character portrait data persists.');
     await click('[data-action="view-display"]');
+    assert.equal(controller.getTitle(), title);
+    assert.equal(
+      await run("return document.getElementById('app-version').textContent;"),
+      `Tablelight ${version}`
+    );
     await click('[data-action="auto-layout"]');
     await click('#confirm-action');
     await wait(() => getState().characters[0].hud.y === 86);

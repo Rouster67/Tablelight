@@ -6,6 +6,7 @@ A local Dungeon Master console and transparent player HUD for a TV battle mat. R
 
 ## What it does
 
+- Shows the running application version in the DM window title bar and sidebar.
 - Keeps a searchable saved player roster with no fixed player limit. Choose up to eight for the active party; only they appear in the session console and TV overlay. The left sidebar shows Party in your initiative order, then All characters for saved characters outside the party in alphabetical order. Each entry has add/remove and Delete character controls, with session Undo available.
 - Saves character portraits, HP, temporary HP, AC, ability scores, skills, and spell-slot totals. Skills and saves have separate proficiency and expertise bubbles.
 - Keeps a searchable library of your spells, actions, and features. Create once, attach to multiple characters, and edit shared rules in one place.
@@ -22,7 +23,7 @@ No spells or rules text are preloaded. Tablelight tracks your configured ability
 
 ## Use the Windows app
 
-Extract the complete Windows release ZIP, then open **Tablelight.exe**. Keep its accompanying files together. No Node.js, account, or internet connection is needed to run a release.
+Download **Tablelight-Setup-[version]-x64.exe** from this repository's GitHub Releases and run it. The installer lets you choose a folder and creates shortcuts. No Node.js or Tablelight account is needed. Local play and saves work offline. Existing portable users need this one-time installation to enable in-app updates; the installed app keeps using the same saved data.
 
 Connect the TV and choose **Windows + P → Extend**. Keep your DM browser and Tablelight on the laptop, and put your player map browser on the TV. In Tablelight, add characters, arrange their bubbles under **TV & layout**, and choose **Show TV overlay**.
 
@@ -30,14 +31,14 @@ See [the user guide](docs/USER_GUIDE.md) for setup, library use, shortcuts, and 
 
 ## Run from source
 
-Requirements: Windows with a desktop session, Node.js 24 or newer, and npm. The Windows x64 portable build is the supported release target. Other operating systems are not verified.
+Requirements: Windows with a desktop session, Node.js 24 or newer, and npm. The Windows x64 NSIS installer is the supported release target. Other operating systems are not verified.
 
 ```sh
 npm ci
 npm start
 ```
 
-The first source run or build downloads Electron's runtime if it is not already installed. The application itself uses local files and makes no external network requests. Source runs use the same `%APPDATA%\Tablelight` save folder as the portable app. Export your party before experimenting; use the isolated tests below for automated checks.
+Installing development dependencies downloads Electron and the other pinned packages. Building may also download installer tooling. Source runs and unpacked previews do not automatically check or install updates. They use the same `%APPDATA%\Tablelight` save folder as the installed app. Export your party before experimenting; use the isolated tests below for automated checks.
 
 ## Check and build
 
@@ -46,11 +47,12 @@ npm run check
 npm run format:check
 npm run test:native
 npm run build:windows
+npm run test:installed-update
 ```
 
 `check` validates JavaScript syntax and runs the unit tests. Native checks open temporary test windows on the available displays, use synthetic characters, and save results under ignored `test-results/`. They do not use your actual party. Run them outside a game session.
 
-The Windows build is written to `dist/Tablelight/` and a versioned ZIP in `dist/`. Move or remove the previous `dist/Tablelight/` before rebuilding. The build includes editable app source, license notices, and the user guide. GitHub Actions checks formatting, runs unit tests, and builds a downloadable artifact; native GUI checks are run on a Windows desktop separately.
+The Windows build writes a versioned installer, its blockmap, and `latest.yml` to `dist/`, with an unpacked inspection copy under `dist/win-unpacked/`. It includes editable app source, production dependencies and their licenses, and the user guide. It never publishes a release. GitHub Actions checks formatting, runs unit tests, and builds downloadable artifacts; native GUI checks run on a Windows desktop separately. `test:installed-update` builds two isolated versions, installs a dedicated test app, exercises an actual update/relaunch, verifies saved data, and uninstalls only that test app. It uses a loopback server, separate application identity, and synthetic saves under `test-results/`.
 
 ## Languages and structure
 
@@ -70,6 +72,8 @@ See [architecture and save format](docs/ARCHITECTURE.md), [contributing](CONTRIB
 See the [roadmap](docs/ROADMAP.md) for proposed features, agreed designs, and local implementation progress. Roadmap entries do not assign release versions or dates.
 
 ## Privacy and saves
+
+Installed copies check GitHub for a newer stable release in the background on each launch. An available update offers **Update and restart** or **Later**. Downloading starts only after consent. **Setup & help → Updates** has the disable setting and **Check now**, which also works when automatic checks are off. See [updates and network use](docs/UPDATES.md) for request locations, failure behavior, and unsigned-installer limitations.
 
 Character data, portraits, and the shared library stay on your laptop in `%APPDATA%\Tablelight\party.json`. A previous-save backup is kept alongside it. All saved players, active party membership, and the library are included in the same atomic save and exported backup. Deleting a player does not delete library entries. Restoring a complete backup replaces the entire roster, party, and library after confirmation.
 

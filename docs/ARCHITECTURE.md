@@ -1,5 +1,39 @@
 # Architecture and save format
 
+The DM native title and sidebar version label use Electron's `app.getVersion()`, which reads the
+running application's package metadata. The existing load response supplies the version to the
+renderer; no network request is involved. The native title ignores HTML title changes so loading
+or refreshing a page cannot hide the version. Browser-only previews display a preview label.
+
+## Application updates
+
+`update-service.js` manages checks, consent, download progress, cancellation, and the save/install
+transition. `updates.json` persists only the automatic-check preference; it is separate from
+party state, exports, and Undo. An unreadable preference fails closed. `update-adapter.js` uses
+the pinned NSIS updater with automatic download, install-on-quit, prereleases, downgrades, web
+installers, and differential downloads disabled. The custom HTTP executor constrains destinations,
+strips rollout IDs and credentials, and cancels metadata requests on a 12-second deadline.
+Full installer downloads retain the library's SHA-512 and optional publisher-signature checks.
+
+The main process enables updates only on Windows after the installer writes its marker under
+`resources`; source and unpacked previews remain inactive. The preload exposes fixed, DM-checked
+update operations and a state listener. It never accepts a renderer-supplied feed, URL, path, or
+executable. `updates-ui.js` renders the DM controls and defers the launch offer while an editor is
+open. Progress changes preserve focus on cancellation. Update state never goes to the TV.
+
+After an explicit update request finishes downloading, main blocks new HUD commands and asks
+the DM to persist its current state through the existing save queue. A failed save releases the
+block and prevents installation; retry reuses the verified download. A successful save permits
+NSIS installation and relaunch. Ordinary quit never installs. Windows interruption recovery is
+manual; the save directory remains outside the application directory. See [network use](UPDATES.md).
+
+`electron-builder.cjs` defines a per-user NSIS installer with a stable app ID and data-preserving
+uninstall. Production packages use the official GitHub feed. The installer regression test alone
+embeds an isolated feed and data directory in specially named test packages, with a separate
+application ID; the production build contains no such configuration. Builds never publish.
+
+## Windows and HUD geometry
+
 The Electron main process creates a DM window and one transparent always-on-top TV window. Each player's independently positioned DOM HUD is rendered inside the TV window. Positions are percentages of the selected display, rotation is degrees around the HUD center, and scale is per character. Fitting expanded HUDs to the display does not overwrite their stored position or rotation.
 
 Expanded containers are fixed at 880×650 CSS pixels before scaling: 50px reserved for the toolbar and a 600px card. The card uses a 344px summary column and a flexible section browser on the right. Both columns have bounded scrolling; navigation stays above the section scroll area. The reserved toolbar space keeps dimensions stable when interaction is disabled. Collapsed portraits retain their existing dimensions.

@@ -8,8 +8,10 @@ if (process.platform !== 'win32')
 const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
-for (const scenario of [
+const scenarios = [
   'standard',
+  'updates',
+  'updates-transport',
   'library',
   'interactive',
   'layout',
@@ -23,7 +25,11 @@ for (const scenario of [
   'concentration',
   'concentration-reminder',
   'concentration-use',
-]) {
+];
+const requested = process.argv.slice(2);
+if (requested.some((scenario) => !scenarios.includes(scenario)))
+  throw new Error('Unknown native test scenario.');
+for (const scenario of requested.length ? requested : scenarios) {
   const dir = fs.mkdtempSync(path.join(resultsRoot, scenario + '-'));
   const child = spawnSync(electron, [root, '--self-test'], {
     env: {

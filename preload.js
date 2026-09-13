@@ -2,6 +2,18 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('tablelight', {
   license: () => ipcRenderer.invoke('app:license'),
+  updateStatus: () => ipcRenderer.invoke('updates:status'),
+  setUpdateChecks: (enabled) => ipcRenderer.invoke('updates:enabled', enabled),
+  checkUpdates: () => ipcRenderer.invoke('updates:check'),
+  dismissUpdate: () => ipcRenderer.invoke('updates:dismiss'),
+  downloadUpdate: () => ipcRenderer.invoke('updates:download'),
+  cancelUpdate: () => ipcRenderer.invoke('updates:cancel'),
+  releasePage: () => ipcRenderer.invoke('updates:release-page'),
+  onUpdates: (callback) => {
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('updates:state', listener);
+    return () => ipcRenderer.removeListener('updates:state', listener);
+  },
   load: () => ipcRenderer.invoke('party:load'),
   save: (state) => ipcRenderer.invoke('party:save', state),
   displays: () => ipcRenderer.invoke('display:list'),
