@@ -1,8 +1,8 @@
 # Tablelight roadmap
 
-The initial ideas were collected on September 11, 2026; class overlay themes were added on
-September 13, 2026. This document tracks planning and agreed implementation progress; entries do
-not assign a release version or authorize implementation.
+The initial ideas were collected on September 11, 2026; class overlay themes and an illustrated
+PDF guide were added on September 13, 2026. This document tracks planning and agreed implementation
+progress; entries do not assign a release version or authorize implementation.
 
 - **Planned candidate:** The requested direction is clear enough to outline. Details and priority
   still need agreement before development.
@@ -31,8 +31,8 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F08 | Upcast and level-based upgrade text                | Planned candidate |
 | F09 | Uploaded icons for abilities                       | Planned candidate |
 | F10 | DM notice and targeted undo for player ability use | Considering       |
-| F11 | Easier access to spell slots and custom resources  | Considering       |
 | F12 | Class overlay color themes                         | Planned candidate |
+| F13 | Bundled illustrated PDF user guide                 | Planned candidate |
 
 ## F01 — Passive abilities section
 
@@ -287,29 +287,6 @@ double undo and clearly explain when exact restoration is no longer safe. Decide
 the popup acknowledges it, whether notices survive a restart, and whether DM-triggered uses should
 also appear in the same history. F07, F08, and F09 should feed the same ability details view.
 
-## F11 — Easier access to spell slots and custom resources
-
-**Requested:** Reduce the need to scroll the expanded HUD's left side to find custom resources
-beneath spell slots. Consider moving slots and resources into a third column on either side.
-
-**Options to explore:**
-
-- A dedicated resources column on the far right, with vitals on the left and abilities in the
-  middle. This separates the frequently used resource controls from the description being read.
-- A resources column on the far left, next to the character's vitals.
-- A configurable compact layout with counters or a small grid, plus the option to pin frequently
-  used resources first.
-
-**Constraints:** The configured HUD size must remain fixed when changing sections from either
-screen, and expansion must preserve position and rotation. A third column must fit inside that
-size rather than silently enlarging it. Long names need readable wrapping. Many resources cannot
-all be readable at once in a fixed-size frame, so define an intentional overflow behavior.
-
-**Open decisions:** Prototype both column placements before selecting one. Decide whether this
-should be a per-character layout choice or a single default. Compare portraits, descriptions,
-and resources with both short and long names, small and large resource counts, and several HUD
-rotations at realistic TV sizes. Compact resource controls still need usable click targets.
-
 ## F12 — Class overlay color themes
 
 **Requested (September 13, 2026):** Add a Theme dropdown to the character creator that changes
@@ -342,6 +319,62 @@ custom theme editors, class artwork, and layout changes would be separate ideas.
 themes on several characters, matching previews, save/backup round trips, older saves, and readable
 controls in collapsed, expanded, rotated, and click-through HUDs without changing their geometry.
 
+## F13 — Bundled illustrated PDF user guide
+
+**Requested (September 13, 2026):** In Setup & help on the DM console, remove the following
+three headings and their explanatory paragraphs:
+
+- Use the HUDs directly
+- Concentration & conditions
+- Rests & corrections
+
+Replace those sections with a clearly labeled link that opens an extensive illustrated how-to
+PDF stored inside the installed program files. The guide should walk through every section and
+available feature, show pictures as examples, and explain the intended use through practical
+workflows. Keep the remaining Setup & help content and controls in place, including backups,
+update controls, keyboard shortcuts, and display tips.
+
+**Suggested guide coverage:**
+
+- Installation, first launch, extending the Windows display, choosing the TV, and arranging the
+  overlay for the table.
+- Every DM console section: saved players and active party membership, character creation and
+  editing, stats, skills and saves, portraits, spell slots, and custom resources and reset rules.
+- Ability and condition libraries: creating, finding, editing, assigning, removing, and deleting
+  entries; shared definitions and each character's individual costs and availability.
+- Running a session: initiative order, turns, movement, actions, bonus actions, reactions, ability
+  use and resource spending, HP and temporary HP, concentration, conditions, rests, and corrections.
+- Player HUDs and the DM's Currently displayed controls: opening and reading abilities, navigating
+  sections, moving, rotating, resizing, collapsing and hiding HUDs, and using click-through mode
+  and shortcuts.
+- Setup & help, local saving, exporting and restoring backups, updates, uninstall save choices,
+  and common setup or display problems.
+- New roadmap features as they become available in the version being documented, including
+  ability references and upgrades, calculated values, use notices, icons, themes, messages, and
+  passives. Describe the behavior actually shipped with that version.
+
+**Examples and presentation:** Include a guided first-session walkthrough and focused examples
+that explain when to use a feature, which controls to choose, and what changes on each screen.
+Use readable screenshots of the actual app with sample characters and user-authored example
+abilities, numbered steps, captions, and callouts. Include a searchable text layer, a linked table
+of contents, PDF bookmarks, and the applicable app version. Keep the guide's editable source and
+example assets available for updates alongside the app.
+
+**Bundling and opening:** Ship the PDF with the installed application and keep it available
+offline. The Setup & help link should open that installed copy in the user's default PDF viewer,
+including when Tablelight is installed in a custom folder. Include the guide in packaged updates
+and report a clear, recoverable error if the file or a PDF viewer cannot be opened.
+
+**Open decisions:** Choose the link label, PDF filename, and page design. Plan the full contents
+early, then capture final screenshots and verify instructions against the app version being
+released. Keep the PDF and existing written user guide consistent when behavior changes.
+
+**Completion checks:** Verify that exactly the three named help sections are replaced, remaining
+Setup & help controls still work, and the link opens the bundled PDF offline from a fresh install
+and a custom installation folder. Render and inspect every PDF page for readable screenshots,
+text, and unclipped content; check navigation links and walk through the examples in the matching
+app version. Verify that a packaged update includes the correct guide.
+
 ## Additional suggestions for discussion
 
 These suggestions are not part of the accepted feature list.
@@ -350,8 +383,6 @@ These suggestions are not part of the accepted feature list.
   so a dismissed F10 notice can be reopened. This would also give targeted undo a predictable home.
 - **Hide all message text:** Provide one DM control that immediately closes every open F02 message
   while retaining unread indicators. This helps the DM manage a shared screen during interruptions.
-- **Layout preview:** Let the DM preview candidate F11 layouts with long names and many resources
-  before changing the live table. This could begin as design mockups rather than a product feature.
 
 ## Suggested sequencing
 
@@ -366,8 +397,11 @@ was released in 1.10.2.
    resource colors before implementing the Theme dropdown (F12).
 3. Design passive abilities and character-based calculations together where they affect the shared
    library and character assignments (F01, F07).
-4. Prototype messages, player-use review, and the resources layout with the actual TV setup
-   (F02, F10, F11). Agree on privacy expectations, undo behavior, and space limits before coding.
+4. Prototype messages and player-use review with the actual TV setup (F02, F10). Agree on privacy
+   expectations, undo behavior, and popup placement before coding.
+5. Outline the illustrated guide (F13), then finish screenshots and walkthroughs against the
+   features included in its release. Bundle the PDF and replace the three named help sections
+   with its link as one complete change.
 
 For future implementation, preserve existing saves and user-authored content, keep calculations
 and resources specific to each character, and retain fixed HUD sizing and rotation. Each feature
