@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.10.2 — 2026-09-13
+
 - Add an optional Remove all saved data choice to the Windows uninstaller, unchecked by default and requiring a separate confirmation. Ordinary uninstalls keep saves; confirmed removal clears characters, ability and condition libraries, portraits, resources, notes, settings, and the previous save. Both choices clean up the installed program, shortcuts, and update cache. Updates preserve saved data and their download cache, and command-line deletion cannot bypass the choice.
 - Uninstall the copy that was launched, including custom folders with missing or stale Windows installation records, and refuse cleanup from an unidentified folder.
 

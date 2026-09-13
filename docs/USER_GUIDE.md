@@ -1,4 +1,4 @@
-# Tablelight 1.10.1
+# Tablelight 1.10.2
 
 A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many players as you need and choose up to eight for the active party. All spells, actions, and features are entered by you; no rulebook content is bundled.
 
