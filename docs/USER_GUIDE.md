@@ -8,6 +8,8 @@ Double-click **Tablelight.exe** in this folder. No installation, account, Node.j
 
 If moving it to your laptop, copy this whole folder or extract the Tablelight-Windows.zip archive there first. You can make a normal Windows shortcut to Tablelight.exe.
 
+The DM window title shows **Tablelight [version] — DM Console**. The same version appears below **Setup & help** in the sidebar. Both show the running application's version, so you can identify which copy is open when testing or reporting a problem.
+
 ## Set up your first session
 
 1. Connect the TV over HDMI. Press **Windows + P → Extend**.

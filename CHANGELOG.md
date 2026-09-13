@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The DM title bar now shows the application version. Both the title bar and existing sidebar version label read the running app's package version automatically.
 - Using an ability marked Requires concentration now automatically starts concentration on that ability or switches to it after confirming the existing warning. This works for every flagged ability type on the DM screen and player HUD. Cancel and failed uses preserve the previous concentration and costs; Undo restores both together.
 - Added a confirmation warning when using an ability marked Requires concentration while already concentrating, on both the DM screen and the player HUD. Cancel spends nothing; continuing spends the normal costs. The warning names the old ability and checks the current concentration again before spending.
 - Added a gently pulsing concentration icon beside the DM Damage button, the damage dialog's Apply button, and the player HUD's HP decrease buttons. Hovering shows the selected ability when available. The icon follows live concentration changes and Undo, keeps the controls in place, and stays steady with reduced motion enabled. Damage does not automatically end concentration or roll a saving throw.

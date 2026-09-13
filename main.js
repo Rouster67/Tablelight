@@ -111,7 +111,7 @@ function safeWindow(options) {
 function createController() {
   const b = screen.getPrimaryDisplay().workArea;
   controller = safeWindow({
-    title: 'Tablelight · Dungeon Master',
+    title: `Tablelight ${app.getVersion()} — DM Console`,
     width: Math.min(1480, b.width),
     height: Math.min(940, b.height),
     minWidth: 940,
@@ -120,6 +120,8 @@ function createController() {
     show: false,
     icon: path.join(__dirname, 'icon.png'),
   });
+  // Keep the installed version visible when the HTML document sets its own title.
+  controller.on('page-title-updated', (event) => event.preventDefault());
   controller.loadFile(path.join(__dirname, 'index.html'));
   controller.once('ready-to-show', () => {
     if (!selfTest) controller.show();
@@ -262,6 +264,7 @@ function registerIPC() {
     native: true,
     status: status(),
     dataPath: store.directory,
+    version: app.getVersion(),
   }));
   ipcMain.handle('party:save', (event, raw) => {
     auth(event);

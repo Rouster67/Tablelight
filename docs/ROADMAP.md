@@ -7,6 +7,7 @@ implementation progress; entries do not assign a release version or authorize im
   still need agreement before development.
 - **Considering:** The idea needs more design discussion before choosing an approach.
 - **Additional suggestion:** An optional idea proposed during planning, not an accepted requirement.
+- **Agreed design:** The behavior is agreed and awaits implementation and testing.
 - **Implemented locally:** The agreed change is in the source and awaits testing and release.
 
 The identifiers below are references within this document, not GitHub issue numbers. When work is
@@ -19,8 +20,8 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | --- | -------------------------------------------------- | ------------------- |
 | F01 | Passive abilities section                          | Considering         |
 | F02 | Messages sent to individual player overlays        | Considering         |
-| F03 | Visible application version on the DM screen       | Planned candidate   |
-| F04 | Quiet check for new releases at launch             | Planned candidate   |
+| F03 | Visible application version on the DM screen       | Implemented locally |
+| F04 | Launch update prompt and Windows installer         | Agreed design       |
 | F05 | Source reference on abilities                      | Planned candidate   |
 | F06 | Concentration reminder when applying damage        | Implemented locally |
 | F07 | Character-based attack bonuses and save DCs        | Considering         |
@@ -75,39 +76,62 @@ screen area is interactive, how should it preserve map interaction outside that 
 
 ## F03 — Visible application version on the DM screen
 
-**Requested:** Make the current version easy to find on the DM screen, potentially in the title bar.
+**Agreed design:** Show **Tablelight [version] — DM Console** in the native DM window title bar.
+Keep the existing sidebar version label below Setup & help and read both from the running app's
+package version. The HTML title must not replace the native title with an unversioned label.
+Browser-only development previews identify themselves as previews instead of claiming a version.
 
-**Already present:** The DM sidebar footer displays `Tablelight 1.9.2`. That label is currently
-written separately from the version in `package.json`.
+**Checkpoint 1:** Implemented locally on `codex/f04-update-check`, together with the agreed F04
+design below. Verify the title and sidebar at launch and after changing DM pages, including the
+working program, before committing. No release-version bump is included in this checkpoint.
 
-**Suggested approach:** Use one consistent, unobtrusive location, such as the sidebar footer or an
-About area. Read the version from the app's package metadata so it stays correct when releasing an
-update. Keep this information on the DM screen.
+## F04 — Launch update prompt and Windows installer
 
-**Open decision:** Decide whether to make the existing footer label more visible or move it.
-This could share a small area with F04.
+**Agreed scope:** Expand the original notification-only idea into an installer-based Windows
+updater using GitHub Releases and established Electron update tooling. Start with an unsigned
+installer and existing GitHub account; no paid service or new account is required for development.
+Code signing remains a separate distribution decision. The source repository and GitHub Desktop
+commit/push workflow stay in place. Existing portable users need a one-time manual installation
+of the first updater-enabled release.
 
-## F04 — Quiet check for new releases at launch
+**Launch and update behavior:**
 
-**Requested:** On launch, compare the installed version with the latest GitHub release. If a newer
-release exists, show a subtle icon on the DM screen. Clicking it opens the latest release page:
-[Tablelight releases](https://github.com/Rouster67/Tablelight/releases/latest).
+- Enable automatic checks by default and check for a newer stable release in the background on
+  every launch, after opening the DM screen. Do not repeatedly poll during play.
+- When a newer release exists, show one DM prompt with **Update and restart** and **Later**.
+  Current versions and offline launches open normally without a popup or startup delay.
+- Update and restart downloads the installer with progress feedback, verifies the download,
+  waits for successful saving, closes Tablelight, installs, and relaunches. Downloading or
+  installation must not happen merely because an update was found or Later was selected.
+- Later dismisses the launch prompt and leaves a subtle update control beside the sidebar
+  version label. It lets the DM return to the update offer. Keep an official release-page link
+  available for release notes and manual downloads:
+  [Tablelight releases](https://github.com/Rouster67/Tablelight/releases/latest).
+- Put the automatic-check setting and **Check now** in Setup & help. Manual checks work even
+  when automatic checks are disabled. Show manual status there; automatic check failures stay
+  quiet. Failed downloads leave the current app usable and allow a retry.
+- Preserve the existing `%APPDATA%\Tablelight` save location and user-authored data. Test on
+  isolated data first, then back up the real saved data before updating the working program.
 
-**Suggested approach:**
+**Planned internet requests:** Checks retrieve public release information and update metadata
+from GitHub. After the user chooses Update and restart, the app downloads release files from
+GitHub and its release-asset hosting. Opening the release-page link launches the user's browser.
+GitHub receives ordinary connection information such as the public IP address and request
+headers. No characters, parties, portraits, notes, messages, or library content are sent. No
+Tablelight account, analytics, or telemetry is added. Local play and saves remain available
+without internet. The final user and security documentation must identify the implemented
+requests and controls before the updater ships.
 
-- Check in the background without delaying startup or showing an error popup when offline.
-- Compare version numbers correctly and use published stable releases by default.
-- Show an accessible label such as "Update available: vX.Y.Z" and open the official release page
-  when clicked. The requested scope is a notification and download link; automatic installation
-  would require a separate proposal.
-- Offer a setting to disable checks. Send no party, character, message, or library content.
+**Checkpoint 2 — pending:** Build the installer and updater, update packaging and release
+instructions, and verify newer/equal/older versions, stable-release filtering, Later, opt-out,
+manual checks, offline/slow requests, failed downloads, save failures, installation, restart,
+and existing-data preservation. Inspect the packaged files and run an actual update between two
+isolated installed test versions. A push or merge alone must never publish an application update;
+publish a versioned GitHub Release with its installer and metadata deliberately.
 
-**Open decisions:** How long should results be cached? Should there also be a Check now control?
-Where should the indicator sit alongside F03?
-
-**Existing behavior to account for:** Tablelight currently makes no external network requests.
-Before implementing this idea, update its privacy and offline documentation to describe the new
-GitHub request. Play and local saves must continue working without internet access.
+**Current implementation:** Checkpoint 1 adds only the version display. This checkout still uses
+the existing portable packaging and makes no external network requests. The installer, prompt,
+download, update setting, and restart behavior above remain pending.
 
 ## F05 — Source reference on abilities
 

@@ -1,5 +1,10 @@
 # Architecture and save format
 
+The DM native title and sidebar version label use Electron's `app.getVersion()`, which reads the
+running application's package metadata. The existing load response supplies the version to the
+renderer; no network request is involved. The native title ignores HTML title changes so loading
+or refreshing a page cannot hide the version. Browser-only previews display a preview label.
+
 The Electron main process creates a DM window and one transparent always-on-top TV window. Each player's independently positioned DOM HUD is rendered inside the TV window. Positions are percentages of the selected display, rotation is degrees around the HUD center, and scale is per character. Fitting expanded HUDs to the display does not overwrite their stored position or rotation.
 
 Expanded containers are fixed at 880×650 CSS pixels before scaling: 50px reserved for the toolbar and a 600px card. The card uses a 344px summary column and a flexible section browser on the right. Both columns have bounded scrolling; navigation stays above the section scroll area. The reserved toolbar space keeps dimensions stable when interaction is disabled. Collapsed portraits retain their existing dimensions.

@@ -12,7 +12,7 @@ No repository has been created or uploaded by preparing this source folder.
 
 ## Windows release
 
-1. Export your real party before development. Update the application version in package.json, the sidebar label, CHANGELOG.md, and user guide as needed; run `npm install --package-lock-only` after dependency changes.
+1. Export your real party before development. Update the application version in package.json, CHANGELOG.md, and user guide as needed; run `npm install --package-lock-only` after version or dependency changes. The DM title bar and sidebar read the application version automatically.
 2. Run `npm ci`, `npm run check`, and `npm run format:check`. Run `npm run test:native` on a Windows desktop, then verify your actual HDMI/TV layout, drag and rotation, and both interaction modes.
 3. Run `npm run build:windows`. Upload its versioned ZIP as a GitHub Release asset. Binaries belong in Release assets rather than ordinary source commits.
 4. Tag the matching source commit. Make corresponding source available alongside the release, using the tagged repository or a source archive with dependencies and build instructions. The portable package also includes editable application source in `resources/app`.

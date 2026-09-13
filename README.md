@@ -6,6 +6,7 @@ A local Dungeon Master console and transparent player HUD for a TV battle mat. R
 
 ## What it does
 
+- Shows the running application version in the DM window title bar and sidebar.
 - Keeps a searchable saved player roster with no fixed player limit. Choose up to eight for the active party; only they appear in the session console and TV overlay. The left sidebar shows Party in your initiative order, then All characters for saved characters outside the party in alphabetical order. Each entry has add/remove and Delete character controls, with session Undo available.
 - Saves character portraits, HP, temporary HP, AC, ability scores, skills, and spell-slot totals. Skills and saves have separate proficiency and expertise bubbles.
 - Keeps a searchable library of your spells, actions, and features. Create once, attach to multiple characters, and edit shared rules in one place.

@@ -11,6 +11,7 @@ let state,
   history = [],
   saveError = '',
   dataPath = '',
+  appVersion = '',
   toastTimer,
   saveQueue = Promise.resolve(),
   lastFocus;
@@ -924,6 +925,10 @@ api.onOverlay((value) => {
     state = TL.normalize(loaded.state);
     overlayStatus = loaded.status || { visible: false };
     dataPath = loaded.dataPath || '';
+    appVersion = loaded.version || '';
+    document.title = appVersion
+      ? `Tablelight ${appVersion} — DM Console`
+      : 'Tablelight — Browser preview';
     displays = await api.displays();
     if (!displays.some((d) => d.id === state.settings.displayId))
       state.settings.displayId = display().id;
