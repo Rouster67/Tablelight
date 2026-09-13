@@ -87,7 +87,7 @@
   }
   function countPages(c) {
     const detail = c.items.find((i) => i.id === c.hud.detailId);
-    if (detail) return pages(detail.description).length;
+    if (detail) return pages(abilityDetails(detail).description).length;
     if (c.hud.panel === 'resources') return Math.max(1, Math.ceil(c.resources.length / 6));
     return Math.max(1, Math.ceil(TL.panelItems(c).length / 5));
   }
@@ -96,16 +96,26 @@
       ? `<span class="pips">${Array.from({ length: max }, (_, i) => `<i class="${i < current ? 'filled' : ''}"></i>`).join('')}</span>`
       : `<b>${current} / ${max}</b>`;
   }
-  function metadata(it) {
-    return [
-      ['Range', it.range],
-      ['Duration', it.duration],
-      ['Concentration', it.requiresConcentration ? 'Required' : ''],
-      ['Components', it.components],
-      ['Attack', it.attack],
-      ['Damage', it.damage],
-      ['Save', it.save],
-    ].filter((x) => x[1]);
+  function abilityDetails(it) {
+    return {
+      metadata: [
+        ['Source', it.source],
+        ['Range', it.range],
+        ['Duration', it.duration],
+        ['Concentration', it.requiresConcentration ? 'Required' : ''],
+        ['Components', it.components],
+        ['Attack', it.attack],
+        ['Damage', it.damage],
+        ['Save', it.save],
+      ].filter((x) => x[1]),
+      description: it.description || 'No description entered.',
+    };
+  }
+  function renderAbilityDetails(it) {
+    const details = abilityDetails(it);
+    return `<div class="detail-meta">${details.metadata
+      .map(([label, value]) => `<div><small>${esc(label)}</small>${esc(value)}</div>`)
+      .join('')}</div><p class="description-text">${esc(details.description)}</p>`;
   }
   function resourceIcon(r) {
     const shape = TL.resourceIcons.includes(r.icon) ? r.icon : 'circle';
@@ -145,17 +155,16 @@
   function render(c, opacity = 0.94) {
     if (!c.hud.expanded)
       return `<div class="hud-collapsed" title="${esc(c.name)}">${portrait(c)}</div>`;
-    const detail = c.items.find((i) => i.id === c.hud.detailId);
+    const detail = c.items.find((i) => i.id === c.hud.detailId),
+      details = detail && abilityDetails(detail);
     const page = Math.min(c.hud.page, countPages(c) - 1);
     let panel = overviewPanel(c);
     if (detail)
-      panel = `<section class="hud-panel"><div class="eyebrow">${esc(detail.kind)} · ${esc(labels[detail.economy] || detail.economy)}${detail.kind === 'spell' ? ` · ${TL.levelLabel(detail)}` : ''}</div><h3>${esc(detail.name)}</h3><div class="hud-metadata">${metadata(
-        detail
-      )
+      panel = `<section class="hud-panel"><div class="eyebrow">${esc(detail.kind)} · ${esc(labels[detail.economy] || detail.economy)}${detail.kind === 'spell' ? ` · ${TL.levelLabel(detail)}` : ''}</div><h3>${esc(detail.name)}</h3><div class="hud-metadata">${details.metadata
         .map(([k, v]) => `<span><small>${k}</small>${esc(v)}</span>`)
         .join(
           ''
-        )}</div><p class="hud-description">${esc(pages(detail.description)[page])}</p>${countPages(c) > 1 ? `<div class="hud-page">Description ${page + 1} / ${countPages(c)}</div>` : ''}</section>`;
+        )}</div><p class="hud-description">${esc(pages(details.description)[page])}</p>${countPages(c) > 1 ? `<div class="hud-page">Description ${page + 1} / ${countPages(c)}</div>` : ''}</section>`;
     else if (c.hud.panel === 'sheet') panel = sheetPanel(c);
     else if (c.hud.panel === 'resources')
       panel = `<section class="hud-panel"><div class="eyebrow">Custom resources</div>${
@@ -254,7 +263,8 @@
     pages,
     countPages,
     pips,
-    metadata,
+    abilityDetails,
+    renderAbilityDetails,
     render,
     mount,
     panelChoices,

@@ -68,6 +68,7 @@ module.exports = async function ({
       name: 'Shared test technique',
       kind: 'feature',
       economy: 'bonus',
+      source: 'Test manual p. 42 <img src=x onerror=window.invalidTest=true>',
       description: 'Original user rules. <script>window.invalidTest=true</script>',
       range: 'Self',
     });
@@ -102,8 +103,16 @@ module.exports = async function ({
       1
     );
     await input('library-search', '');
+    await input('library-search', 'manual 42');
+    assert.equal(
+      await run(`return document.querySelectorAll('#library-list .library-row').length;`),
+      1
+    );
+    await input('library-search', '');
     assert.equal(await run('return window.invalidTest;'), undefined);
-    results.push('Search matches descriptions; entered HTML remains harmless text.');
+    results.push(
+      'Search matches descriptions and source references; entered HTML remains harmless text.'
+    );
     await click('[data-action="add-character"]');
     await fill('character-form', { name: 'Test player A' });
     await wait(() => getState().characters.length === 1);
@@ -124,6 +133,15 @@ module.exports = async function ({
     await click('[data-action="choose-library-entry"]');
     await input('library-picker-search', 'technique');
     await click('[data-action="attach-library-entry"]');
+    assert.ok(
+      await run(
+        `return document.querySelector('#attach-form .detail-meta').textContent.includes('Test manual p. 42 <img');`
+      )
+    );
+    assert.equal(
+      await run(`return document.querySelectorAll('#attach-form .detail-meta img').length;`),
+      0
+    );
     await fill('attach-form', { resourceId: pool, resourceCost: 2 });
     await wait(() => getState().characters[0].items.length === 1);
     assert.equal(getState().library.length, 1);
@@ -166,6 +184,7 @@ module.exports = async function ({
     await shot('03-shared-editor');
     await fill('item-form', {
       name: 'Revised test technique',
+      source: 'Revised manual p. 84 <img src=x onerror=window.invalidTest=true>',
       description: 'Changed once for both players.',
     });
     await wait(() =>
@@ -173,6 +192,9 @@ module.exports = async function ({
     );
     assert.equal(getState().characters[0].resources[0].current, 1);
     assert.equal(getState().characters[1].items[0].disabled, true);
+    assert.ok(
+      getState().characters.every((c) => c.items[0].source.startsWith('Revised manual p. 84'))
+    );
     results.push('Editing the library updates all linked characters and preserves spent state.');
     await click('#library-list [data-action="delete-library-entry"]');
     assert.ok(
@@ -214,6 +236,70 @@ module.exports = async function ({
     );
     assert.equal(getState().characters[1].hud.rotation, 180);
     results.push('Updated shared descriptions reach the TV while preserving individual rotation.');
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.hud-metadata').length===2 && [...document.querySelectorAll('.hud-metadata')].every(el=>el.textContent.includes('Revised manual p. 84 <img'))`
+      )
+    );
+    assert.equal(
+      await overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.hud-metadata img').length`
+      ),
+      0
+    );
+    assert.ok(
+      await overlay.webContents.executeJavaScript(
+        `[...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880 && el.offsetHeight===650)`
+      )
+    );
+    await click(`[data-action="select"][data-id="${a}"]`);
+    await click('[data-action="tab"][data-tab="feature"]');
+    await click('[data-action="view-item"]');
+    assert.ok(
+      await run(
+        `return document.querySelector('.modal-body .detail-meta').textContent.includes('Revised manual p. 84 <img');`
+      )
+    );
+    assert.equal(
+      await run(`return document.querySelectorAll('.modal-body .detail-meta img').length;`),
+      0
+    );
+    await shot('06-source-details');
+    await click('[data-action="close-modal"]');
+    // Save an already-open shared editor after another character spends from the HUD.
+    await click('[data-action="edit-item"]');
+    assert.equal(
+      await run(`return document.querySelector('#item-form [name="source"]').maxLength;`),
+      300
+    );
+    await overlay.webContents.executeJavaScript(
+      `window.tablelight.hudCommand({type:'use',characterId:${JSON.stringify(b)},itemId:${JSON.stringify(getState().characters[1].items[0].id)}})`
+    );
+    await fill('item-form', { source: '' });
+    await wait(() => getState().library[0].source === '');
+    assert.equal(getState().characters[1].turn.bonus, false);
+    assert.equal(getState().characters[0].resources[0].current, 1);
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `![...document.querySelectorAll('.hud-metadata small')].some(el=>el.textContent==='Source')`
+      )
+    );
+    await click('[data-action="edit-item"]');
+    await fill('item-form', { source: 'Final test reference p. 86' });
+    await wait(() => getState().library[0].source === 'Final test reference p. 86');
+    assert.equal(getState().characters[1].hud.rotation, 180);
+    results.push(
+      'Source references match DM, assignment preview, and rotated fixed-size HUDs; clearing hides the row and stale editor saves preserve HUD spending.'
+    );
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.body.innerText.includes('Final test reference p. 86')`
+      )
+    );
+    fs.writeFileSync(
+      path.join(dir, '07-source-hud.png'),
+      (await overlay.webContents.capturePage()).toPNG()
+    );
     await click('[data-action="view-library"]');
     await run(
       `const el=document.getElementById('library-filter');el.value='spell';el.dispatchEvent(new Event('change',{bubbles:true}));`
@@ -235,9 +321,11 @@ module.exports = async function ({
     const saved = store.load().state;
     assert.equal(saved.library.length, 2);
     assert.equal(saved.characters[0].items[0].description, 'Changed once for both players.');
+    assert.equal(saved.characters[0].items[0].source, 'Final test reference p. 86');
     const raw = JSON.parse(fs.readFileSync(store.file, 'utf8'));
     assert.equal(raw.characters[0].items[0].description, undefined);
-    assert.equal(raw.version, 4);
+    assert.equal(raw.characters[0].items[0].source, undefined);
+    assert.equal(raw.version, 5);
     results.push('Reload restores linked abilities; disk stores each definition once.');
     await click('[data-action="view-help"]');
     await click('[data-action="show-license"]');

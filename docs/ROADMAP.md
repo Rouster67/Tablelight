@@ -19,20 +19,20 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                               | Status            |
-| --- | -------------------------------------------------- | ----------------- |
-| F01 | Passive abilities section                          | Considering       |
-| F02 | Messages sent to individual player overlays        | Considering       |
-| F03 | Visible application version on the DM screen       | Released          |
-| F04 | Launch update prompt and Windows installer         | Released          |
-| F05 | Source reference on abilities                      | Planned candidate |
-| F06 | Concentration reminder when applying damage        | Released          |
-| F07 | Character-based attack bonuses and save DCs        | Considering       |
-| F08 | Upcast and level-based upgrade text                | Planned candidate |
-| F09 | Uploaded icons for abilities                       | Planned candidate |
-| F10 | DM notice and targeted undo for player ability use | Considering       |
-| F12 | Class overlay color themes                         | Planned candidate |
-| F13 | Bundled illustrated PDF user guide                 | Planned candidate |
+| ID  | Idea                                               | Status              |
+| --- | -------------------------------------------------- | ------------------- |
+| F01 | Passive abilities section                          | Considering         |
+| F02 | Messages sent to individual player overlays        | Considering         |
+| F03 | Visible application version on the DM screen       | Released            |
+| F04 | Launch update prompt and Windows installer         | Released            |
+| F05 | Source reference on abilities                      | Implemented locally |
+| F06 | Concentration reminder when applying damage        | Released            |
+| F07 | Character-based attack bonuses and save DCs        | Considering         |
+| F08 | Upcast and level-based upgrade text                | Planned candidate   |
+| F09 | Uploaded icons for abilities                       | Planned candidate   |
+| F10 | DM notice and targeted undo for player ability use | Considering         |
+| F12 | Class overlay color themes                         | Planned candidate   |
+| F13 | Bundled illustrated PDF user guide                 | Planned candidate   |
 
 ## F01 — Passive abilities section
 
@@ -167,11 +167,16 @@ rollback are not included. See [network use](UPDATES.md) and [release instructio
 **Requested:** Add an optional source field when creating or editing a spell, action, or feature.
 For example, a user could enter `PHB pg. 284`.
 
-**Suggested approach:** Store this reference in the shared library definition and display it with
-the ability's details on both screens. Keep it free-form so it supports homebrew, different books,
-and a user's own notes. Consider including it in library search.
+**Implemented design (September 13, 2026):** One optional shared Source text field, up to 300
+characters, displayed with ability details on the DM screen, in the assignment preview, and on
+the player HUD. Library search includes references. Empty sources are hidden and long references
+wrap inside the fixed HUD. Source text does not change costs, personal bindings, or availability.
+Links remain outside this first milestone.
 
-**Open decision:** Is a single text field enough, or would an optional link be useful later?
+**Status:** Implemented locally on `codex/ability-details-and-review`; release pending. Format 5
+retains source references and accepts existing formats 1–4. Regression checks cover migration,
+active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
+saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 
 ## F06 — Concentration reminder when applying damage
 

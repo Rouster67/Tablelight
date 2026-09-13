@@ -35,6 +35,9 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await run(
       `commit(()=>{state=TL.empty();const c=TL.character();Object.assign(c,{name:'Wide HUD test',className:'Homebrew caster',species:'Example',level:8,hp:42,maxHp:58,tempHp:6,ac:16,notes:'PRIVATE DM NOTE'});c.slots[0]={level:1,max:4,current:3};c.slots[1]={level:2,max:3,current:2};c.slots[2]={level:3,max:2,current:1};c.resources=[{id:'custom-pool',name:'Custom pool',max:3,current:2,reset:'long'}];c.hud={...c.hud,expanded:true,panel:'sheet',x:50,y:50};c.items=[TL.item({id:'custom-spell',kind:'spell',level:1,name:'Custom spell',economy:'bonus',range:'User-entered range',duration:'User-entered duration',components:'User-entered components',attack:'User-entered attack',damage:'User-entered damage',save:'User-entered save',description:('User-entered description. ').repeat(80)})];for(let i=0;i<7;i++)c.items.push(TL.item({name:'Custom action '+i,economy:'action'}));state.characters=[c];state.activeId=c.id;selectedId=c.id;state.settings.displayId=${JSON.stringify(String(screen.getPrimaryDisplay().id))};state.settings.overlayInteractive=true;view='display';});await saveQueue;`
     );
+    await run(
+      `commit(()=>{state.library[0].source='Test source '+'x'.repeat(288);});await saveQueue;`
+    );
     setOverlay(true);
     await wait(() => getOverlay() && !getOverlay().webContents.isLoading());
     overlay = getOverlay();
@@ -80,7 +83,12 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(() => tv(`return !!document.querySelector('.hud-use-controls');`));
     assert.equal(
       await tv(`return document.querySelectorAll('.hud-browser .hud-metadata>span').length;`),
-      6
+      7
+    );
+    assert.ok(
+      await tv(
+        `const source=[...document.querySelectorAll('.hud-metadata>span')].find(el=>el.querySelector('small').textContent==='Source');return source.textContent.includes('x'.repeat(288)) && source.scrollWidth<=source.clientWidth && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===650;`
+      )
     );
     await command('.hud-pagination', { type: 'page', amount: 1 });
     await wait(() => getState().characters[0].hud.page === 1);

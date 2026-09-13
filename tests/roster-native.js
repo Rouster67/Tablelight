@@ -232,7 +232,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     const raw = JSON.parse(fs.readFileSync(store.file, 'utf8'));
     assert.equal(raw.roster.find((c) => c.id === inactiveId).items[0].description, undefined);
-    assert.equal(raw.version, 4);
+    assert.equal(raw.version, 5);
     results.push(
       'Reload restores the complete roster, active membership, and linked abilities without duplicated rules.'
     );

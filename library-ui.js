@@ -22,6 +22,7 @@ function matchingLibrary(query, filter) {
       const text = [
         entry.name,
         entry.description,
+        entry.source,
         entry.kind,
         labels[entry.economy],
         entry.range,
@@ -94,7 +95,7 @@ function attachLibraryEntry(libraryId, characterId) {
   if (!entry || !c) return;
   modal(
     'Add ' + esc(entry.name),
-    `<form id="attach-form"><div class="eyebrow">${esc(entry.kind)} · ${esc(labels[entry.economy])}</div><p class="description-text space-top">${esc(entry.description || 'No description entered.')}</p>${characterBindingFields(c, { resourceId: '', resourceCost: 1, disabled: false })}</form>`,
+    `<form id="attach-form"><div class="eyebrow">${esc(entry.kind)} · ${esc(labels[entry.economy])}</div>${HUD.renderAbilityDetails(entry)}${characterBindingFields(c, { resourceId: '', resourceCost: 1, disabled: false })}</form>`,
     `<span class="hint">Linked to the shared library.</span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="attach-form" type="submit" class="primary">Add to ${esc(c.name)}</button></div>`
   );
   submitForm('attach-form', (data) => {
@@ -172,6 +173,7 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
       [['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])],
       draft.level ?? ''
     )}</select></label><label class="row hint full"><input type="checkbox" name="usesSlot" ${draft.usesSlot ? 'checked' : ''}>Leveled spells spend a standard spell slot</label><label class="row hint full"><input type="checkbox" name="requiresConcentration" ${draft.requiresConcentration ? 'checked' : ''}>Requires concentration (any ability type)</label>${[
+      ['Source (optional)', 'source'],
       ['Range / target', 'range'],
       ['Duration', 'duration'],
       ['Components', 'components'],

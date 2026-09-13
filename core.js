@@ -138,6 +138,7 @@
       requiresConcentration: false,
       resourceId: '',
       resourceCost: 1,
+      source: '',
       range: '',
       duration: '',
       components: '',
@@ -157,6 +158,7 @@
     'level',
     'usesSlot',
     'requiresConcentration',
+    'source',
     'range',
     'duration',
     'components',
@@ -425,6 +427,7 @@
       for (const k of [
         'id',
         'name',
+        'source',
         'range',
         'duration',
         'components',
@@ -481,7 +484,7 @@
     return c;
   }
   function normalize(raw) {
-    if (!raw || ![1, 2, 3, 4].includes(raw.version) || !Array.isArray(raw.characters))
+    if (!raw || ![1, 2, 3, 4, 5].includes(raw.version) || !Array.isArray(raw.characters))
       throw new Error('This is not a supported Tablelight party backup.');
     if (raw.characters.length > PARTY_LIMIT)
       throw new Error('A party can contain up to eight players.');
@@ -533,7 +536,7 @@
     }
     if (library.length > 5000) throw new Error('The library can contain up to 5,000 entries.');
     if (
-      (raw.version === 4 || raw.conditionLibrary !== undefined) &&
+      (raw.version >= 4 || raw.conditionLibrary !== undefined) &&
       !Array.isArray(raw.conditionLibrary)
     )
       throw new Error('The condition library must be a list.');
@@ -564,7 +567,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 4,
+      version: 5,
       conditionLibrary,
       libraryVersion: 1,
       library,

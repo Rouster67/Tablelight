@@ -10,7 +10,7 @@ test('legacy condition notes and concentration survive migration without seeded 
   c.conditions = 'My condition, with a qualifier';
   c.concentration = 'User-entered focus';
   const s = TL.normalize({ version: 3, characters: [c], roster: [] });
-  assert.equal(s.version, 4);
+  assert.equal(s.version, 5);
   assert.equal(s.conditionLibrary.length, 1);
   assert.equal(s.characters[0].appliedConditions[0].name, c.conditions);
   assert.equal(s.characters[0].concentrating, true);

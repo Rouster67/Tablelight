@@ -1,6 +1,10 @@
 # Ability details and DM review — proposed plan
 
-Status: awaiting the user's approval. This document does not authorize feature implementation.
+Status: the user authorized the first commit, Milestone 1 (F05), on September 13, 2026.
+Source references are implemented locally; later milestones and their open decisions await approval.
+Milestone 1 verification: 79 unit tests and all 16 native scenarios pass, along with syntax and
+formatting checks. Source screenshots were reviewed on a 2560 × 1440 primary display, with
+1440 × 950 DM test windows, 0°/180° player HUDs, and a maximum-length source in the fixed frame.
 Prepared September 13, 2026 against `main` at `4b44cf49675e99f599ecb69398a042a76fdef232`
 (Tablelight 1.10.2 source).
 
@@ -23,8 +27,9 @@ Prepared September 13, 2026 against `main` at `4b44cf49675e99f599ecb69398a042a76
    local tracking. Verified the active branch and zero commits ahead or behind its remote.
 
 GitHub branch: [codex/ability-details-and-review](https://github.com/Rouster67/Tablelight/tree/codex/ability-details-and-review).
-The branch is published; this proposed plan is a local, uncommitted document. No feature code,
-roadmap status, application release, installed program, or real saved party was changed.
+This records the initial planning session. The plan was subsequently merged into `main` in PR #9.
+The first feature commit starts from that updated `main` at `18da5af`. It adds F05 only; no
+application release, installed program, or real saved party is changed.
 
 ## What the current project already provides
 

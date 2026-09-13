@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add an optional shared Source reference to abilities, shown in DM details, assignment previews, and player HUD details and included in library search. Blank sources stay hidden, long references wrap inside the existing HUD size, and shared edits preserve each character's costs and availability.
+- Write save format 5 to retain source references while continuing to import formats 1–4. Older app versions cannot read the new format; retain an exported backup from before upgrading if returning to an older app.
+
 ## 1.10.2 — 2026-09-13
 
 - Add an optional Remove all saved data choice to the Windows uninstaller, unchecked by default and requiring a separate confirmation. Ordinary uninstalls keep saves; confirmed removal clears characters, ability and condition libraries, portraits, resources, notes, settings, and the previous save. Both choices clean up the installed program, shortcuts, and update cache. Updates preserve saved data and their download cache, and command-line deletion cannot bypass the choice.

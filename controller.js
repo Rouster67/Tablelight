@@ -451,13 +451,7 @@ function showItem(id) {
   commit(() => expand(selected(), it.economy, it.id));
   modal(
     esc(it.name),
-    `<div class="eyebrow">${esc(it.kind)} · ${esc(labels[it.economy])}</div><div class="detail-meta">${HUD.metadata(
-      it
-    )
-      .map(([k, v]) => `<div><small>${k}</small>${esc(v)}</div>`)
-      .join(
-        ''
-      )}</div><p class="description-text">${esc(it.description || 'No description entered.')}</p><div class="separator"></div><div id="detail-remote">${detailRemote(c)}</div>`,
+    `<div class="eyebrow">${esc(it.kind)} · ${esc(labels[it.economy])}</div>${HUD.renderAbilityDetails(it)}<div class="separator"></div><div id="detail-remote">${detailRemote(c)}</div>`,
     `<div class="row">${button('Edit', 'edit-item', 'subtle', `data-id="${esc(id)}"`)}${button(it.disabled ? 'Mark available' : 'Mark unavailable', 'disable-item', 'subtle', `data-id="${esc(id)}"`)}</div><div class="row">${button('Close', 'close-modal', 'subtle')}${button('Use ability', 'use-item', 'primary', `data-id="${esc(id)}" ${TL.availability(c, it) ? 'disabled' : ''}`)}</div>`
   );
 }

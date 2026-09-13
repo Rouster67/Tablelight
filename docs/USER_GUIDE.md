@@ -83,6 +83,12 @@ Every ability in the DM’s character lists has **Remove from character** alongs
 
 Existing abilities from older saves move into the library automatically. Exact matches share an entry; different homebrew versions remain separate. Positions, rotations, resources, and selected descriptions are preserved.
 
+**Source references (unreleased):** When creating or editing an ability, optionally enter a
+reference such as **PHB pg. 284** or your homebrew notes in **Source**. It is shared with every
+character using that entry and appears in DM details, the Add to character preview, and player
+HUD details. Library search also matches sources. Leave it blank to hide it. References are
+plain text, up to 300 characters, and do not change any costs or character values.
+
 ## Move and rotate individual bubbles
 
 Every character has their own position, rotation, size, and visibility. Moving one never moves another.
@@ -195,7 +201,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Version 1.8 writes save format version 4. Existing saves migrate automatically, preserving players, party membership, conditions, and concentration notes. Both the ability and condition libraries are included in saves and exported backups. Older app versions cannot read these new saves. Keep a pre-update exported backup if you need to return to an older version.
+Source-reference development builds write save format 5. Existing saves in formats 1–4 migrate automatically, preserving players, party membership, conditions, concentration, and both libraries. Source references are included in saves and exports. Tablelight 1.10.2 and earlier cannot read format 5 and may instead recover an earlier save. Keep a pre-update exported backup if you need to return to an older app; do not reopen your upgraded live save with it.
 
 ## Keyboard shortcuts
 
