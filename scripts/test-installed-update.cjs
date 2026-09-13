@@ -4,12 +4,14 @@ const fs = require('node:fs'),
   path = require('node:path'),
   http = require('node:http'),
   assert = require('node:assert/strict');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
+const { randomUUID } = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 if (process.platform !== 'win32') throw new Error('Installer tests require Windows.');
 fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
 const testRoot = fs.mkdtempSync(path.join(root, 'test-results', 'installed-update-'));
 const installDir = path.join(testRoot, 'installed app');
+const testInstallerGuid = randomUUID();
 const requests = [];
 let releaseDir;
 const server = http.createServer((request, response) => {
@@ -70,6 +72,7 @@ async function buildVersion(version, feed) {
     },
     nsis: {
       ...require('../electron-builder.cjs').nsis,
+      guid: testInstallerGuid,
       shortcutName: 'Tablelight Update Test',
       uninstallDisplayName: 'Tablelight Update Test',
       createDesktopShortcut: false,
@@ -109,15 +112,80 @@ async function buildVersion(version, feed) {
   c.maxHp = 42;
   c.hp = 23;
   c.notes = 'Private synthetic note survives the update.';
+  c.avatar =
+    'data:image/png;base64,' + fs.readFileSync(path.join(root, 'icon.png')).toString('base64');
+  c.abilities.int = 17;
+  c.slots[0] = { level: 1, max: 3, current: 1 };
+  c.resources = [
+    {
+      id: 'test-pool',
+      name: 'Synthetic pool',
+      max: 5,
+      current: 2,
+      reset: 'long',
+      icon: 'diamond',
+      color: '#123456',
+    },
+  ];
   state.characters = [c];
   state.activeId = c.id;
-  state.roster = [{ ...TL.character(1), name: 'Synthetic saved player' }];
+  state.roster = [{ ...TL.character(1), name: 'Synthetic saved player', avatar: c.avatar }];
+  state.library = [
+    TL.libraryEntry({
+      name: 'Synthetic spell',
+      kind: 'spell',
+      level: 1,
+      requiresConcentration: true,
+      description: 'Synthetic spell text.',
+    }),
+    TL.libraryEntry({
+      name: 'Synthetic action',
+      kind: 'action',
+      description: 'Synthetic action text.',
+    }),
+    TL.libraryEntry({
+      name: 'Synthetic feature',
+      kind: 'feature',
+      description: 'Synthetic feature text.',
+    }),
+    TL.libraryEntry({
+      name: 'Unassigned ability',
+      description: 'Retain unused library entries too.',
+    }),
+  ];
+  const concentration = TL.attachItem(state, c.id, state.library[0].id, {
+    resourceId: 'test-pool',
+    resourceCost: 2,
+  });
+  TL.attachItem(state, c.id, state.library[1].id);
+  TL.attachItem(state, state.roster[0].id, state.library[2].id, { disabled: true });
+  TL.setConcentration(c, true, concentration.id);
+  state.conditionLibrary = [
+    TL.conditionEntry({
+      name: 'Active condition',
+      description: 'Synthetic active condition text.',
+    }),
+    TL.conditionEntry({
+      name: 'Saved-player condition',
+      description: 'Synthetic saved-player condition text.',
+    }),
+    TL.conditionEntry({
+      name: 'Unassigned condition',
+      description: 'Retain unused conditions too.',
+    }),
+  ];
+  TL.assignCondition(state, c.id, state.conditionLibrary[0].id);
+  TL.assignCondition(state, state.roster[0].id, state.conditionLibrary[1].id);
+  state.settings.opacity = 0.81;
+  state.settings.soloExpand = true;
   state.settings.hudControlsVersion = 1;
   fs.mkdirSync(path.join(testRoot, 'data'), { recursive: true });
   fs.writeFileSync(
     path.join(testRoot, 'data', 'party.json'),
     JSON.stringify(TL.toBackup(state), null, 2)
   );
+  c.hp = 22; // The old app makes this last edit before updating.
+  fs.writeFileSync(path.join(testRoot, 'expected-party.json'), JSON.stringify(TL.toBackup(state)));
   console.log('Installing isolated test version in ' + installDir);
   await run(
     path.join(first, 'Tablelight-Setup-0.0.1-x64.exe'),
@@ -127,6 +195,22 @@ async function buildVersion(version, feed) {
   );
   const executable = path.join(installDir, 'Tablelight Update Test.exe');
   assert.ok(fs.existsSync(executable));
+  // Only this run's synthetic app owns this fresh registry key. Remove its path
+  // record so the update must preserve the running app's custom folder itself.
+  const testRegistryKey = `HKCU\\Software\\${testInstallerGuid}`;
+  const registryOptions = { windowsHide: true, encoding: 'utf8' };
+  const registeredPath = execFileSync(
+    'reg.exe',
+    ['query', testRegistryKey, '/v', 'InstallLocation'],
+    registryOptions
+  );
+  assert.ok(registeredPath.includes(installDir));
+  execFileSync(
+    'reg.exe',
+    ['delete', testRegistryKey, '/v', 'InstallLocation', '/f'],
+    registryOptions
+  );
+  console.log('Testing a custom folder with spaces and no saved installation path.');
   console.log('Running the real update and restart…');
   const oldProcess = run(executable, [], path.join(testRoot, 'application.log'));
   oldProcess.catch(() => {});
@@ -163,8 +247,15 @@ async function buildVersion(version, feed) {
     ['/S'],
     path.join(testRoot, 'uninstall.log')
   );
-  assert.ok(fs.existsSync(path.join(testRoot, 'data', 'party.json')));
-  console.log('Test uninstall preserved the isolated saved data.');
+  for (const name of ['party.json', 'party.previous.json', 'updates.json']) {
+    assert.deepEqual(
+      fs.readFileSync(path.join(testRoot, 'data', name)),
+      fs.readFileSync(path.join(testRoot, 'before-install-data', name))
+    );
+  }
+  console.log(
+    'Test uninstall preserved the party, previous save, and update preference byte for byte.'
+  );
 })()
   .catch((error) => {
     console.error(error);
