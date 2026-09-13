@@ -138,11 +138,21 @@ installers can still be blocked on some computers.
 Released in [1.10.0](https://github.com/Rouster67/Tablelight/releases/tag/v1.10.0).
 The follow-up in [PR #5](https://github.com/Rouster67/Tablelight/pull/5) pins updates to the running
 installation folder, including custom locations when Windows installation-path records are
-missing. It is merged and prepared for 1.10.1; publication is pending. The real installer test
+missing. It was released in [1.10.1](https://github.com/Rouster67/Tablelight/releases/tag/v1.10.1). The real installer test
 verifies active and saved players, assigned and unused ability and condition libraries, portraits,
 resources, slots, concentration, notes, settings, the previous save, and the update preference.
 The working-program update also passed: closing and reopening the same shortcut retained the new
 version, and the current party file was unchanged.
+
+**Uninstaller follow-up (September 13, 2026):** Add an unchecked Remove all saved data option to
+the existing Windows uninstaller. Keeping saves is the default; deleting them requires a separate
+confirmation defaulting to No. Both choices remove the installed program, its shortcuts, and update
+cache. Confirmed removal includes all characters, ability and condition libraries, resources, notes,
+settings, and the previous save for the current Windows user. Exported backups outside Tablelight's
+folders remain.
+Updates always preserve data and skip this choice; silent uninstalls keep saves. Implemented;
+release is pending. The preceding 1.10.0-to-1.10.1 user test passed: newly created
+character, ability, condition, and resource data survived updating and another restart.
 
 **Release boundary:** A push or merge alone never publishes an application update. Publish a
 versioned stable GitHub Release with its installer and metadata deliberately. The first
@@ -312,7 +322,8 @@ These suggestions are not part of the accepted feature list.
 
 This is a discussion aid, not a release schedule.
 
-1. Publish the prepared 1.10.1 update-folder fix. The version display, installer/updater, and
+1. Review and test the uninstaller data-choice follow-up. The 1.10.1 update-folder fix is released.
+   The version display, installer/updater, and
    concentration reminder (F03, F04, F06) were released in 1.10.0.
 2. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
 3. Design passive abilities and character-based calculations together where they affect the shared

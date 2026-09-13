@@ -68,7 +68,8 @@ The updater retains its normal signature verification when a signed release is c
 the future. Windows can warn about or block unsigned software. If Windows blocks the installer,
 or a system interruption prevents completion, rerun the official installer. This version does
 not promise automatic rollback after an interrupted installation. Saves live outside the
-program directory and uninstalling does not remove them.
+program directory. Uninstalling keeps them unless the user explicitly selects and confirms
+**Remove all saved data** in the uninstall wizard.
 
 Players in the active party and saved roster, ability and condition libraries (including unused
 entries), assignments, portraits, resources, spell slots, concentration, notes, and party settings
@@ -76,6 +77,20 @@ are stored together in `%APPDATA%\Tablelight\party.json`. Updates replace the pr
 retain this separate save folder. The previous save is kept in `party.previous.json`; normal
 saving refreshes that backup. The installer regression test compares all this content and the
 separate update preference before and after installation, restart, and test uninstall.
+
+The uninstaller removes the copy it was launched from, its shortcuts, and its downloaded-update
+cache, including when Windows' installation-path record is missing or stale. It verifies the
+installation folder before removing files.
+Its optional data removal is unchecked by default and requires a separate confirmation, defaulting
+to No. Confirmed removal clears `%APPDATA%\Tablelight` for the current Windows user, including the
+previous save and update preference. Exported backups outside the app's installation, data, and
+cache folders are retained. Cleanup never runs against other users' profiles and refuses directory
+links within the two data/cache folders. Locked files or refused links produce an incomplete-cleanup
+warning.
+
+Updates skip the removal choice and retain both saved data and their download cache. Silent
+uninstalls retain saves. The legacy `--delete-app-data` argument is rejected before uninstalling;
+it cannot bypass the interactive confirmation. Uninstalling adds no internet requests.
 
 Existing portable users must install the first updater-enabled release manually. Publishing
 new source commits is separate from publishing app updates: the updater sees a versioned stable
