@@ -17,7 +17,8 @@ deliberate action; neither a push nor a merge installs an update on users' compu
    `latest.yml` in `dist/`. `dist/win-unpacked` is for inspection, not distribution as an updater.
    The build always uses `publish: never`; it cannot publish a release or use a GitHub upload token.
 4. Inspect and test the installer. It installs per user, offers a folder choice, creates
-   shortcuts, and retains `%APPDATA%\Tablelight` on upgrade and uninstall. Existing portable
+   shortcuts, and retains `%APPDATA%\Tablelight` on upgrade and by default on uninstall. The
+   optional Remove all saved data choice requires separate confirmation. Existing portable
    users need a one-time installation. Preserve the app ID `io.github.rouster67.tablelight` and
    save directory across future releases so updates find the same installation and data.
 
@@ -76,3 +77,28 @@ installer and test uninstall. Test feed and save-path configuration is embedded 
 specially named test packages; ordinary production packages cannot select a custom feed through
 environment variables or renderer messages. Review test results and installer logs under the
 reported directory.
+
+The regression also checks that command-line data deletion is rejected, including during updates;
+that update uninstalls retain their download cache; and that ordinary silent uninstalls remove
+the app, its unique test shortcuts, registry entries, and cache while preserving saves. A synthetic
+directory junction verifies that cleanup keeps linked folders and external files. Cleanup must
+also succeed when its cache is already absent. Normal uninstaller launches are tested with missing
+and stale installation records; they must remove the actual test installation and shortcuts while
+preserving unrelated files. An uninstaller redirected to an unidentified folder must refuse cleanup.
+A held-open synthetic program file verifies that incomplete removal is reported and saves are kept.
+
+For the interactive choices, run `npm run test:installed-update -- --prepare-uninstall-ui`.
+It leaves only the dedicated test app installed and prints its uninstaller path. The test include
+binds cleanup to that run's `test-results` directory; production builds reject this override.
+
+1. Open that test uninstaller. Verify Remove all saved data starts unchecked. Select it, continue,
+   and verify the warning defaults to No. Choose No, then cancel the wizard. Program and save files
+   must be unchanged.
+2. Open the same test uninstaller again and proceed with the optional box unchecked. Complete
+   uninstall. Compare `data/party.json`, `data/party.previous.json`, and `data/updates.json` with
+   `before-install-data/`; all must be byte-for-byte identical. The installed app and cache must be
+   gone, and `external-backup.json` must remain.
+3. Reinstall the same isolated `build-0.0.2` installer into that run's `installed app` folder.
+   Reopen the test uninstaller, select Remove all saved data, and confirm Yes. Complete uninstall.
+   Verify the entire `data` folder is gone, along with the installed app and cache. The exported
+   backup outside `data` must remain. Never run these deletion tests on real saved content.

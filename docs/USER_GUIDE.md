@@ -1,4 +1,4 @@
-# Tablelight 1.10.1
+# Tablelight 1.10.2
 
 A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many players as you need and choose up to eight for the active party. All spells, actions, and features are entered by you; no rulebook content is bundled.
 
@@ -6,7 +6,7 @@ A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many 
 
 Run **Tablelight-Setup-[version]-x64.exe** to install Tablelight for your Windows account, then open its shortcut or **Tablelight.exe** in the chosen folder. No Tablelight account or Node.js is required. Once downloaded, the installer can run offline; local play and saves also work offline.
 
-If you used an older portable copy on this computer, install this version once to enable in-app updates. It uses the same saved-party folder. When moving to another computer, install Tablelight there and transfer an exported party backup. Uninstalling keeps your saved data.
+If you used an older portable copy on this computer, install this version once to enable in-app updates. It uses the same saved-party folder. When moving to another computer, install Tablelight there and transfer an exported party backup. Uninstalling keeps your saved data by default.
 
 The DM window title shows **Tablelight [version] — DM Console**. The same version appears below **Setup & help** in the sidebar. Both show the running application's version, so you can identify which copy is open when testing or reporting a problem.
 
@@ -21,6 +21,27 @@ Under **Setup & help → Updates**, turn off **Check for updates at launch** to 
 Checks request only public release information from GitHub. Choosing Update downloads program files; no characters, portraits, party information, notes, or libraries are uploaded. GitHub receives ordinary connection information such as your public IP address. Play and saves work without internet. See **docs/UPDATES.md** in the included source for details.
 
 The installer is currently unsigned. Windows may show an unknown-publisher warning or block it under stricter device policies. Download only from the official Tablelight repository. If installation cannot finish, keep your saved data and run the official installer again.
+
+## Uninstall Tablelight
+
+Close Tablelight, then use **Windows Settings → Apps → Installed apps → Tablelight → Uninstall**,
+or run **Uninstall Tablelight.exe** in the installation folder.
+
+The wizard removes the installed program, its shortcuts, and cached update downloads. Leave
+**Remove all saved data** unchecked to keep your content and settings for a later reinstall.
+
+For a fresh start, select **Remove all saved data** and confirm the separate deletion warning.
+This permanently removes this Windows user's Tablelight characters, active party, saved roster,
+ability and condition libraries (including unused entries), portraits, resources, spell slots,
+concentration, notes, settings, update preference, and previous save. Export a party backup first
+if you want a recovery copy. Keep exported backups in a separate folder, such as Documents;
+files stored inside the installation folder are removed with the program.
+
+Canceling the warning returns to the choice without uninstalling or deleting data. Updates always
+keep saved data and do not offer this deletion choice. The uninstaller works offline. If files
+are locked or a data folder contains a directory link, it reports incomplete cleanup rather than
+following that link or claiming everything was removed. Other Windows users' saves and separate
+portable/source copies are not removed.
 
 ## Set up your first session
 
