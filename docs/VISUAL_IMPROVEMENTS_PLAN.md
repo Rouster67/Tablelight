@@ -1,0 +1,384 @@
+# Ability icons, class themes, and player messages — proposed plan
+
+Status: awaiting the user's approval. This document does not authorize feature implementation.
+Prepared September 13, 2026 against `main` at `4b44cf49675e99f599ecb69398a042a76fdef232`
+(Tablelight 1.10.2 source).
+
+## Branch setup completed
+
+1. Checked the source checkout, current branch, untracked files, and stashes. It was on
+   `codex/ability-details-and-review`, with no uncommitted changes or stashes, at the same
+   commit as local `main`. Existing ignored files were left in place. For a future dirty
+   checkout, inspect changes first, then preserve intended work in a commit on its existing
+   branch or a named stash including untracked files; verify preservation before switching.
+   Keep ignored saves and backups in place, and never include them in a source commit.
+2. Fetched GitHub's current branches. Local `main` and `origin/main` matched exactly at the
+   commit above, including the latest roadmap update. No merge was necessary. If local main
+   were simply behind, use a fast-forward-only update; if it had diverged, preserve its commits
+   and examine the difference before choosing a merge or rebase.
+3. A new, untracked `docs/ABILITY_DETAILS_PLAN.md` appeared while the other planning task was
+   using the source folder. Preserved its work and active branch by creating a separate working
+   folder at `D:\Repos\Tablelight-source\work\visual-improvements`. Created and activated
+   `codex/ability-icons-class-themes-player-messages` there from the verified main. The name
+   identifies the shared ability images, character appearance, and recipient-specific messages.
+4. Published that exact commit through the connected GitHub account, fetched it back, and
+   configured local tracking. Verified the new folder's active branch and zero commits ahead
+   of or behind its remote. The original source folder stayed on the ability-details branch.
+
+GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
+Use the separate working folder for this plan's development. The branch is published; this
+proposed plan is a local, uncommitted document. No feature code, roadmap status, application
+release, installed program, or real saved party was changed.
+
+## What the current project already provides
+
+- [Roadmap](ROADMAP.md): F09 and F12 are planned candidates; F02 still needs design decisions.
+  These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
+  focused issues with decisions and completion checklists when implementation is scheduled.
+- [Core state](../core.js): shared definitions supply each character's ability display fields.
+  Backups store definitions once and retain separate assignment IDs, resource links, costs,
+  and availability. Saves use format 4 and accept formats 1–4. Up to eight players can be active;
+  inactive characters remain in the saved roster.
+- [Portrait upload](../main.js): the DM can choose PNG/JPEG/WebP files, currently limited to
+  25 MiB and resized to a 512-pixel longest edge. Images are saved as embedded PNG data. Icons
+  can reuse the checked file-selection pattern with smaller limits and additional validation.
+- [Library editor](../library-ui.js) and [controller](../controller.js): shared edits reach
+  active and inactive characters. Character editing merges changed fields while preserving
+  concurrent spending. The generic library-field loop assumes ordinary text, so image fields
+  need separate handling without the current text-length truncation.
+- [HUD rendering](../hud.js) and [styles](../styles.css): the TV and DM preview share rendering.
+  Each character has independent position, rotation, scale, visibility, section, and detail
+  selection. Expanded HUDs remain 880 × 650 CSS pixels before scaling; bubbles are 78 × 78.
+  Many appearance colors are currently hard-coded.
+- [Overlay](../overlay.js) and [window shapes](../window-shape.js): all players share one TV
+  window. Rotated input regions let map clicks through the gaps. Full click-through disables
+  player controls, while DM controls use a separate checked route. The current geometry limit
+  is 16 frames, including transient notices.
+- [Storage](../storage.js): saving is atomic and preserves the previous valid save. The
+  controller keeps up to 40 complete Undo snapshots. Image size affects memory, saving, and
+  repeated TV updates as well as disk space.
+
+The existing unit test suite and JavaScript syntax checks passed during branch planning.
+Native UI scenarios were reviewed but were not run during this branch/planning session.
+
+## Recommended order and milestones
+
+Use F09 → F12 → F02. F09 establishes bounded image storage and common thumbnail rendering.
+F12 then supplies coordinated character colors and readable surfaces. F02 can reuse those
+surfaces while adding separately tested delivery, message state, and rotated reading controls.
+Ability calculations, player-use review, and a new resources layout are outside this plan.
+
+The ability-details plan overlaps in core state, the library editor, HUD details, and save
+compatibility. Agree the shared field/rendering interfaces and integration order before coding.
+Recheck main before each milestone; do not assume another branch's proposed helper already exists.
+Coordinate format numbering so two incompatible save schemas never ship under the same number.
+
+### Milestone 1 — F09 image storage and compatibility
+
+Add an optional image to the shared library definition. Recommend static PNG, JPEG/JPG, and
+WebP uploads, limited to 5 MiB and 4,096 pixels on either source edge. Reject SVG, GIF, animation,
+corrupt files, and disguised unsupported content. Validate dimensions and animation before
+unrestricted decoding, then validate the decoded result. Keep file access in the main process.
+
+Resize to a 256-pixel longest edge without enlarging small images. Preserve aspect ratio and
+transparency, honor source orientation, and re-encode to PNG without original metadata. Retain
+only the converted image; leave the user's source file alone. Proposed stored limits are
+300 KiB per icon and 8 MiB across the library, counting each entry once before base64 overhead.
+Exceeding a limit produces an error without deleting existing artwork or partially importing.
+
+Save each shared image once, including unused library entries. Include artwork in exact-content
+migration comparisons so different images are not silently merged. Extend validation,
+normalization, and backups together; never pass image data through an ordinary text-field limit.
+Keep character assignment IDs and resource settings separate from shared artwork.
+
+Introduce the coordinated save-format version when first writing these fields. Tablelight
+1.10.2 discards unknown fields, so keeping format 4 could silently lose icons or themes after
+loading in an older app. Accept formats 1–4 without loss; older apps should reject the new format.
+
+Completion and tests:
+
+- Accept PNG/JPEG/WebP fixtures, including transparent, tiny, non-square, noisy, and oriented
+  images. Check exact source-byte, dimension, and converted-byte boundaries.
+- Reject empty, corrupt, truncated, disguised, oversized, and animated files, including animated
+  PNG/WebP. Apply the same validation to saves and backup imports, not just the upload dialog.
+- Save, restart, export, and restore in a fresh data folder after source images are unavailable.
+  Compare converted image bytes and verify shared definitions are stored only once.
+- Preserve unused library entries, inactive characters, distinct same-name definitions, legacy
+  portraits, assignments, conditions, notes, resources, and HUD settings. Verify previous-save
+  recovery and rejection before replacing valid data.
+- Update reader/writer version guards together, including condition-library requirements for
+  formats newer than 4. Coordinate with any newer format already shipped by the other branch.
+
+### Milestone 2 — F09 editing and shared display
+
+Add Upload/Replace, Remove, image preview, and Cancel to the shared entry editor. Explain that
+the image changes for every character using the entry. Initially fit the whole picture inside
+a fixed square with a neutral backing; do not add a crop editor or personal image overrides.
+
+Use one thumbnail renderer in the DM library, assignment picker/preview, character ability
+lists/details, and TV lists/details. Retain the current spell/action/feature symbols as
+fallbacks for missing or unrenderable images. Keep ability names and availability labels
+visible. Reserve image space so loading cannot shift controls or change the configured HUD size.
+
+Completion and tests:
+
+- Create, replace, remove, cancel, and undo an icon edit. A failed upload leaves the old image
+  intact. Delayed or broken image rendering retains a fixed frame and usable fallback.
+- Edit one shared entry assigned to two active characters and an inactive character. All get
+  the new image while keeping their separate costs, availability, resources, and HUD selections.
+- Save an editor opened before a player spends a resource; preserve the intervening use.
+- Verify matching thumbnails in every listed DM/TV view at different rotations and scales.
+- Exercise 5,000 definitions within the proposed image budget, eight active users sharing
+  entries, a large inactive roster, 40 Undo snapshots, and rapid HP/resource changes. Measure
+  save/broadcast time and peak memory against baseline. If repeated image copies make play
+  unresponsive, settle immutable image references/cache and serialization before expanding limits.
+
+### Milestone 3 — F12 palettes and matching previews
+
+Introduce per-character HUD color variables and the 13 built-in class palettes listed below.
+Recolor bubble backing, panels, borders, text, and navigation highlights. Scope colors to each
+HUD and its DM preview; preserve the existing Default colors and layout exactly.
+
+Keep Player color as the portrait identity ring and DM identity markers. Preserve custom
+resource colors and shape icons, including existing resources that inherited Player color.
+Themes never rewrite those saved choices or tint uploaded artwork. Keep damage, HP,
+concentration, warnings, and unavailable states recognizable through consistent labels,
+shapes, and outlines as well as color.
+
+Use opaque reading/control backings where class themes need them over arbitrary maps while
+retaining the outer opacity preference. Default keeps its present opacity behavior. Review
+the proposed palette samples before freezing the colors; their hex values are starting choices,
+not a claim that every finished control already passes contrast checks.
+
+Completion and tests:
+
+- Compare all 13 class palettes and Default in collapsed bubbles, expanded HUDs, and matching
+  DM previews. Verify one character's palette cannot affect another HUD or the entire console.
+- Check normal, muted, hovered, selected, focused, spent, damage, concentration, and unread
+  states over bright, dark, and patterned maps at low, default, and full opacity.
+- Target 4.5:1 for ordinary text and 3:1 for meaningful control/icon boundaries, using final
+  composited colors. Large text has a 3:1 minimum, but prefer the ordinary-text target for TV use.
+  Follow [W3C text contrast guidance](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
+  and [W3C non-text contrast guidance](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html).
+- Inspect at actual TV viewing distance. Keep labels legible with light/dark artwork and custom
+  resource colors; use supporting outlines without changing saved colors. Report existing
+  Default low-opacity limitations separately.
+- Confirm identical dimensions, scale, position, rotation, scrolling, and map interaction.
+
+### Milestone 4 — F12 character selection and persistence
+
+Add the same Theme dropdown to Create character and Edit character: Default plus all 13 classes,
+including Artificer. Store a stable theme identifier with the character, independently of the
+free-form class/subclass field. Multiclass and homebrew characters can choose any palette.
+
+Missing themes in older saves use Default. Preserve an unrecognized theme identifier while
+displaying Default so a future choice is not silently erased. Ship every palette with the app.
+Extend character normalization, editing, changed-field merging, and backups together.
+
+Completion and tests:
+
+- Create, edit, cancel, and undo selections for all 14 choices. Class-name changes never select
+  another theme automatically. Switching to Default restores the existing appearance.
+- Give eight characters different themes, including characters with the same entered class.
+  Changing one leaves the other seven and their resources, colors, and placement unchanged.
+- Save a theme edit after concurrent HUD spending and preserve those live changes.
+- Verify restart, export/import, older saves, unknown identifiers, and remove/rejoin preserve
+  each active or inactive character's independent settings.
+
+### Milestone 5 — F02 recipient state and delivery
+
+Before adding the reading interface, create a session-only message store in the main process,
+separate from saved party state and gameplay Undo. Recommend one current message per active
+character, retained until dismissed, with a 2,000-character plain-text limit. Reject blank
+messages. Use stable recipient IDs, message IDs/revisions, and request IDs.
+
+Provide narrow DM-only send, force-open, close, and dismiss operations, and overlay-only open,
+close, and visible-render acknowledgements. Validate the current recipient and message on every
+operation. Unopened bodies stay out of the TV payload; only notification metadata is published.
+Reconcile membership after each saved state update and apply the lifecycle policy below.
+
+Distinguish Sent, indicator delivered, and Opened. Sent means accepted into the session store;
+a hidden or disconnected overlay is still pending. Opened means visibly rendered, not proof
+that someone read it. Record whether the player or DM requested opening. Failed requests retain
+the draft or pending state for retry, without treating a retry as another message.
+
+Completion and tests:
+
+- Send to same-name characters and reorder initiative after composing; routing still follows
+  the selected character ID. Check rapid sends to several players and recipient removal mid-send.
+- Test duplicate requests, explicit replacements, and delayed old open/close/dismiss/acknowledgement
+  events. None may affect a replacement message or a different player.
+- Verify every lifecycle row below, including hidden overlays, inactive/deleted recipients,
+  display disconnection, overlay reload, app restart, and backup restore.
+- Ensure ordinary saving does not erase pending messages. Gameplay Undo must not replay sends,
+  restore dismissed messages, or resurrect a message when restoring a removed character.
+- Check that message bodies never enter normal party state, backups, logs, another character's
+  HUD, or DM layout previews. An unopened message sends metadata only.
+
+### Milestone 6 — F02 composer, mail indicator, and reading controls
+
+Add a DM recipient selector with the chosen player's name and portrait beside Send. Show status,
+Force open, Close, and Dismiss controls for that recipient. Replacing the current message must
+be an explicit action that identifies the recipient and loss of the old message. Preserve
+draft text while editing or after a failed request. No attachments, rich text, sound, or inbox.
+
+Sending shows an envelope with an unread dot/label, without text previews in the HUD, tooltips,
+accessible labels, or toasts. Use a gentle pulse for five seconds, then a steady unread indicator;
+reduced motion starts steady. Keep the badge within the existing collapsed bubble or a reserved
+expanded-HUD corner so it does not enlarge either frame.
+
+Open text inside the expanded HUD's fixed frame. For a collapsed bubble, use a temporary card
+up to 480 × 320 CSS pixels before character scale, anchored at the saved center and using that
+character's rotation and scale. Fit it using existing display-edge behavior without rewriting
+saved position. Preserve section, detail page, scroll, expansion, and other placement settings.
+Wrap and scroll long messages, with fixed Close and paging controls.
+
+The card's input region must follow its rotated visible shape. Avoid a full-screen backdrop,
+invisible input-blocking rectangle, or movement gesture triggered by clicking mail. Eight
+bubbles plus eight message cards and the existing notice can exceed today's 16-frame limit:
+represent the geometry within a supported model or deliberately extend the validated bound and
+tests. Never drop a region. An opened overlapping card can come to the front temporarily without
+moving another player or opening their text.
+
+In click-through mode, keep click-through enabled. The DM can still force open, page, close,
+and dismiss messages, including for collapsed recipients. Players regain those controls when
+HUD controls are enabled. Switching modes does not change ownership or reset the reading page.
+
+Completion and tests:
+
+- Verify recipient selection, draft retention, explicit replacement, send/status, open, close,
+  reopen, and dismiss. An unread badge contains no text preview.
+- Test one, two, and eight simultaneous recipients with mixed collapsed, expanded, and hidden
+  HUDs. Repeated opening or dismissal affects only the intended current message.
+- Check 0°, 90°, 180°, 270°, and an arbitrary angle, including screen edges and overlapping
+  cards. Long text and long words remain readable, pageable, and closable.
+- With click-through on, use every DM reading control; with it off, open/close from the mail
+  indicator. Toggle interaction while reading and verify the page and ownership remain intact.
+- Test map clicks, drags, and wheel input outside rotated HUD/card regions, including their
+  empty corners. Closing, hiding, dragging, display changes, and errors must not leave a
+  full-window input region active.
+- Verify reduced motion, the unread-to-opened transition, and notification-only DM previews.
+
+### Milestone 7 — combined regression and review
+
+Run project syntax, unit, and formatting checks and the relevant native scenarios, then the full
+required Windows native suite before a pull request. Use isolated synthetic saves and artwork.
+Confirm migrations from formats 1–4, both libraries, inactive roster, previous-save recovery,
+independent settings, stale editors, and simultaneous player actions.
+
+Check one, two, and eight players with mixed visibility and expansion at the supported 40–250%
+scale range. Preserve the 880 × 650 expanded frame and 78 × 78 bubble, stored placement and
+rotation, display-edge fitting, column scroll, and DM preview. Exercise icons, themes, and
+messages together while the map remains usable in both interaction modes.
+
+Completion and tests:
+
+- Complete the image, theme, message, compatibility, and input checks in the preceding milestones.
+  Include empty parties, many resources, long names/descriptions, and shared entries in active
+  and inactive characters.
+- Test the actual laptop/TV setup and record resolutions, Windows scaling, viewing distance,
+  and configurations checked. Separate automated results from manual observations.
+- Reconcile shared rendering and save-format changes with merged ability-details work.
+- Update architecture, user guide, roadmap progress, and changelog to describe implemented
+  behavior. Publishing an application release and updating the working installation remain
+  separate later actions.
+
+## Class palettes and existing colors — proposed policy
+
+Use these coordinated surface/highlight directions. Default retains the current appearance.
+The class palettes use near-white main text (`#F3F5F7`) and readable secondary text, with panel,
+border, hover, selected, and focus colors derived and checked during Milestone 3.
+
+| Theme     | Main surface    | Highlight             | Character                 |
+| --------- | --------------- | --------------------- | ------------------------- |
+| Default   | Existing colors | Existing Player color | Current appearance        |
+| Artificer | `#18272B`       | `#E8B777`             | Workshop slate and brass  |
+| Barbarian | `#2B191D`       | `#F29A83`             | Dark burgundy and ember   |
+| Bard      | `#281E35`       | `#DDB0EF`             | Plum and lilac            |
+| Cleric    | `#242A32`       | `#E9D9A2`             | Slate and ivory gold      |
+| Druid     | `#192B23`       | `#ADD095`             | Forest and sage           |
+| Fighter   | `#202833`       | `#B7CADA`             | Steel and silver          |
+| Monk      | `#29251C`       | `#E4C57F`             | Earth and saffron         |
+| Paladin   | `#1C2540`       | `#E6CC84`             | Midnight blue and gold    |
+| Ranger    | `#242B1D`       | `#C0CD88`             | Woodland and olive        |
+| Rogue     | `#22232C`       | `#BCBAD3`             | Charcoal and smoke violet |
+| Sorcerer  | `#301D29`       | `#F0A3CF`             | Wine and rose             |
+| Warlock   | `#241E35`       | `#BDB0F3`             | Deep violet and lavender  |
+| Wizard    | `#192B3C`       | `#94CDF0`             | Ink blue and arcane blue  |
+
+A theme controls the character's overlay surfaces and decorative highlights. Player color
+continues identifying the character, and each resource keeps its own color and icon. Semantic
+states retain their labels and recognizable treatments across palettes. Theme changes affect
+appearance only; they never rewrite game values or other characters' settings.
+
+Concrete acceptance example: two characters share a spell icon but choose Wizard and Barbarian.
+Replacing the spell's image updates both. Changing the first character to Artificer changes only
+that character's bubble, HUD, and preview. Their Player color, resource colors, spent charges,
+and HUD placement remain intact. Returning to Default restores their original appearance.
+
+## Message lifetime and visibility — proposed policy
+
+Use one retained message per active character. Closing hides text; dismissing clears it.
+Messages have no automatic expiry during the session and are excluded from saved parties,
+backups, and gameplay Undo.
+
+| Event                                        | Proposed result                                                                                                                                             |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Send                                         | Accept into the session store; publish only the recipient's notification metadata.                                                                          |
+| Replace an existing message                  | Explicit Replace action identifies the recipient and loss of the old message; close old text and make the replacement unread. Never overwrite silently.     |
+| Player opens                                 | Reveal that message in that character's orientation and acknowledge it after the TV renders it visibly.                                                     |
+| DM Force open                                | Reveal only the selected recipient's message. Record Opened by DM after visible-render acknowledgement.                                                     |
+| Player or DM Close                           | Hide text, retain the message and its opened status; a steady envelope can reopen it.                                                                       |
+| DM Dismiss                                   | Clear both the text and indicator for that recipient. Other messages remain intact.                                                                         |
+| Character bubble or entire TV overlay hidden | Keep the message pending, close any exposed text, and report Hidden to the DM. Sending never unhides anything.                                              |
+| Force open while hidden                      | Require the existing Show control first; disable Force open with an explanation. Do not secretly queue text to open when the TV later becomes visible.      |
+| Collapse or expand while a message is open   | Close text and retain status. Reopening uses the newly appropriate message presentation.                                                                    |
+| Remove from party or delete character        | Clear their session message and open panel. Rejoining starts without an old message. Reject sends to inactive/deleted recipients.                           |
+| App restart, backup restore, or new session  | Clear messages, open panels, and receipts. Backups never contain them. An overlay-only reload within the running app resyncs indicators with bodies closed. |
+
+After hiding or display disconnection, restore notification metadata without automatically
+reopening text. A rejected or unacknowledged request does not claim that a player saw it.
+Ordinary saves retain session messages, while party removal clears the affected recipient's
+message. Undoing that removal must not bring the old message back.
+
+Concrete acceptance example: send a note to a collapsed player while another HUD is expanded.
+Only the recipient gains an unread envelope. Force open displays the note in that player's
+orientation; Close returns to the same bubble with an opened message available to reopen.
+A replacement starts unread even if the previous note was open. A late Close for the old
+message cannot dismiss the replacement. Repeat with click-through enabled and use DM controls.
+
+An opened message is visible to everyone near the shared TV. Show “Opened messages are visible
+on the shared TV” beside the composer/Force open control. Recipient targeting separates where
+text appears; the shared renderer is not a private device or per-player security boundary.
+The DM layout preview shows notification state without automatically exposing the body or
+counting it as opened. Private delivery to personal devices is outside this plan.
+
+## Decisions to approve before coding
+
+1. **Images:** adopt static PNG/JPEG/WebP, a 5 MiB source limit and 4,096-pixel edges, a fitted
+   256-pixel PNG, 300 KiB per stored icon, and an 8 MiB library budget? Start without a crop
+   editor or personal icon overrides; confirm performance before increasing the budget.
+2. **Themes:** adopt the proposed 13 palettes and Default, chosen independently of entered class?
+   Preserve Player color for identity and custom resource colors, with opaque class reading
+   surfaces where needed without changing the outer opacity preference.
+3. **Message scope:** adopt one retained plain-text message per active character, a 2,000-character
+   limit, explicit replacement, visible-render Opened status, and the lifecycle table above?
+4. **Reading controls:** approve the temporary rotated card for collapsed recipients and DM
+   open/page/close/dismiss controls in click-through? Sending must not unhide players or expose
+   text automatically; include the shared-TV notice.
+5. **Lifetime:** recommend session-only messages, ending at restart, backup restore, or recipient
+   removal. Keep them out of backups and gameplay Undo. Closing retains a message for reopening;
+   dismissing clears it. An inbox or persistent history would require a different storage policy.
+6. **Save compatibility and integration:** introduce a new save format while accepting formats
+   1–4, and coordinate numbering and shared rendering with the ability-details branch. If a
+   newer format has already shipped, extend from that format and bump again where required.
+   Old saves must load without loss; older apps should reject newer-format saves clearly.
+
+Across every milestone, keep artwork in the shared library, appearance choices on each character,
+and transient messages outside gameplay saves. Extend validation, migration, serialization, and
+changed-field merging together. Preserve existing user content, resource bindings, fixed HUD
+geometry, map input, escaped text, checked window communication, and save recovery.
+
+Recommended first milestone: **Milestone 1 — F09 image storage and compatibility**, once this
+plan and its initial decisions are approved. It proves that image handling and portable saves
+preserve existing work before connecting the new visuals.
