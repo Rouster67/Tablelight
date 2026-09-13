@@ -65,6 +65,9 @@ Add one optional, free-form Source field to shared definitions, proposed maximum
 Render it in DM ability details, library assignment previews, and HUD details; hide the row when
 blank. Include it in library search. Use escaped plain text. Do not add a URL field yet.
 
+User refinement: label the field simply Source and place it below the description in the editor.
+Show the reference below the description at the bottom right of the ability details on both screens.
+
 Create a small shared ability-details helper that produces ordered labels and text sections.
 The DM, HUD, and later notices will use that same content, with layouts suited to each screen.
 Keep existing descriptions, attack/save text, cost controls, and spending behavior intact.

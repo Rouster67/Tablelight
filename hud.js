@@ -99,7 +99,6 @@
   function abilityDetails(it) {
     return {
       metadata: [
-        ['Source', it.source],
         ['Range', it.range],
         ['Duration', it.duration],
         ['Concentration', it.requiresConcentration ? 'Required' : ''],
@@ -109,13 +108,19 @@
         ['Save', it.save],
       ].filter((x) => x[1]),
       description: it.description || 'No description entered.',
+      source: it.source || '',
     };
+  }
+  function sourceReference(source) {
+    return source ? `<p class="ability-source"><small>Source</small> ${esc(source)}</p>` : '';
   }
   function renderAbilityDetails(it) {
     const details = abilityDetails(it);
     return `<div class="detail-meta">${details.metadata
       .map(([label, value]) => `<div><small>${esc(label)}</small>${esc(value)}</div>`)
-      .join('')}</div><p class="description-text">${esc(details.description)}</p>`;
+      .join(
+        ''
+      )}</div><p class="description-text">${esc(details.description)}</p>${sourceReference(details.source)}`;
   }
   function resourceIcon(r) {
     const shape = TL.resourceIcons.includes(r.icon) ? r.icon : 'circle';
@@ -164,7 +169,7 @@
         .map(([k, v]) => `<span><small>${k}</small>${esc(v)}</span>`)
         .join(
           ''
-        )}</div><p class="hud-description">${esc(pages(details.description)[page])}</p>${countPages(c) > 1 ? `<div class="hud-page">Description ${page + 1} / ${countPages(c)}</div>` : ''}</section>`;
+        )}</div><p class="hud-description">${esc(pages(details.description)[page])}</p>${countPages(c) > 1 ? `<div class="hud-page">Description ${page + 1} / ${countPages(c)}</div>` : ''}${sourceReference(details.source)}</section>`;
     else if (c.hud.panel === 'sheet') panel = sheetPanel(c);
     else if (c.hud.panel === 'resources')
       panel = `<section class="hud-panel"><div class="eyebrow">Custom resources</div>${

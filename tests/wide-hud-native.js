@@ -83,11 +83,11 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(() => tv(`return !!document.querySelector('.hud-use-controls');`));
     assert.equal(
       await tv(`return document.querySelectorAll('.hud-browser .hud-metadata>span').length;`),
-      7
+      6
     );
     assert.ok(
       await tv(
-        `const source=[...document.querySelectorAll('.hud-metadata>span')].find(el=>el.querySelector('small').textContent==='Source');return source.textContent.includes('x'.repeat(288)) && source.scrollWidth<=source.clientWidth && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===650;`
+        `const source=document.querySelector('.ability-source'),panel=document.querySelector('.hud-panel'),description=document.querySelector('.hud-description');return source.textContent.includes('x'.repeat(288)) && source.scrollWidth<=source.clientWidth && panel.lastElementChild===source && source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right' && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===650;`
       )
     );
     await command('.hud-pagination', { type: 'page', amount: 1 });

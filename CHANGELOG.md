@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Place the Source field below the description in the ability editor, with no optional label. Display references at the bottom right of ability details on both screens and in assignment previews.
+
 - Add an optional shared Source reference to abilities, shown in DM details, assignment previews, and player HUD details and included in library search. Blank sources stay hidden, long references wrap inside the existing HUD size, and shared edits preserve each character's costs and availability.
 - Write save format 5 to retain source references while continuing to import formats 1–4. Older app versions cannot read the new format; retain an exported backup from before upgrading if returning to an older app.
 

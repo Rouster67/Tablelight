@@ -173,7 +173,6 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
       [['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])],
       draft.level ?? ''
     )}</select></label><label class="row hint full"><input type="checkbox" name="usesSlot" ${draft.usesSlot ? 'checked' : ''}>Leveled spells spend a standard spell slot</label><label class="row hint full"><input type="checkbox" name="requiresConcentration" ${draft.requiresConcentration ? 'checked' : ''}>Requires concentration (any ability type)</label>${[
-      ['Source (optional)', 'source'],
       ['Range / target', 'range'],
       ['Duration', 'duration'],
       ['Components', 'components'],
@@ -184,7 +183,7 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
       .map(([label, key]) => field(label, key, draft[key], 'text', 'maxlength="300"'))
       .join(
         ''
-      )}<label class="form-field full"><span>Full description / rules</span><textarea name="description" rows="9" maxlength="40000" placeholder="Enter your own rules or homebrew text.">${esc(draft.description)}</textarea></label><p class="hint full">These details are shared. You can write “your spell attack” or “your spell save DC” when values vary by character. Only turn costs, slots, and linked charges are spent automatically; apply other effects yourself.</p></div>${c ? characterBindingFields(c, binding || { resourceId: '', resourceCost: 1, disabled: false }) : ''}</form>`,
+      )}<label class="form-field full"><span>Full description / rules</span><textarea name="description" rows="9" maxlength="40000" placeholder="Enter your own rules or homebrew text.">${esc(draft.description)}</textarea></label><label class="form-field full ability-source-field"><span>Source</span><input name="source" maxlength="300" value="${esc(draft.source)}"></label><p class="hint full">These details are shared. You can write “your spell attack” or “your spell save DC” when values vary by character. Only turn costs, slots, and linked charges are spent automatically; apply other effects yourself.</p></div>${c ? characterBindingFields(c, binding || { resourceId: '', resourceCost: 1, disabled: false }) : ''}</form>`,
     `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
   );
   submitForm('item-form', (data) => {

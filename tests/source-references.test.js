@@ -123,13 +123,15 @@ test('DM and HUD details share escaped sources without replacing descriptions or
   c.hud.page = 1;
   const details = HUD.abilityDetails(c.items[0]);
   assert.equal(details.description, description);
-  assert.equal(details.metadata.find(([label]) => label === 'Source')[1], source);
+  assert.equal(details.source, source);
+  assert.ok(!details.metadata.some(([label]) => label === 'Source'));
   const pages = HUD.countPages(c);
   for (const html of [HUD.renderAbilityDetails(c.items[0]), HUD.render(c)]) {
     assert.ok(html.includes(HUD.esc(source)));
     assert.ok(!html.includes('<img src=x'));
     assert.ok(html.includes('Original attack'));
     assert.ok(html.includes('Original save'));
+    assert.ok(html.indexOf('ability-source') > html.indexOf('description'));
   }
   c.items[0].source = '';
   assert.ok(!HUD.renderAbilityDetails(c.items[0]).includes('<small>Source</small>'));

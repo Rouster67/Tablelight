@@ -86,7 +86,8 @@ Existing abilities from older saves move into the library automatically. Exact m
 **Source references (unreleased):** When creating or editing an ability, optionally enter a
 reference such as **PHB pg. 284** or your homebrew notes in **Source**. It is shared with every
 character using that entry and appears in DM details, the Add to character preview, and player
-HUD details. Library search also matches sources. Leave it blank to hide it. References are
+HUD details. The Source field is below the description, and references appear at the bottom right
+of the opened ability's details. Library search also matches sources. Leave it blank to hide it. References are
 plain text, up to 300 characters, and do not change any costs or character values.
 
 ## Move and rotate individual bubbles

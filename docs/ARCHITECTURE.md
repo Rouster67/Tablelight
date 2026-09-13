@@ -54,7 +54,9 @@ Save format version 5 keeps `library` and `conditionLibrary` alongside `characte
 
 The optional shared `source` field is plain text bounded to 300 characters, defaulting to empty.
 `HUD.abilityDetails` supplies the same ordered metadata and description to DM details, library
-assignment previews, and paged HUD details. Empty source rows are omitted; renderers escape text
+assignment previews, and paged HUD details. Source is a separate footer below the description,
+aligned to the right; HUD controls stay above that footer. The editor also places its Source
+field below the description on the right. Empty sources are omitted; renderers escape text
 and wrap long references inside their existing columns. Library search includes sources. Exact
 legacy-definition matching includes the source, so different references remain distinct.
 

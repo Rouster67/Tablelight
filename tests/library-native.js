@@ -135,11 +135,11 @@ module.exports = async function ({
     await click('[data-action="attach-library-entry"]');
     assert.ok(
       await run(
-        `return document.querySelector('#attach-form .detail-meta').textContent.includes('Test manual p. 42 <img');`
+        `return document.querySelector('#attach-form .ability-source').textContent.includes('Test manual p. 42 <img');`
       )
     );
     assert.equal(
-      await run(`return document.querySelectorAll('#attach-form .detail-meta img').length;`),
+      await run(`return document.querySelectorAll('#attach-form .ability-source img').length;`),
       0
     );
     await fill('attach-form', { resourceId: pool, resourceCost: 2 });
@@ -238,12 +238,12 @@ module.exports = async function ({
     results.push('Updated shared descriptions reach the TV while preserving individual rotation.');
     await wait(() =>
       overlay.webContents.executeJavaScript(
-        `document.querySelectorAll('.hud-metadata').length===2 && [...document.querySelectorAll('.hud-metadata')].every(el=>el.textContent.includes('Revised manual p. 84 <img'))`
+        `document.querySelectorAll('.ability-source').length===2 && [...document.querySelectorAll('.ability-source')].every(el=>el.textContent.includes('Revised manual p. 84 <img'))`
       )
     );
     assert.equal(
       await overlay.webContents.executeJavaScript(
-        `document.querySelectorAll('.hud-metadata img').length`
+        `document.querySelectorAll('.ability-source img').length`
       ),
       0
     );
@@ -257,14 +257,19 @@ module.exports = async function ({
     await click('[data-action="view-item"]');
     assert.ok(
       await run(
-        `return document.querySelector('.modal-body .detail-meta').textContent.includes('Revised manual p. 84 <img');`
+        `return document.querySelector('.modal-body .ability-source').textContent.includes('Revised manual p. 84 <img');`
       )
     );
     assert.equal(
-      await run(`return document.querySelectorAll('.modal-body .detail-meta img').length;`),
+      await run(`return document.querySelectorAll('.modal-body .ability-source img').length;`),
       0
     );
     await shot('06-source-details');
+    assert.ok(
+      await run(
+        `const source=document.querySelector('.modal-body .ability-source'),description=document.querySelector('.description-text');return source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right';`
+      )
+    );
     await click('[data-action="close-modal"]');
     // Save an already-open shared editor after another character spends from the HUD.
     await click('[data-action="edit-item"]');
@@ -272,6 +277,15 @@ module.exports = async function ({
       await run(`return document.querySelector('#item-form [name="source"]').maxLength;`),
       300
     );
+    assert.ok(
+      await run(
+        `const source=document.querySelector('#item-form [name="source"]'),label=source.closest('label'),description=document.querySelector('#item-form [name="description"]');return label.querySelector('span').textContent==='Source' && label.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().right-description.getBoundingClientRect().right)<1;`
+      )
+    );
+    await run(
+      `document.querySelector('#item-form [name="source"]').scrollIntoView({block:'center'});`
+    );
+    await shot('08-source-editor');
     await overlay.webContents.executeJavaScript(
       `window.tablelight.hudCommand({type:'use',characterId:${JSON.stringify(b)},itemId:${JSON.stringify(getState().characters[1].items[0].id)}})`
     );
@@ -281,7 +295,7 @@ module.exports = async function ({
     assert.equal(getState().characters[0].resources[0].current, 1);
     await wait(() =>
       overlay.webContents.executeJavaScript(
-        `![...document.querySelectorAll('.hud-metadata small')].some(el=>el.textContent==='Source')`
+        `document.querySelectorAll('.ability-source').length===0`
       )
     );
     await click('[data-action="edit-item"]');
@@ -295,6 +309,9 @@ module.exports = async function ({
       overlay.webContents.executeJavaScript(
         `document.body.innerText.includes('Final test reference p. 86')`
       )
+    );
+    await overlay.webContents.executeJavaScript(
+      `new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`
     );
     fs.writeFileSync(
       path.join(dir, '07-source-hud.png'),

@@ -71,3 +71,10 @@
   gap: 6px;
   flex-shrink: 0;
 }
+.ability-source-field {
+  width: min(100%, 380px);
+  justify-self: end;
+}
+.ability-source-field > span {
+  text-align: right;
+}
