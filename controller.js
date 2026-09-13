@@ -141,6 +141,7 @@ function render() {
   restoreSidebarState(sidebarState);
   refreshConditionPicker();
   refreshConcentrationPicker();
+  refreshDamageReminder();
 }
 function renderWelcome() {
   return `<div class="empty-state"><div class="eyebrow">A new adventure starts here</div><div class="empty-art space-top">✧</div><h1>Your table. Their adventure.</h1><p>A quiet control room for you. A living character HUD for every player. Add your first adventurer, then bring your tabletop to life.</p>${button('+ Create a character', 'add-character', 'primary')} ${button('Choose saved players', 'view-roster', 'subtle')} <div class="empty-features"><div><b>Build your party</b><p>Enter your own stats, spells, actions, and features. Save as many players as you need. Bring up to eight into the active party.</p></div><div><b>Set the table</b><p>Place and rotate each portrait to face its player, right from your laptop.</p></div><div><b>Run the moment</b><p>Reveal choices. Spend resources. Keep the map available beneath the HUD.</p></div></div></div>`;
@@ -150,7 +151,7 @@ function economyTile(c, k) {
   return `<div class="combat-tile economy-tile ${c.turn[k] ? '' : 'spent'}"><div class="tile-label">${title}<span>${symbols[k]}</span></div><div class="tile-value">${c.turn[k] ? 'Ready' : 'Spent'}</div><div class="tile-toggle">${button('Show options', 'panel', 'small', `data-panel="${k}"`)}${button(c.turn[k] ? 'Spend' : 'Restore', 'toggle-economy', 'small', `data-key="${k}"`)}</div></div>`;
 }
 function renderCharacter(c) {
-  return `<div class="character-hero" style="--accent:${c.accent}">${portrait(c)}<div><div class="eyebrow">${c.id === state.activeId ? 'Current turn' : 'Party member'}</div><h1>${esc(c.name)}</h1><p class="muted">Level ${c.level} ${esc(c.className || 'adventurer')}${c.species ? ' · ' + esc(c.species) : ''}</p></div><div class="hero-tools">${button(c.hud.visible ? 'Hide this bubble' : 'Show this bubble', 'toggle-character-visible', 'subtle')}${button('Position & rotate', 'position-character', 'subtle')}${button('Edit character', 'edit-character', 'subtle')}${button('Remove from party', 'roster-remove', 'subtle', `data-id="${esc(c.id)}"`)}${button('Delete character', 'roster-delete', 'danger subtle', `data-id="${esc(c.id)}"`)}${button(c.hud.expanded ? 'Collapse to portrait' : 'Expand player HUD', 'toggle-expand', c.hud.expanded ? 'active' : 'primary')}</div></div><div class="combat-strip"><div class="combat-tile"><div class="tile-label">Hit points<span>♡</span></div><div class="tile-value">${c.hp}<small>/ ${c.maxHp}</small></div><div class="tile-toggle">${button('− Damage', 'hp-damage', 'small')}${button('+ Heal', 'hp-heal', 'small')}</div>${button('Temp HP: ' + c.tempHp, 'temp-hp', 'small temp-hp-button')}</div>${economyTile(c, 'action')}${economyTile(c, 'bonus')}${economyTile(c, 'reaction')}<div class="combat-tile"><div class="tile-label">Movement <span>➝</span></div><div class="tile-value">${c.turn.movement}<small>/ ${c.speed} ft</small></div><div class="tile-toggle">${button('− 5', 'move', 'small', 'data-amount="-5"')}${button('+ 5', 'move', 'small', 'data-amount="5"')}${button('Set', 'move-set', 'small')}</div></div></div><div class="spread wrap" style="margin-bottom:19px"><div class="quick-tools">${button('↻ Start turn', 'start-turn')}${button('Next turn →', 'next-turn')}${button('Short rest', 'short-rest', 'subtle')}${button('Long rest', 'long-rest', 'subtle')}</div><span class="hint">${c.hud.expanded ? 'HUD expanded' : 'Portrait only'} · ${c.hud.visible ? 'Visible on TV' : 'Hidden on TV'}</span></div><div class="work-grid"><div class="gap"><section class="card"><div class="tabs" role="tablist">${[
+  return `<div class="character-hero" style="--accent:${c.accent}">${portrait(c)}<div><div class="eyebrow">${c.id === state.activeId ? 'Current turn' : 'Party member'}</div><h1>${esc(c.name)}</h1><p class="muted">Level ${c.level} ${esc(c.className || 'adventurer')}${c.species ? ' · ' + esc(c.species) : ''}</p></div><div class="hero-tools">${button(c.hud.visible ? 'Hide this bubble' : 'Show this bubble', 'toggle-character-visible', 'subtle')}${button('Position & rotate', 'position-character', 'subtle')}${button('Edit character', 'edit-character', 'subtle')}${button('Remove from party', 'roster-remove', 'subtle', `data-id="${esc(c.id)}"`)}${button('Delete character', 'roster-delete', 'danger subtle', `data-id="${esc(c.id)}"`)}${button(c.hud.expanded ? 'Collapse to portrait' : 'Expand player HUD', 'toggle-expand', c.hud.expanded ? 'active' : 'primary')}</div></div><div class="combat-strip"><div class="combat-tile"><div class="tile-label">Hit points<span>♡</span></div><div class="tile-value">${c.hp}<small>/ ${c.maxHp}</small></div><div class="tile-toggle hp-controls"><span class="damage-controls">${HUD.damageConcentrationReminder(c)}${button('− Damage', 'hp-damage', 'small')}</span>${button('+ Heal', 'hp-heal', 'small')}</div>${button('Temp HP: ' + c.tempHp, 'temp-hp', 'small temp-hp-button')}</div>${economyTile(c, 'action')}${economyTile(c, 'bonus')}${economyTile(c, 'reaction')}<div class="combat-tile"><div class="tile-label">Movement <span>➝</span></div><div class="tile-value">${c.turn.movement}<small>/ ${c.speed} ft</small></div><div class="tile-toggle">${button('− 5', 'move', 'small', 'data-amount="-5"')}${button('+ 5', 'move', 'small', 'data-amount="5"')}${button('Set', 'move-set', 'small')}</div></div></div><div class="spread wrap" style="margin-bottom:19px"><div class="quick-tools">${button('↻ Start turn', 'start-turn')}${button('Next turn →', 'next-turn')}${button('Short rest', 'short-rest', 'subtle')}${button('Long rest', 'long-rest', 'subtle')}</div><span class="hint">${c.hud.expanded ? 'HUD expanded' : 'Portrait only'} · ${c.hud.visible ? 'Visible on TV' : 'Hidden on TV'}</span></div><div class="work-grid"><div class="gap"><section class="card"><div class="tabs" role="tablist">${[
     ['action', 'Actions'],
     ['bonus', 'Bonus'],
     ['reaction', 'Reactions'],
@@ -280,7 +281,7 @@ window.addEventListener('resize', () => {
   if (view === 'display') paintPreview();
 });
 function renderHelp() {
-  return `<div class="page-heading"><div class="eyebrow">Ready for game night</div><h1 class="space-top">A little setup. A lot of adventure.</h1><p>Your map stays in D&D Beyond. Tablelight supplies the character HUD.</p></div><div class="work-grid"><section class="card"><div class="card-body"><h2>From laptop to battle mat</h2><div class="note"><b>Free software · GPL-3.0-or-later</b><p class="hint">Copyright (C) 2026 Tablelight contributors. You may use, modify, and share Tablelight under the GPL. No warranty is provided.</p>${button('Read license', 'show-license', 'small space-top')}</div><div class="step-list"><div class="step"><div><b>Extend your display</b><p>Connect the TV over HDMI. Press Windows + P and choose Extend. Keep the DM browser and Tablelight on your laptop; move the player browser onto the TV.</p></div></div><div class="step"><div><b>Save players and choose your party</b><p>Open Players & party to create, search, edit, or delete saved players. Add up to eight to the active party. Remove from party keeps a player saved; Delete character removes them. Only active members appear in the session console and TV overlay. Enter stats, upload portraits, and set slot totals. Add your own full spells, actions, bonus actions, reactions, and features. Nothing is preloaded.</p></div></div><div class="step"><div><b>Build your shared library</b><p>Use + Add on a character to Create new or Choose existing. Search and edit entries in Ability library. Shared edits update every linked character; each keeps separate resource links and availability. Removing a character keeps the library.</p></div></div><div class="step"><div><b>Connect abilities to their costs</b><p>Create custom resources in Edit character, below spell slots. Choose a name, maximum, reset rule, shape icon, and color. When editing an ability, choose its action cost and any pool it spends. Spells can spend a selected slot level. To use a special spell pool, disable standard slot spending and link your custom resource.</p></div></div><div class="step"><div><b>Arrange the TV overlay</b><p>Open TV & layout. Select the TV, drag each portrait, and rotate it toward its player. Click Show TV overlay. With HUD controls on, drag any portrait to move that character, drag its ⟳ handle to rotate it, and click the portrait to expand or collapse it. Empty areas pass clicks to the map. Turn HUD controls off for full click-through.</p></div></div><div class="step"><div><b>Run turns from your laptop</b><p>Show options reveals an action list on the TV. View opens an ability’s text for the player; use the page arrows for longer descriptions. Use spends its linked costs. Spent choices turn gray. Start turn restores action, bonus action, reaction, movement, and resources set to Per turn for that character. Next turn follows the sidebar party order. Use Initiative order to sort rolls, or drag players and use the arrows to rearrange them.</p></div></div></div><div class="note">Tablelight is a manual tracker. You decide which rules apply, when reactions refresh, and what an ability does. It does not read or change D&D Beyond. A spell’s damage, healing, movement, conditions, and concentration are applied manually.</div><div class="separator"></div><h3>Use the HUDs directly</h3><p class="hint space-top">Every player has an independent bubble. Multiple HUDs can stay expanded at different rotations. Each expanded HUD includes Move, Rotate, Collapse, and Hide controls, plus HP, movement, turn costs, options, slots, resources, and description pages. Click an option to read it and use its ability controls to spend costs. Changes also update your laptop and are saved automatically. Ctrl + Alt + I switches between interactive HUDs and click-through mode. Per-character Show / Hide buttons are also available on the laptop.</p><div class="separator"></div><h3>Concentration & conditions</h3><p class="hint space-top">Mark Requires concentration when editing any ability. Click Concentrating on an expanded HUD to choose from that character’s assigned, flagged abilities. Choosing one lights the icon; hover to read its name and click again to end concentration. The DM also has Choose ability / Change ability. Selection does not spend costs. Cancel leaves concentration unchanged. Click Add beside Conditions on the DM page to search saved conditions or Create new. Save &amp; add saves a new definition to the library and applies it to this character. The TV also has Add beside Conditions, for choosing existing entries only. Already-applied entries show Added. Assigned conditions appear below the HUD icon; hover for descriptions and use × to remove one. Shared edits update every assigned character. Remove assignments before deleting a library entry.</p><div class="separator"></div><h3>Rests & corrections</h3><p class="hint space-top">Short rest restores pools configured for short rest; apply any healing manually. Long rest restores HP, standard spell slots, turn controls, and both short-rest and long-rest pools; it clears temporary HP and concentration. Manual pools, conditions, and unavailable ability flags stay as you set them. You choose one character or the full party before resting. Use Undo for mistakes, or the + and Restore controls for individual corrections.</p><div class="separator"></div><h3>Keep a backup</h3><p class="hint space-top">Changes, portraits, and the shared library save automatically on this laptop. Export a party backup before major edits or when moving to another computer. Restore replaces all saved players, the active party, and the library after confirmation and can be undone during this session.</p><div class="row space-top">${button('Export party backup', 'export', 'primary')}${button('Restore backup', 'import', 'subtle')}</div><p class="hint space-top">Saved party folder: ${esc(dataPath || 'Desktop app data folder')}</p></div></section><aside class="gap"><section class="card"><div class="card-heading"><h3>Keyboard controls</h3></div><div class="card-body gap"><p class="hint"><span class="key">Ctrl + Alt + H</span><br>Hide TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + O</span><br>Toggle TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + I</span><br>Toggle direct HUD interaction.</p><p class="hint"><span class="key">Ctrl + Z</span><br>Undo the last Tablelight change when you are not typing in a field.</p><p class="hint"><span class="key">Esc</span><br>Close a dialog.</p></div></section><section class="card"><div class="card-heading"><h3>Display tips</h3></div><div class="card-body gap"><p class="hint">The TV overlay starts hidden each time you open Tablelight. Show it when you are ready.</p><p class="hint">If you unplug the selected TV, the overlay hides. Reconnect, select the TV again, then show it.</p><p class="hint">Use the HUD size slider to adjust readability for your TV. Different Windows scaling settings are handled in display coordinates.</p><p class="hint">If a fullscreen application covers the overlay, use a normal or borderless browser window.</p></div></section></aside></div>`;
+  return `<div class="page-heading"><div class="eyebrow">Ready for game night</div><h1 class="space-top">A little setup. A lot of adventure.</h1><p>Your map stays in D&D Beyond. Tablelight supplies the character HUD.</p></div><div class="work-grid"><section class="card"><div class="card-body"><h2>From laptop to battle mat</h2><div class="note"><b>Free software · GPL-3.0-or-later</b><p class="hint">Copyright (C) 2026 Tablelight contributors. You may use, modify, and share Tablelight under the GPL. No warranty is provided.</p>${button('Read license', 'show-license', 'small space-top')}</div><div class="step-list"><div class="step"><div><b>Extend your display</b><p>Connect the TV over HDMI. Press Windows + P and choose Extend. Keep the DM browser and Tablelight on your laptop; move the player browser onto the TV.</p></div></div><div class="step"><div><b>Save players and choose your party</b><p>Open Players & party to create, search, edit, or delete saved players. Add up to eight to the active party. Remove from party keeps a player saved; Delete character removes them. Only active members appear in the session console and TV overlay. Enter stats, upload portraits, and set slot totals. Add your own full spells, actions, bonus actions, reactions, and features. Nothing is preloaded.</p></div></div><div class="step"><div><b>Build your shared library</b><p>Use + Add on a character to Create new or Choose existing. Search and edit entries in Ability library. Shared edits update every linked character; each keeps separate resource links and availability. Removing a character keeps the library.</p></div></div><div class="step"><div><b>Connect abilities to their costs</b><p>Create custom resources in Edit character, below spell slots. Choose a name, maximum, reset rule, shape icon, and color. When editing an ability, choose its action cost and any pool it spends. Spells can spend a selected slot level. To use a special spell pool, disable standard slot spending and link your custom resource.</p></div></div><div class="step"><div><b>Arrange the TV overlay</b><p>Open TV & layout. Select the TV, drag each portrait, and rotate it toward its player. Click Show TV overlay. With HUD controls on, drag any portrait to move that character, drag its ⟳ handle to rotate it, and click the portrait to expand or collapse it. Empty areas pass clicks to the map. Turn HUD controls off for full click-through.</p></div></div><div class="step"><div><b>Run turns from your laptop</b><p>Show options reveals an action list on the TV. View opens an ability’s text for the player; use the page arrows for longer descriptions. Use spends its linked costs. Spent choices turn gray. Start turn restores action, bonus action, reaction, movement, and resources set to Per turn for that character. Next turn follows the sidebar party order. Use Initiative order to sort rolls, or drag players and use the arrows to rearrange them.</p></div></div></div><div class="note">Tablelight is a manual tracker. You decide which rules apply, when reactions refresh, and what an ability does. It does not read or change D&D Beyond. A spell’s damage, healing, movement, and conditions are applied manually. Using an ability marked Requires concentration updates the concentration tracker.</div><div class="separator"></div><h3>Use the HUDs directly</h3><p class="hint space-top">Every player has an independent bubble. Multiple HUDs can stay expanded at different rotations. Each expanded HUD includes Move, Rotate, Collapse, and Hide controls, plus HP, movement, turn costs, options, slots, resources, and description pages. Click an option to read it and use its ability controls to spend costs. Changes also update your laptop and are saved automatically. Ctrl + Alt + I switches between interactive HUDs and click-through mode. Per-character Show / Hide buttons are also available on the laptop.</p><div class="separator"></div><h3>Concentration & conditions</h3><p class="hint space-top">Mark Requires concentration when editing any ability. Click Concentrating on an expanded HUD to choose from that character’s assigned, flagged abilities. Choosing one lights the icon; hover to read its name and click again to end concentration. The DM also has Choose ability / Change ability. Manual selection does not spend costs. Using a flagged ability starts concentration; if already concentrating, confirm the warning to switch to the used ability. Cancel and failed uses leave concentration and costs unchanged. Undo restores both together. Click Add beside Conditions on the DM page to search saved conditions or Create new. Save &amp; add saves a new definition to the library and applies it to this character. The TV also has Add beside Conditions, for choosing existing entries only. Already-applied entries show Added. Assigned conditions appear below the HUD icon; hover for descriptions and use × to remove one. Shared edits update every assigned character. Remove assignments before deleting a library entry.</p><div class="separator"></div><h3>Rests & corrections</h3><p class="hint space-top">Short rest restores pools configured for short rest; apply any healing manually. Long rest restores HP, standard spell slots, turn controls, and both short-rest and long-rest pools; it clears temporary HP and concentration. Manual pools, conditions, and unavailable ability flags stay as you set them. You choose one character or the full party before resting. Use Undo for mistakes, or the + and Restore controls for individual corrections.</p><div class="separator"></div><h3>Keep a backup</h3><p class="hint space-top">Changes, portraits, and the shared library save automatically on this laptop. Export a party backup before major edits or when moving to another computer. Restore replaces all saved players, the active party, and the library after confirmation and can be undone during this session.</p><div class="row space-top">${button('Export party backup', 'export', 'primary')}${button('Restore backup', 'import', 'subtle')}</div><p class="hint space-top">Saved party folder: ${esc(dataPath || 'Desktop app data folder')}</p></div></section><aside class="gap"><section class="card"><div class="card-heading"><h3>Keyboard controls</h3></div><div class="card-body gap"><p class="hint"><span class="key">Ctrl + Alt + H</span><br>Hide TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + O</span><br>Toggle TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + I</span><br>Toggle direct HUD interaction.</p><p class="hint"><span class="key">Ctrl + Z</span><br>Undo the last Tablelight change when you are not typing in a field.</p><p class="hint"><span class="key">Esc</span><br>Close a dialog.</p></div></section><section class="card"><div class="card-heading"><h3>Display tips</h3></div><div class="card-body gap"><p class="hint">The TV overlay starts hidden each time you open Tablelight. Show it when you are ready.</p><p class="hint">If you unplug the selected TV, the overlay hides. Reconnect, select the TV again, then show it.</p><p class="hint">Use the HUD size slider to adjust readability for your TV. Different Windows scaling settings are handled in display coordinates.</p><p class="hint">If a fullscreen application covers the overlay, use a normal or borderless browser window.</p></div></section></aside></div>`;
 }
 function modal(title, body, footer = '', narrow = false) {
   lastFocus = document.activeElement;
@@ -415,17 +416,29 @@ function confirmAction(title, text, handler, label = 'Confirm') {
     handler();
   };
 }
-function amountModal(title, initial, handler) {
+function amountModal(title, initial, handler, damageCharacterId = '') {
   modal(
     title,
     `<form id="amount-form">${field('Amount', 'amount', initial, 'number', 'min="0" max="9999" required autofocus')}</form>`,
-    `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button type="submit" form="amount-form" class="primary">Apply</button></div>`,
+    `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}${damageCharacterId ? `<span class="damage-controls" data-damage-character="${esc(damageCharacterId)}">${HUD.damageConcentrationReminder(state.characters.find((c) => c.id === damageCharacterId))}` : ''}<button type="submit" form="amount-form" class="primary">Apply</button>${damageCharacterId ? '</span>' : ''}</div>`,
     true
   );
   submitForm('amount-form', (data) => {
     handler(Number(data.get('amount')));
     closeModal();
   });
+}
+function refreshDamageReminder() {
+  const controls = document.querySelector('[data-damage-character]');
+  if (!controls) return;
+  const c = state.characters.find((c) => c.id === controls.dataset.damageCharacter);
+  if (!c) {
+    closeModal();
+    return;
+  }
+  controls.querySelector('.damage-concentration-reminder').outerHTML =
+    HUD.damageConcentrationReminder(c);
+  document.getElementById('modal-title').textContent = 'Damage · ' + c.name;
 }
 function showItem(id) {
   const c = selected(),
@@ -457,17 +470,33 @@ function useItem(id) {
     toast(reason, true);
     return;
   }
-  const apply = (level) => {
-    commit(() => {
-      const target = selected();
-      TL.spend(
-        target,
-        target.items.find((i) => i.id === id),
-        level
+  const apply = (level, confirmedConcentration = '') => {
+    const target = state.characters.find((target) => target.id === c.id),
+      ability = target?.items.find((i) => i.id === id);
+    if (!ability) {
+      toast('This ability is no longer available for that character.', true);
+      return;
+    }
+    const reason = TL.availability(target, ability, level);
+    if (reason) {
+      toast(reason, true);
+      return;
+    }
+    const warning = TL.concentrationUseWarning(target, ability);
+    if (warning && confirmedConcentration !== warning.token) {
+      confirmAction(
+        'End current concentration?',
+        `${esc(warning.message)} Continue?`,
+        () => apply(level, warning.token),
+        'Use ability'
       );
-      expand(target, it.economy, it.id);
-    }, it.name + ' used');
-    closeModal();
+      return;
+    }
+    const success = commit(() => {
+      TL.spend(target, ability, level, confirmedConcentration);
+      expand(target, ability.economy, ability.id);
+    }, ability.name + ' used');
+    if (success) closeModal();
   };
   if (it.kind === 'spell' && it.level > 0 && it.usesSlot) {
     modal(
@@ -477,7 +506,7 @@ function useItem(id) {
           .filter((s) => s.level >= it.level && s.current > 0)
           .map((s) => [s.level, 'Level ' + s.level + ' · ' + s.current + ' remaining']),
         c.slots.find((s) => s.level >= it.level && s.current > 0)?.level
-      )}</select></label><p class="hint space-top">Also spends ${it.economy === 'free' ? 'no turn action' : esc(labels[it.economy].toLowerCase())}${it.resourceId ? ' and ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}. Damage, healing, and other effects are manual.</p></form>`,
+      )}</select></label><p class="hint space-top">Also spends ${it.economy === 'free' ? 'no turn action' : esc(labels[it.economy].toLowerCase())}${it.resourceId ? ' and ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}. Damage and healing are applied manually.</p></form>`,
       `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button type="submit" form="cast-form" class="primary">Cast & spend</button></div>`,
       true
     );
@@ -661,8 +690,19 @@ document.addEventListener('click', async (event) => {
         );
         break;
       case 'hp-damage':
-        amountModal('Damage · ' + esc(c.name), 1, (amount) =>
-          commit(() => TL.damage(selected(), amount), 'Damage applied')
+        amountModal(
+          'Damage · ' + esc(c.name),
+          1,
+          (amount) =>
+            commit(
+              () =>
+                TL.damage(
+                  state.characters.find((target) => target.id === c.id),
+                  amount
+                ),
+              'Damage applied'
+            ),
+          c.id
         );
         break;
       case 'hp-heal':

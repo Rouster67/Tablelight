@@ -9,7 +9,7 @@ A local Dungeon Master console and transparent player HUD for a TV battle mat. R
 - Keeps a searchable saved player roster with no fixed player limit. Choose up to eight for the active party; only they appear in the session console and TV overlay. The left sidebar shows Party in your initiative order, then All characters for saved characters outside the party in alphabetical order. Each entry has add/remove and Delete character controls, with session Undo available.
 - Saves character portraits, HP, temporary HP, AC, ability scores, skills, and spell-slot totals. Skills and saves have separate proficiency and expertise bubbles.
 - Keeps a searchable library of your spells, actions, and features. Create once, attach to multiple characters, and edit shared rules in one place.
-- Tracks concentration with a lit HUD toggle and a searchable selection of that character's assigned abilities marked Requires concentration. Any ability type can carry the shared flag. A separate condition library stores your condition names and descriptions; assigned conditions appear on the HUD with descriptions on hover.
+- Tracks concentration with a lit HUD toggle and a searchable selection of that character's assigned abilities marked Requires concentration. Using a flagged ability automatically starts concentration or switches it after a warning when already concentrating. Any ability type can carry the shared flag. A separate condition library stores your condition names and descriptions; assigned conditions appear on the HUD with descriptions on hover.
 - Keeps expanded HUD dimensions fixed across menus, with exact size and TV scroll controls in the DM’s Currently displayed panel.
 - Provides named custom resources with shape icons, colors, and short-rest, long-rest, per-turn, or manual recovery. Edit them inside Edit character; they stack beneath spell slots on the TV.
 - Tracks each character's own action, bonus action, reaction, movement, spell slots, resource pools, and unavailable flags.
@@ -18,7 +18,7 @@ A local Dungeon Master console and transparent player HUD for a TV battle mat. R
 - Reorders the party with dragging or arrows, or sorts initiative rolls. Added party members go to the bottom. Next turn follows the visible sidebar order while TV seating stays in place; rounds are not counted.
 - Saves locally, supports party backups, and keeps the last 40 changes available for Undo during the session.
 
-No spells or rules text are preloaded. This is a manual tracker for your chosen rules, including 2024 D&D and homebrew; it does not adjudicate rules or apply ability effects automatically.
+No spells or rules text are preloaded. Tablelight tracks your configured ability costs and concentration for your chosen rules, including 2024 D&D and homebrew. It does not adjudicate rules; other ability effects are applied manually.
 
 ## Use the Windows app
 
@@ -67,7 +67,7 @@ The application is written in **JavaScript**, with **HTML** screens and **CSS** 
 
 See [architecture and save format](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), and [release instructions](docs/RELEASING.md).
 
-See the [roadmap](docs/ROADMAP.md) for proposed features, design questions, and ideas under consideration. These are planning notes, not announcements of implemented features or promised release dates.
+See the [roadmap](docs/ROADMAP.md) for proposed features, agreed designs, and local implementation progress. Roadmap entries do not assign release versions or dates.
 
 ## Privacy and saves
 

@@ -12,6 +12,26 @@ module.exports = async function ({
   setOverlay,
   store,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'concentration-use')
+    return require('./concentration-use-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'concentration-reminder')
+    return require('./concentration-reminder-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'concentration')
     return require('./concentration-native')({
       app,

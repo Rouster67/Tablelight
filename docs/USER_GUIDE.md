@@ -113,7 +113,11 @@ The expanded HUD has a **Concentrating** icon below the ability scores. With **H
 
 The DM character page has the same toggle plus **Choose ability / Change ability**. Both screens include all flagged ability types, including bonus actions and reactions. Selecting one records concentration without spending an action, slot, or charge. Use the normal ability controls to spend costs separately.
 
-The selected ability is saved by its character assignment, so renaming its shared entry updates the hover name. Removing that ability from the character or turning its concentration flag off ends concentration on it. Long rest ends concentration; short rest and Start turn leave it as set. Damage and casting do not automatically change it.
+The selected ability is saved by its character assignment, so renaming its shared entry updates the hover name. Removing that ability from the character or turning its concentration flag off ends concentration on it. Long rest ends concentration; short rest, Start turn, damage, and using abilities without the concentration flag leave it as set.
+
+Using an ability marked **Requires concentration** automatically selects that ability in the concentration tracker after its use is validated. This applies to spells, actions, and features, including cantrips and abilities that use custom resources. If the character is already concentrating, an **End current concentration?** warning opens on the screen where you clicked Use. It names the old ability, or says **your current ability** when no name is recorded. **Cancel** preserves the old concentration and spends nothing; **Use ability** spends the normal action, slot, and resource costs and switches concentration to the used ability. This also applies when using the same concentration ability again. On the TV, the warning stays inside that character's rotated HUD. Failed uses leave concentration and costs unchanged. **Undo** restores the previous concentration and all costs from that use together. The manual Choose ability / Change ability controls remain available for corrections.
+
+While a character is concentrating, an amber concentration icon pulses beside the DM's **− Damage** button, **Apply** in the damage dialog, and the interactive HUD's **HP −1 / −5** buttons. Hover over it to see **Concentrating: [ability name]**, or **Concentrating** when no name is recorded. The icon updates as concentration changes, including while the damage dialog is open. It is only a reminder: damage applies normally, with no additional confirmation, automatic roll, or change to concentration. The icon stays steady when reduced motion is enabled in your system.
 
 Open **Condition library** in the sidebar to create, search, edit, or delete conditions. Each definition has only a name and description. The library starts empty. **Assign** adds a definition to an active or saved character.
 
@@ -127,7 +131,7 @@ Conditions remain until you remove them, including after rests. Upgrading preser
 
 ## 2024 rules and homebrew
 
-Tablelight tracks the values you enter. It does not adjudicate D&D rules or automatically apply damage, healing, movement effects, conditions, concentration, or spellcasting restrictions. Enter your chosen rules and apply those effects yourself.
+Tablelight tracks the values you enter. Using an ability spends its configured costs and updates concentration when you have marked **Requires concentration**. It does not adjudicate D&D rules or automatically apply damage, healing, movement effects, conditions, or spellcasting restrictions. Enter your chosen rules and apply those effects yourself; concentration saving throws and ending concentration after a failed save remain manual.
 
 The spell-level dropdown defaults to **None**. Actions and features need no spell level. For spells, choose None, Cantrip, or a level from 1–9. None is distinct from Cantrip and does not automatically spend a standard slot. Standard leveled spells can spend one slot of the selected level; cantrips do not spend standard slots. For special spell pools, uncheck standard slot spending and link a custom resource instead.
 

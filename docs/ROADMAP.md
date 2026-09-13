@@ -1,12 +1,13 @@
 # Tablelight roadmap
 
-These ideas were collected on September 11, 2026. This is a planning document: it does not
-announce implemented features, assign a release version, or authorize implementation.
+These ideas were collected on September 11, 2026. This document tracks planning and agreed
+implementation progress; entries do not assign a release version or authorize implementation.
 
 - **Planned candidate:** The requested direction is clear enough to outline. Details and priority
   still need agreement before development.
 - **Considering:** The idea needs more design discussion before choosing an approach.
 - **Additional suggestion:** An optional idea proposed during planning, not an accepted requirement.
+- **Implemented locally:** The agreed change is in the source and awaits testing and release.
 
 The identifiers below are references within this document, not GitHub issue numbers. When work is
 scheduled, create a focused issue with its decisions and completion checklist, then link it here.
@@ -14,19 +15,19 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                               | Status            |
-| --- | -------------------------------------------------- | ----------------- |
-| F01 | Passive abilities section                          | Considering       |
-| F02 | Messages sent to individual player overlays        | Considering       |
-| F03 | Visible application version on the DM screen       | Planned candidate |
-| F04 | Quiet check for new releases at launch             | Planned candidate |
-| F05 | Source reference on abilities                      | Planned candidate |
-| F06 | Concentration reminder when applying damage        | Planned candidate |
-| F07 | Character-based attack bonuses and save DCs        | Considering       |
-| F08 | Upcast and level-based upgrade text                | Planned candidate |
-| F09 | Uploaded icons for abilities                       | Planned candidate |
-| F10 | DM notice and targeted undo for player ability use | Considering       |
-| F11 | Easier access to spell slots and custom resources  | Considering       |
+| ID  | Idea                                               | Status              |
+| --- | -------------------------------------------------- | ------------------- |
+| F01 | Passive abilities section                          | Considering         |
+| F02 | Messages sent to individual player overlays        | Considering         |
+| F03 | Visible application version on the DM screen       | Planned candidate   |
+| F04 | Quiet check for new releases at launch             | Planned candidate   |
+| F05 | Source reference on abilities                      | Planned candidate   |
+| F06 | Concentration reminder when applying damage        | Implemented locally |
+| F07 | Character-based attack bonuses and save DCs        | Considering         |
+| F08 | Upcast and level-based upgrade text                | Planned candidate   |
+| F09 | Uploaded icons for abilities                       | Planned candidate   |
+| F10 | DM notice and targeted undo for player ability use | Considering         |
+| F11 | Easier access to spell slots and custom resources  | Considering         |
 
 ## F01 — Passive abilities section
 
@@ -121,17 +122,34 @@ and a user's own notes. Consider including it in library search.
 
 ## F06 — Concentration reminder when applying damage
 
-**Requested:** When the DM uses the damage control on a concentrating character, show a small
-reminder to have that player make a concentration roll.
+**Agreed design (September 12, 2026):** Show a gently pulsing amber concentration icon beside
+damage controls whenever that character is concentrating: the DM's Damage button, Apply in the
+damage dialog, and one shared icon beside the interactive HUD's HP −1 / −5 buttons. Hovering shows
+the selected ability name when available, with a generic Concentrating label otherwise.
 
-**Suggested approach:** Include the selected concentration ability's name when available. Keep the
-reminder easy to dismiss and leave the outcome to the DM. Applying damage should not automatically
-end concentration or roll a result.
+**Behavior:** The icon follows the character's current concentration, including changes from the
+other screen and Undo. It reserves a fixed space and uses a steady icon with reduced motion.
+It adds no popup, dismissal, confirmation, roll, difficulty calculation, or automatic outcome.
+Temporary HP, zero damage, and canceled damage need no special reminder event: the icon remains
+visible for as long as concentration is active. Healing, temporary HP adjustments, and movement
+controls do not get this icon.
 
-**Open decisions:** Show the reminder while entering damage or immediately after applying it?
-Decide how to handle temporary HP, zero damage, canceled damage, and undo so reminders remain
-consistent with the event. Decide whether damage entered through the overlay should notify the DM
-as well. Any automatic rules calculation would need separate agreement.
+**Completion checks:** Verify all three locations, live changes while the damage dialog is open,
+ability names and generic labels, normal damage and Undo, per-character behavior, fixed HUD size
+and rotation, and reduced motion. Implementation is recorded under Unreleased in `CHANGELOG.md`.
+
+**Agreed follow-up (September 12, 2026):** Before using any flagged concentration ability while
+already concentrating, show a warning naming the old ability, with Cancel and Use ability.
+Show it on the initiating screen; the TV warning stays inside the acting character's rotated HUD.
+Cancel spends nothing. Continuing rechecks availability and concentration before spending the
+normal costs, including when using the same ability again. The warning-only change was committed
+and pushed separately before starting automatic concentration selection.
+
+**Automatic selection:** A successful use of any flagged ability now starts or switches
+concentration to that character's ability assignment. Cancel, unavailable abilities, and failed
+uses preserve concentration and costs. Unflagged uses preserve existing concentration. The
+change uses the existing save format and updates both screens; Undo restores concentration and
+costs together. Commit this step separately before final review and a possible merge.
 
 ## F07 — Character-based attack bonuses and save DCs
 

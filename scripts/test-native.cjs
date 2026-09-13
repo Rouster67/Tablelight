@@ -21,6 +21,8 @@ for (const scenario of [
   'conditions',
   'condition-picker',
   'concentration',
+  'concentration-reminder',
+  'concentration-use',
 ]) {
   const dir = fs.mkdtempSync(path.join(resultsRoot, scenario + '-'));
   const child = spawnSync(electron, [root, '--self-test'], {

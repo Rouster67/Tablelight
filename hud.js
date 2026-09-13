@@ -120,6 +120,10 @@
       ? c.concentration || 'Concentrating · choose an ability'
       : 'Not concentrating';
   }
+  function damageConcentrationReminder(c) {
+    const label = c?.concentration ? 'Concentrating: ' + c.concentration : 'Concentrating';
+    return `<span class="damage-concentration-reminder${c?.concentrating ? ' is-active' : ''}" ${c?.concentrating ? `role="img" title="${esc(label)}" aria-label="${esc(label)}"` : 'aria-hidden="true"'}><span aria-hidden="true">◉</span></span>`;
+  }
   function characterStatus(c) {
     return `<div class="hud-status"><span class="concentration-toggle ${c.concentrating ? 'is-on' : ''}" data-concentration-indicator title="${esc(concentrationTitle(c))}"><span aria-hidden="true">◉</span> Concentrating</span><div class="hud-concentration-editor"></div><table class="condition-table hud-condition-table"><caption><div class="hud-condition-heading"><span>Conditions</span></div></caption><tbody>${(c.appliedConditions || []).map((e) => `<tr data-condition-id="${esc(e.id)}"><td tabindex="0" title="${esc(e.description || 'No description entered.')}">${esc(e.name)}</td></tr>`).join('') || '<tr><td class="muted">None</td></tr>'}</tbody></table></div>`;
   }
@@ -238,6 +242,7 @@
   }
   window.HUD = {
     concentrationTitle,
+    damageConcentrationReminder,
     concentrationOptions,
     resourceIcon,
     resource,
