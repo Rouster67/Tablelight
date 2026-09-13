@@ -11,7 +11,22 @@ module.exports = async function ({
   screen,
   setOverlay,
   store,
+  updates,
+  updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'updates-transport')
+    return require('./updates-transport-native')({ app, store });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'updates')
+    return require('./updates-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+      updates,
+      updateAdapter,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'concentration-use')
     return require('./concentration-use-native')({
       app,

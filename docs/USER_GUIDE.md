@@ -4,11 +4,23 @@ A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many 
 
 ## Open the app
 
-Double-click **Tablelight.exe** in this folder. No installation, account, Node.js, or internet connection is required. Keep the entire Tablelight folder together; the executable needs the accompanying files.
+Run **Tablelight-Setup-[version]-x64.exe** to install Tablelight for your Windows account, then open its shortcut or **Tablelight.exe** in the chosen folder. No Tablelight account or Node.js is required. Once downloaded, the installer can run offline; local play and saves also work offline.
 
-If moving it to your laptop, copy this whole folder or extract the Tablelight-Windows.zip archive there first. You can make a normal Windows shortcut to Tablelight.exe.
+If you used an older portable copy on this computer, install this version once to enable in-app updates. It uses the same saved-party folder. When moving to another computer, install Tablelight there and transfer an exported party backup. Uninstalling keeps your saved data.
 
 The DM window title shows **Tablelight [version] — DM Console**. The same version appears below **Setup & help** in the sidebar. Both show the running application's version, so you can identify which copy is open when testing or reporting a problem.
+
+## Updates
+
+After the DM screen opens, installed copies check GitHub for a newer stable release. A new version offers **Update and restart** and **Later**. The prompt waits until an existing editor or dialog closes. **Later** leaves a small download arrow beside the sidebar version; click it to reopen the offer. **Release notes** opens the official release page in your usual browser.
+
+**Update and restart** downloads and verifies the installer, saves the latest party, installs, and reopens Tablelight. The TV overlay starts hidden again. **Cancel download** keeps the current version open. If downloading or saving fails, Tablelight stays open and lets you retry. It never installs merely because you close the app or dismiss the offer.
+
+Under **Setup & help → Updates**, turn off **Check for updates at launch** to stop automatic checks. **Check now** still works when this is off. Current versions and offline launches show no update popup; manual results appear in this section. The setting belongs to this computer and is separate from party backups and Undo.
+
+Checks request only public release information from GitHub. Choosing Update downloads program files; no characters, portraits, party information, notes, or libraries are uploaded. GitHub receives ordinary connection information such as your public IP address. Play and saves work without internet. See **docs/UPDATES.md** in the included source for details.
+
+The installer is currently unsigned. Windows may show an unknown-publisher warning or block it under stricter device policies. Download only from the official Tablelight repository. If installation cannot finish, keep your saved data and run the official installer again.
 
 ## Set up your first session
 
@@ -184,4 +196,4 @@ The overlay works independently of D&D Beyond and does not read or modify its pa
 
 ## Included source
 
-The complete editable application source is in **resources/app**. It uses Electron 44.3.0 with no additional application dependencies. The app contains no telemetry or external network calls. Tablelight is free software under GPL-3.0-or-later, with no warranty. Read the license in Setup & help, or in LICENSE.Tablelight.txt. Electron’s license and third-party notices are also included in this folder.
+The complete editable application source is in **resources/app**. It uses Electron 44.3.0, electron-updater, semver, and their production dependencies. The app has no analytics or telemetry; its optional update requests are described above. Tablelight is free software under GPL-3.0-or-later, with no warranty. Read the license in Setup & help, or in LICENSE.Tablelight.txt. Electron's license, runtime notices, and dependency licenses are included.

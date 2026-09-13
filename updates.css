@@ -1,0 +1,39 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
+.version-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.version-row p {
+  margin: 0;
+}
+.update-indicator {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 2px 7px;
+  color: var(--gold, #d7b779);
+}
+.update-setting {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+}
+.update-setting input {
+  width: auto;
+}
+.update-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.update-progress progress {
+  flex: 1;
+  min-width: 0;
+  accent-color: #d7b779;
+}
+.update-status {
+  overflow-wrap: anywhere;
+}

@@ -21,7 +21,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F01 | Passive abilities section                          | Considering         |
 | F02 | Messages sent to individual player overlays        | Considering         |
 | F03 | Visible application version on the DM screen       | Implemented locally |
-| F04 | Launch update prompt and Windows installer         | Agreed design       |
+| F04 | Launch update prompt and Windows installer         | Implemented locally |
 | F05 | Source reference on abilities                      | Planned candidate   |
 | F06 | Concentration reminder when applying damage        | Implemented locally |
 | F07 | Character-based attack bonuses and save DCs        | Considering         |
@@ -122,16 +122,18 @@ Tablelight account, analytics, or telemetry is added. Local play and saves remai
 without internet. The final user and security documentation must identify the implemented
 requests and controls before the updater ships.
 
-**Checkpoint 2 — pending:** Build the installer and updater, update packaging and release
-instructions, and verify newer/equal/older versions, stable-release filtering, Later, opt-out,
-manual checks, offline/slow requests, failed downloads, save failures, installation, restart,
-and existing-data preservation. Inspect the packaged files and run an actual update between two
-isolated installed test versions. A push or merge alone must never publish an application update;
-publish a versioned GitHub Release with its installer and metadata deliberately.
+**Checkpoint 2:** Implemented locally. The Windows NSIS installer, stable-release checker, DM
+offer, sidebar icon, manual check, disable setting, progress, cancellation, save barrier, and
+restart flow are in place. Source runs and unpacked previews do not check or install updates.
+Unit, native UI, and real transport tests cover version filtering, opt-out, failures, and request
+privacy. An actual update between two isolated installed versions verifies install/relaunch,
+byte-for-byte save preservation, and the retained opt-out; test uninstall also preserves saves.
+Review the working program and commit this checkpoint before PR review.
 
-**Current implementation:** Checkpoint 1 adds only the version display. This checkout still uses
-the existing portable packaging and makes no external network requests. The installer, prompt,
-download, update setting, and restart behavior above remain pending.
+**Release boundary:** A push or merge alone never publishes an application update. Publish a
+versioned stable GitHub Release with its installer and metadata deliberately. The first
+updater-enabled release still needs a release version and publication. Code signing and automatic
+rollback are not included. See [network use](UPDATES.md) and [release instructions](RELEASING.md).
 
 ## F05 — Source reference on abilities
 
@@ -295,9 +297,10 @@ These suggestions are not part of the accepted feature list.
 
 This is a discussion aid, not a release schedule.
 
-1. Clarify the desired location of the version display (F03), then consider the smaller source,
-   upgrade-text, icon, and concentration-reminder changes (F05, F08, F09, F06).
-2. Decide the update-check behavior and document its network use before implementing F04.
+1. Finish review and release of the implemented version display and installer/updater (F03, F04).
+   The concentration reminder (F06) is merged. Consider the remaining source, upgrade-text,
+   and icon changes (F05, F08, F09).
+2. Publish the first installer-enabled release after the new version and release notes are agreed.
 3. Design passive abilities and character-based calculations together where they affect the shared
    library and character assignments (F01, F07).
 4. Prototype messages, player-use review, and the resources layout with the actual TV setup

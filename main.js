@@ -9,6 +9,7 @@ const {
   globalShortcut,
   nativeImage,
   Menu,
+  shell,
 } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -17,12 +18,20 @@ const { hudRegions } = require('./window-shape');
 let overlayFrames = [],
   overlayDragging = false;
 const { Store } = require('./storage');
-const selfTest = process.argv.includes('--self-test');
-app.setName('Tablelight');
+const { UpdatePreferences, UpdateService } = require('./update-service');
+const packageInfo = require('./package.json');
+const updateFixture = packageInfo.name === 'tablelight-update-test' ? packageInfo.updateTest : null;
+const selfTest = process.argv.includes('--self-test') || Boolean(updateFixture);
+app.setName(updateFixture ? 'Tablelight Update Test' : 'Tablelight');
+app.setAppUserModelId(
+  updateFixture ? 'io.github.rouster67.tablelight.updatetest' : 'io.github.rouster67.tablelight'
+);
 if (selfTest)
   app.setPath(
     'userData',
-    path.resolve(process.env.TABLELIGHT_TEST_DATA || path.join(__dirname, 'test-data'))
+    updateFixture
+      ? path.join(updateFixture.root, 'data')
+      : path.resolve(process.env.TABLELIGHT_TEST_DATA || path.join(__dirname, 'test-data'))
   );
 else app.setPath('userData', path.join(app.getPath('appData'), 'Tablelight'));
 let controller,
@@ -32,6 +41,9 @@ let controller,
   warning = '',
   overlayVisible = false,
   overlayHit = false;
+let updates,
+  updateLock = false,
+  updateTimer;
 const hudRequests = new Map();
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
@@ -64,6 +76,38 @@ else {
         return;
       }
     }
+    const installed =
+      process.platform === 'win32' &&
+      app.isPackaged &&
+      fs.existsSync(path.join(process.resourcesPath, 'tablelight-installed'));
+    let updateAdapter = null;
+    if (updateFixture)
+      updateAdapter = require('./tests/installed-update-native').makeAdapter(app, updateFixture);
+    else if (selfTest && process.env.TABLELIGHT_TEST_SCENARIO === 'updates')
+      updateAdapter = require('./tests/updates-native').makeAdapter();
+    else if (!selfTest && installed)
+      updateAdapter = new (require('./update-adapter').UpdateAdapter)();
+    updates = new UpdateService({
+      version: app.getVersion(),
+      preferences: new UpdatePreferences(app.getPath('userData')),
+      adapter: updateAdapter,
+      beforeInstall: async () => {
+        updateLock = true;
+        try {
+          await requestHudCommand({ type: 'prepare-update' });
+        } catch (error) {
+          updateLock = false;
+          throw error;
+        }
+      },
+      installFailed: () => {
+        updateLock = false;
+      },
+    });
+    updates.on('change', (value) => {
+      if (controller && !controller.isDestroyed())
+        controller.webContents.send('updates:state', value);
+    });
     createController();
     registerIPC();
     globalShortcut.register('Control+Alt+H', () => setOverlay(false));
@@ -76,7 +120,9 @@ else {
     screen.on('display-metrics-changed', displaysChanged);
     if (selfTest)
       controller.webContents.once('did-finish-load', () =>
-        require('./tests/native-test')({
+        (updateFixture
+          ? require('./tests/installed-update-native')
+          : require('./tests/native-test'))({
           app,
           controller,
           getOverlay: () => overlay,
@@ -84,12 +130,19 @@ else {
           screen,
           setOverlay,
           store,
+          updates,
+          updateAdapter,
+          updateFixture,
         })
       );
   });
 }
 app.on('window-all-closed', () => app.quit());
-app.on('will-quit', () => globalShortcut.unregisterAll());
+app.on('will-quit', () => {
+  clearTimeout(updateTimer);
+  updates?.dispose();
+  globalShortcut.unregisterAll();
+});
 function safeWindow(options) {
   const win = new BrowserWindow({
     ...options,
@@ -125,6 +178,7 @@ function createController() {
   controller.loadFile(path.join(__dirname, 'index.html'));
   controller.once('ready-to-show', () => {
     if (!selfTest) controller.show();
+    if (!selfTest) updateTimer = setTimeout(() => updates.check(true), 1500);
   });
   controller.on('closed', () => {
     controller = null;
@@ -178,6 +232,10 @@ function updateOverlayShape(regions) {
   setOverlayHit(overlayDragging || regions.length > 0);
 }
 function requestHudCommand(command) {
+  if (updateLock && command.type !== 'prepare-update')
+    return Promise.reject(
+      new Error('Tablelight is saving before an update. Try again after it restarts.')
+    );
   if (!controller || controller.isDestroyed())
     return Promise.reject(new Error('The DM console is closed.'));
   return new Promise((resolve, reject) => {
@@ -253,6 +311,22 @@ function auth(event) {
     throw new Error('This control is only available in the DM window.');
 }
 function registerIPC() {
+  for (const [channel, handler] of [
+    ['updates:status', () => updates.snapshot()],
+    ['updates:enabled', (enabled) => updates.setEnabled(enabled)],
+    ['updates:check', () => updates.check()],
+    ['updates:dismiss', () => updates.dismiss()],
+    ['updates:download', () => updates.update()],
+    ['updates:cancel', () => updates.cancelDownload()],
+    [
+      'updates:release-page',
+      () => shell.openExternal('https://github.com/Rouster67/Tablelight/releases/latest'),
+    ],
+  ])
+    ipcMain.handle(channel, (event, value) => {
+      auth(event);
+      return handler(value);
+    });
   ipcMain.handle('app:license', (event) => {
     auth(event);
     return fs.readFileSync(path.join(__dirname, 'LICENSE'), 'utf8');
@@ -265,6 +339,8 @@ function registerIPC() {
     status: status(),
     dataPath: store.directory,
     version: app.getVersion(),
+    updates:
+      controller && event.sender.id === controller.webContents.id ? updates.snapshot() : undefined,
   }));
   ipcMain.handle('party:save', (event, raw) => {
     auth(event);
