@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.10.1 — 2026-09-13
+
 - Keep in-app updates in the running application's installation folder, including custom folders and missing Windows installation-path records. This prevents a second copy from leaving the usual launch stuck on the old version.
 - Expand the real installer regression test to verify preservation of players, assigned and unused ability and condition libraries, portraits, resources, slots, concentration, notes, settings, the previous save, and the update preference.
 
