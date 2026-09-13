@@ -80,6 +80,7 @@ module.exports = async function ({
     await wait(() =>
       run(overlay, `return document.querySelectorAll('.bubble-controls').length===6;`)
     );
+    await wait(() => overlay.isVisible());
     results.push('Six independent bubbles and six sets of rotation controls appear on the TV.');
     fs.writeFileSync(
       path.join(dir, '01-six-bubbles.png'),

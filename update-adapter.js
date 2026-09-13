@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
 'use strict';
 const { EventEmitter } = require('node:events');
+const path = require('node:path');
 const { NsisUpdater, CancellationToken } = require('electron-updater');
 const { ElectronHttpExecutor } = require('electron-updater/out/electronHttpExecutor');
 
@@ -109,6 +110,8 @@ class UpdateAdapter extends EventEmitter {
   constructor({ testFeed, testApp, checkTimeout = 12000 } = {}) {
     super();
     this.updater = new NsisUpdater(undefined, testApp);
+    // Update this copy even if Windows has lost or changed its installation record.
+    this.updater.installDirectory = path.dirname(process.execPath);
     this.executor = new ReleaseHttpExecutor(testFeed ? new URL(testFeed).origin : '');
     this.updater.httpExecutor = this.executor;
     this.updater.setFeedURL(

@@ -25,8 +25,14 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
       await wait(() => run("return Boolean(document.getElementById('update-dialog'));"));
       updates.setEnabled(false);
       updates.on('change', (value) => {
-        if (value.phase === 'installing')
-          fs.copyFileSync(store.file, path.join(root, 'before-install.json'));
+        if (value.phase === 'installing') {
+          fs.mkdirSync(path.join(root, 'before-install-data'), { recursive: true });
+          for (const name of ['party.json', 'party.previous.json', 'updates.json'])
+            fs.copyFileSync(
+              path.join(store.directory, name),
+              path.join(root, 'before-install-data', name)
+            );
+        }
         if (value.message && !['checking', 'current'].includes(value.phase))
           fs.writeFileSync(path.join(root, 'update-error.txt'), value.message);
       });
@@ -35,14 +41,29 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
     } else {
       assert.equal(app.getVersion(), '0.0.2');
       assert.equal(controller.getTitle(), 'Tablelight 0.0.2 — DM Console');
-      assert.deepEqual(
-        fs.readFileSync(store.file),
-        fs.readFileSync(path.join(root, 'before-install.json'))
-      );
+      for (const name of ['party.json', 'party.previous.json', 'updates.json'])
+        assert.deepEqual(
+          fs.readFileSync(path.join(store.directory, name)),
+          fs.readFileSync(path.join(root, 'before-install-data', name))
+        );
       const saved = JSON.parse(fs.readFileSync(store.file));
+      const expected = JSON.parse(fs.readFileSync(path.join(root, 'expected-party.json')));
+      // First launch selects a physical display. The byte comparison above still
+      // requires that chosen display, along with every other setting, to survive.
+      expected.settings.displayId = JSON.parse(
+        fs.readFileSync(path.join(root, 'before-install-data', 'party.json'))
+      ).settings.displayId;
+      assert.deepEqual(saved, expected);
       assert.equal(saved.characters[0].hp, 22);
       assert.equal(saved.characters[0].notes, 'Private synthetic note survives the update.');
       assert.equal(saved.roster[0].name, 'Synthetic saved player');
+      assert.equal(saved.library.length, 4);
+      assert.equal(saved.conditionLibrary.length, 3);
+      assert.equal(saved.characters[0].items.length, 2);
+      assert.equal(saved.roster[0].items.length, 1);
+      assert.equal(saved.characters[0].conditionIds.length, 1);
+      assert.equal(saved.roster[0].conditionIds.length, 1);
+      assert.ok(saved.characters[0].avatar.startsWith('data:image/png;base64,'));
       assert.equal(updates.preferences.enabled, false);
       assert.equal(await run('return overlayStatus.visible;'), false);
       fs.writeFileSync(
@@ -53,8 +74,9 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
             version: app.getVersion(),
             executable: process.execPath,
             results: [
-              'The old installed app checked, downloaded a real NSIS installer, quit, installed the new version in the same directory, and relaunched.',
-              'Saved data is byte-for-byte identical across installation, including the latest HP change, private notes, and inactive roster.',
+              'The old installed app checked, downloaded a real NSIS installer, quit, updated its custom folder despite a missing installation-path record, and relaunched.',
+              'Active and saved players, assigned and unused abilities and conditions, portraits, resources, slots, concentration, notes, and settings match the expected saved party.',
+              'The party, previous save, and update preference are byte-for-byte identical across installation.',
               'The automatic-check preference survives; the new title shows the installed version and the TV overlay starts hidden.',
             ],
           },

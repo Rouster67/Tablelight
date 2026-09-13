@@ -67,6 +67,12 @@ installer; automatic rollback is not implemented.
 application ID. It installs in an isolated `test-results` directory, serves the next installer
 from a loopback-only HTTP server, and exercises the real download, checksum, save, quit, install,
 and relaunch path. It checks that saved data and the opt-out survive, then uninstalls only that
-test app. Test feed and save-path configuration is embedded only in these specially named test
-packages; ordinary production packages cannot select a custom feed through environment variables
-or renderer messages. Review test results and installer logs under the reported directory.
+test app. Each run has a fresh installer identity. The test removes only that run's saved
+installation-path value and verifies that updating still replaces the app in its custom folder,
+including a path with spaces. Its saved party contains active and saved players, assigned and
+unused abilities and conditions, portraits, resources, slots, concentration, notes, and settings.
+The party, previous save, and update preference must remain byte-for-byte identical across the
+installer and test uninstall. Test feed and save-path configuration is embedded only in these
+specially named test packages; ordinary production packages cannot select a custom feed through
+environment variables or renderer messages. Review test results and installer logs under the
+reported directory.

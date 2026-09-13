@@ -58,6 +58,10 @@ commands before starting installation. Failed downloads and saves keep the app o
 downloaded update can be retried without downloading it again. Restart hides the TV overlay,
 as an ordinary launch does.
 
+The updater explicitly targets the folder containing the running Tablelight executable. Custom
+installation folders are retained even if Windows' saved installation-path record is missing.
+This destination stays on the computer and is not included in the GitHub requests.
+
 Installers are currently unsigned. Digest checking detects a damaged or mismatched download;
 it does not establish a verified publisher independently of GitHub and the release metadata.
 The updater retains its normal signature verification when a signed release is configured in
@@ -65,6 +69,13 @@ the future. Windows can warn about or block unsigned software. If Windows blocks
 or a system interruption prevents completion, rerun the official installer. This version does
 not promise automatic rollback after an interrupted installation. Saves live outside the
 program directory and uninstalling does not remove them.
+
+Players in the active party and saved roster, ability and condition libraries (including unused
+entries), assignments, portraits, resources, spell slots, concentration, notes, and party settings
+are stored together in `%APPDATA%\Tablelight\party.json`. Updates replace the program files and
+retain this separate save folder. The previous save is kept in `party.previous.json`; normal
+saving refreshes that backup. The installer regression test compares all this content and the
+separate update preference before and after installation, restart, and test uninstall.
 
 Existing portable users must install the first updater-enabled release manually. Publishing
 new source commits is separate from publishing app updates: the updater sees a versioned stable
