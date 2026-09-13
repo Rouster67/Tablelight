@@ -26,6 +26,11 @@ const server = http.createServer((request, response) => {
     response.end();
     return;
   }
+  if (name.endsWith('.exe') && !request.url.startsWith('/assets/')) {
+    response.writeHead(302, { Location: '/assets/' + name });
+    response.end();
+    return;
+  }
   response.setHeader('Content-Length', fs.statSync(file).size);
   fs.createReadStream(file).pipe(response);
 });
@@ -136,6 +141,7 @@ async function buildVersion(version, feed) {
   if (!result.passed) throw new Error(result.error);
   assert.equal(result.executable.toLowerCase(), executable.toLowerCase());
   assert.ok(requests.some((request) => request.url.includes('Tablelight-Setup-0.0.2-x64.exe')));
+  assert.ok(requests.some((request) => request.url.startsWith('/assets/')));
   for (const request of requests) {
     assert.equal(request.headers['x-user-staging-id'], undefined);
     assert.equal(request.headers.cookie, undefined);

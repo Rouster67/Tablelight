@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Contain rejected update redirects as ordinary download failures and limit redirect loops, keeping the app open and allowing a retry.
+
 - Added optional stable-release checks at launch, with a DM update offer, Later, a sidebar update icon, and manual Check now under Setup & help. Checks run in the background; offline failures do not interrupt play. No character, party, or library content is sent.
 - Added a Windows installer and consent-based Update and restart, including download progress, cancellation, verified downloads, and a successful-save requirement before installation. Existing portable users install this version once; saved data stays in the existing folder and is preserved on uninstall. The automatic-check preference is separate from party backups and Undo. Installers remain unsigned.
 - The DM title bar now shows the application version. Both the title bar and existing sidebar version label read the running app's package version automatically.

@@ -33,6 +33,7 @@ class ReleaseHttpExecutor extends ElectronHttpExecutor {
     super();
     this.active = new Set();
     this.tokens = new Set();
+    this.redirectCounts = new WeakMap();
     this.cancelled = false;
     this.idleTimeout = 60000;
     this.testOrigin = testOrigin;
@@ -47,6 +48,22 @@ class ReleaseHttpExecutor extends ElectronHttpExecutor {
     this.tokens.add(token);
     if (this.cancelled) token.cancel();
     return super.download(url, destination, options).finally(() => this.tokens.delete(token));
+  }
+  addRedirectHandlers(request, options, reject, _redirectCount, handler) {
+    request.on('redirect', (_status, _method, destination) => {
+      request.abort();
+      try {
+        const count = this.redirectCounts.get(options) || 0;
+        if (count >= this.maxRedirects) throw this.createMaxRedirectError();
+        const next = ElectronHttpExecutor.prepareRedirectUrlOptions(destination, options);
+        this.redirectCounts.set(next, count + 1);
+        // Download redirects run inside an event handler. Contain validation errors
+        // here so a rejected destination cannot become an uncaught main-process error.
+        handler(next);
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
   createRequest(options, callback) {
     const url = `${options.protocol || 'https:'}//${options.hostname || options.host}${options.port ? ':' + options.port : ''}${options.path || '/'}`;

@@ -37,6 +37,11 @@ module.exports = async ({ app, store }) => {
   const server = http.createServer((request, response) => {
     requests.push({ url: request.url, headers: request.headers, method: request.method });
     if (mode === 'slow') return;
+    if (mode === 'redirect-loop') {
+      response.writeHead(302, { Location: '/loop' });
+      response.end();
+      return;
+    }
     if (request.url.startsWith('/latest.yml')) {
       response.end(
         JSON.stringify({
@@ -50,7 +55,16 @@ module.exports = async ({ app, store }) => {
           ],
         })
       );
-    } else if (request.url === '/fixture.exe') {
+    } else if (request.url === '/fixture.exe' || request.url === '/installer-bytes.exe') {
+      if (request.url === '/fixture.exe' && mode.startsWith('redirect-')) {
+        const destination =
+          mode === 'redirect-blocked'
+            ? `http://localhost:${server.address().port}/blocked.exe`
+            : '/installer-bytes.exe';
+        response.writeHead(302, { Location: destination });
+        response.end();
+        return;
+      }
       response.setHeader('Content-Length', payload.length);
       if (mode === 'slow-download') {
         response.write(payload.subarray(0, 3));
@@ -114,10 +128,31 @@ module.exports = async ({ app, store }) => {
     clearTimeout(cancellation);
     assert.equal(adapter.executor.active.size, 0);
     results.push('Cancel download aborts a real partial transfer and permits a new download.');
-    mode = 'good';
+    mode = 'redirect-blocked';
+    await assert.rejects(() => adapter.download(), /Unexpected update download destination/);
+    assert.equal(
+      requests.some((request) => request.url === '/blocked.exe'),
+      false
+    );
+    results.push(
+      'An unexpected installer redirect rejects the download without contacting that destination or raising an uncaught error.'
+    );
+    mode = 'redirect-loop';
+    let startRequests = requests.length;
+    await assert.rejects(() => adapter.download(), /Too many redirects/);
+    assert.ok(requests.length - startRequests <= adapter.executor.maxRedirects + 1);
+    startRequests = requests.length;
+    await assert.rejects(() => adapter.check(), /Too many redirects/);
+    assert.ok(requests.length - startRequests <= adapter.executor.maxRedirects + 1);
+    results.push('Metadata and installer redirect loops fail after a bounded number of requests.');
+    mode = 'redirect-allowed';
+    await adapter.check();
     adapter.executor.idleTimeout = 60000;
     const files = await adapter.download();
     assert.deepEqual(fs.readFileSync(files[0]), payload);
+    results.push(
+      'A permitted installer redirect succeeds on retry and still verifies the downloaded bytes.'
+    );
     for (const request of requests) {
       assert.equal(request.headers['x-user-staging-id'], undefined);
       assert.equal(request.headers.cookie, undefined);

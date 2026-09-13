@@ -26,7 +26,8 @@ The pinned updater uses HTTPS GET requests for the repository's `releases.atom` 
 `release-assets.githubusercontent.com`, `objects.githubusercontent.com`, and
 `github-releases.githubusercontent.com`. The transport also permits the same repository's
 release API under `api.github.com/repos/Rouster67/Tablelight`. Other destinations, plain HTTP,
-embedded URL credentials, and nonstandard HTTPS ports are rejected. Only isolated test builds
+embedded URL credentials, and nonstandard HTTPS ports are rejected. Redirect loops are bounded;
+rejected redirects report a normal update failure and keep the app open. Only isolated test builds
 can use the loopback test server.
 
 No character, party, portrait, note, message, or library content is included. There is no request
