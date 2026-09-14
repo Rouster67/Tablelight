@@ -88,7 +88,7 @@ function editConcentration(characterId) {
   if (!c) return;
   modal(
     'Concentration · ' + esc(c.name),
-    `<p class="hint">Choose from this character’s abilities marked Requires concentration.</p><input id="concentration-search" type="search" maxlength="300" placeholder="Find an ability…" aria-label="Search this character’s concentration abilities" class="space-top"><div id="concentration-picker-list" data-character="${esc(c.id)}">${HUD.concentrationOptions(c)}</div>`,
+    `<p class="hint">Choose from this character’s abilities marked Concentration.</p><input id="concentration-search" type="search" maxlength="300" placeholder="Find an ability…" aria-label="Search this character’s concentration abilities" class="space-top"><div id="concentration-picker-list" data-character="${esc(c.id)}">${HUD.concentrationOptions(c)}</div>`,
     `<span class="hint">Choose an ability to start concentration.</span>${button('Cancel', 'close-modal', 'subtle')}`,
     true
   );

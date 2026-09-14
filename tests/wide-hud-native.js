@@ -83,7 +83,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(() => tv(`return !!document.querySelector('.hud-use-controls');`));
     assert.equal(
       await tv(`return document.querySelectorAll('.hud-browser .hud-metadata>span').length;`),
-      6
+      7
     );
     assert.ok(
       await tv(

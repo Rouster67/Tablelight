@@ -27,7 +27,7 @@ test('formats 1–4 migrate with blank sources and preserve legacy text, IDs, an
     c.hud.rotation = 270;
     const raw = { version, characters: [c], roster: [], conditionLibrary: [] };
     const state = TL.normalize(raw);
-    assert.equal(state.version, 6);
+    assert.equal(state.version, 8);
     assert.equal(state.library[0].source, '');
     for (const key of ['id', 'attack', 'save', 'description'])
       assert.equal(state.characters[0].items[0][key], c.items[0][key]);
@@ -39,7 +39,7 @@ test('formats 1–4 migrate with blank sources and preserve legacy text, IDs, an
     () => TL.normalize({ version: 5, characters: [], roster: [] }),
     /condition library/
   );
-  assert.throws(() => TL.normalize({ ...TL.empty(), version: 7 }), /supported/);
+  assert.throws(() => TL.normalize({ ...TL.empty(), version: 9 }), /supported/);
 });
 
 test('source references distinguish legacy definitions without combining different editions', () => {
@@ -124,7 +124,7 @@ test('DM and HUD details share escaped sources without replacing descriptions or
   const details = HUD.abilityDetails(c.items[0]);
   assert.equal(details.description, description);
   assert.equal(details.source, source);
-  assert.ok(!details.metadata.some(([label]) => label === 'Source'));
+  assert.ok(!details.metadata.some(([label]) => label === 'Reference'));
   const pages = HUD.countPages(c);
   for (const html of [HUD.renderAbilityDetails(c.items[0]), HUD.render(c)]) {
     assert.ok(html.includes(HUD.esc(source)));
@@ -134,8 +134,8 @@ test('DM and HUD details share escaped sources without replacing descriptions or
     assert.ok(html.indexOf('ability-source') > html.indexOf('description'));
   }
   c.items[0].source = '';
-  assert.ok(!HUD.renderAbilityDetails(c.items[0]).includes('<small>Source</small>'));
-  assert.ok(!HUD.render(c).includes('<small>Source</small>'));
+  assert.ok(!HUD.renderAbilityDetails(c.items[0]).includes('<small>Reference</small>'));
+  assert.ok(!HUD.render(c).includes('<small>Reference</small>'));
   assert.equal(HUD.countPages(c), pages);
   assert.ok(HUD.render(c).includes(HUD.esc(HUD.pages(description)[1])));
 });

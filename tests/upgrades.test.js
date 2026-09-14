@@ -27,7 +27,7 @@ test('formats 1–5 default missing upgrades without changing existing ability t
     c.hud.rotation = 270;
     const raw = { version, characters: [c], roster: [], conditionLibrary: [] };
     const state = TL.normalize(raw);
-    assert.equal(state.version, 6);
+    assert.equal(state.version, 8);
     assert.equal(state.library[0].upgrades, '');
     const item = { ...state.characters[0].items[0] };
     delete item.libraryId;

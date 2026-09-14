@@ -123,10 +123,83 @@
         ? 'Cantrip'
         : 'Level ' + it.level;
   const normalizeSpellLevel = (raw) =>
-    raw.kind !== 'spell' || raw.level === null || raw.level === undefined || raw.level === ''
+    raw.level === null || raw.level === undefined || raw.level === ''
       ? null
       : integer(raw.level, 0, 9);
   const freshTurn = (c) => ({ action: true, bonus: true, reaction: true, movement: c.speed });
+  const abilityTextLimit = (key) =>
+    ['description', 'upgrades', 'requirements', 'special'].includes(key)
+      ? 40000
+      : ['attack', 'save'].includes(key)
+        ? 2000
+        : 300;
+  // Convert only values explicitly entered in the rejected format-7 editor. Never calculate Auto.
+  function legacyPlainAbility(entry) {
+    const append = (text, extra) => (extra ? (text ? text + '\n' : '') + extra : text || '');
+    const attack =
+      entry.attackValue?.mode === 'fixed' && Number.isInteger(entry.attackValue.value)
+        ? signed(entry.attackValue.value)
+        : '';
+    const save =
+      entry.saveDCValue?.mode === 'fixed' && Number.isInteger(entry.saveDCValue.value)
+        ? 'DC ' + entry.saveDCValue.value
+        : '';
+    const target =
+      {
+        str: 'Strength',
+        dex: 'Dexterity',
+        con: 'Constitution',
+        int: 'Intelligence',
+        wis: 'Wisdom',
+        cha: 'Charisma',
+      }[entry.targetSaveAbility] || '';
+    return {
+      ...entry,
+      attack: append(entry.attack, attack),
+      save: append(entry.save, [target, save].filter(Boolean).join(' ')),
+    };
+  }
+  function migrateManualAbilities(raw) {
+    const copy = clone(raw);
+    if (!Array.isArray(copy.library)) return copy;
+    const originals = new Map(
+      copy.library.filter((e) => e && typeof e === 'object').map((e) => [e.id, e])
+    );
+    copy.library = copy.library.map((e) =>
+      e && typeof e === 'object' ? legacyPlainAbility(e) : e
+    );
+    const variants = new Map();
+    for (const c of [...copy.characters, ...(Array.isArray(copy.roster) ? copy.roster : [])]) {
+      if (!Array.isArray(c?.items)) continue;
+      for (const it of c.items) {
+        if (!it || typeof it !== 'object') continue;
+        const original = originals.get(it.libraryId);
+        if (!original) {
+          if (!it.libraryId) Object.assign(it, legacyPlainAbility(it));
+          continue;
+        }
+        if (it.attackOverride == null && it.saveDCOverride == null && it.targetSaveOverride == null)
+          continue;
+        const definition = libraryEntry(
+          legacyPlainAbility({
+            ...original,
+            attackValue: it.attackOverride ?? original.attackValue,
+            saveDCValue: it.saveDCOverride ?? original.saveDCValue,
+            targetSaveAbility: it.targetSaveOverride ?? original.targetSaveAbility,
+          })
+        );
+        const key = definitionKey(definition);
+        if (key === definitionKey(libraryEntry(legacyPlainAbility(original)))) continue;
+        if (!variants.has(key)) {
+          definition.id = uid();
+          copy.library.push(definition);
+          variants.set(key, definition.id);
+        }
+        it.libraryId = variants.get(key);
+      }
+    }
+    return copy;
+  }
   function item(data = {}) {
     return {
       id: uid(),
@@ -138,6 +211,13 @@
       requiresConcentration: false,
       resourceId: '',
       resourceCost: 1,
+      trigger: '',
+      area: '',
+      castingTime: '',
+      school: '',
+      onSave: '',
+      requirements: '',
+      special: '',
       source: '',
       range: '',
       duration: '',
@@ -159,6 +239,13 @@
     'level',
     'usesSlot',
     'requiresConcentration',
+    'trigger',
+    'area',
+    'castingTime',
+    'school',
+    'onSave',
+    'requirements',
+    'special',
     'source',
     'range',
     'duration',
@@ -175,10 +262,7 @@
     const defaults = item(),
       entry = { id: str(raw.id, 300) || uid() };
     for (const key of definitionFields)
-      entry[key] = str(
-        raw[key] ?? defaults[key],
-        ['description', 'upgrades'].includes(key) ? 40000 : 300
-      );
+      entry[key] = str(raw[key] ?? defaults[key], abilityTextLimit(key));
     entry.name = entry.name.trim() || 'Unnamed ability';
     entry.kind = ['action', 'spell', 'feature'].includes(raw.kind) ? raw.kind : 'action';
     entry.economy = ['action', 'bonus', 'reaction', 'free'].includes(raw.economy)
@@ -204,7 +288,12 @@
   }
   function abilityTextSections(it) {
     const sections = [{ label: '', text: it.description || 'No description entered.' }];
-    if (it.upgrades?.trim()) sections.push({ label: 'Upcast / upgrades', text: it.upgrades });
+    for (const [key, label] of [
+      ['upgrades', 'Upcast / upgrades'],
+      ['requirements', 'Requirements'],
+      ['special', 'Special'],
+    ])
+      if (it[key]?.trim()) sections.push({ label, text: it[key] });
     return sections;
   }
   function abilityTextPages(it) {
@@ -231,7 +320,7 @@
       throw new Error('This character already has this library entry.');
     if (c.items.length >= 500) throw new Error('This character already has 500 abilities.');
     const binding = item({
-      ...entry,
+      ...clone(entry),
       id: uid(),
       libraryId,
       resourceId: settings.resourceId || '',
@@ -306,7 +395,7 @@
       throw new Error('Invalid concentration setting.');
     const it = active && c.items.find((it) => it.id === itemId && it.requiresConcentration);
     if (active && !it)
-      throw new Error('Choose one of this character’s abilities marked Requires concentration.');
+      throw new Error('Choose one of this character’s abilities marked Concentration.');
     c.concentrating = active;
     c.concentrationItemId = active ? it.id : '';
     c.concentration = active ? it.name : '';
@@ -465,6 +554,13 @@
       for (const k of [
         'id',
         'name',
+        'trigger',
+        'area',
+        'castingTime',
+        'school',
+        'onSave',
+        'requirements',
+        'special',
         'source',
         'range',
         'duration',
@@ -476,7 +572,7 @@
         'description',
         'resourceId',
       ])
-        it[k] = str(r[k] ?? it[k], ['description', 'upgrades'].includes(k) ? 40000 : 300);
+        it[k] = str(r[k] ?? it[k], abilityTextLimit(k));
       if (!it.id) it.id = uid();
       it.libraryId = str(r.libraryId, 300);
       it.kind = ['action', 'spell', 'feature'].includes(r.kind) ? r.kind : 'action';
@@ -523,8 +619,9 @@
     return c;
   }
   function normalize(raw) {
-    if (!raw || ![1, 2, 3, 4, 5, 6].includes(raw.version) || !Array.isArray(raw.characters))
+    if (!raw || ![1, 2, 3, 4, 5, 6, 7, 8].includes(raw.version) || !Array.isArray(raw.characters))
       throw new Error('This is not a supported Tablelight party backup.');
+    if (raw.version === 7) raw = migrateManualAbilities(raw);
     if (raw.characters.length > PARTY_LIMIT)
       throw new Error('A party can contain up to eight players.');
     if ((raw.version >= 3 || raw.roster !== undefined) && !Array.isArray(raw.roster))
@@ -562,7 +659,8 @@
           }
           it.libraryId = entry.id;
         }
-        for (const key of definitionFields) it[key] = entry[key];
+        for (const key of definitionFields)
+          it[key] = entry[key] && typeof entry[key] === 'object' ? clone(entry[key]) : entry[key];
       }
     for (const c of players) {
       const detail = c.items.find((it) => it.id === c.hud.detailId);
@@ -608,7 +706,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 6,
+      version: 8,
       conditionLibrary,
       libraryVersion: 1,
       library,
@@ -640,7 +738,7 @@
       const r = c.resources.find((r) => r.id === it.resourceId);
       if (!r || r.current < it.resourceCost) return 'Not enough ' + (r?.name || 'resource charges');
     }
-    if (it.kind === 'spell' && it.level > 0 && it.usesSlot) {
+    if (it.level > 0 && it.usesSlot) {
       if (slotLevel === undefined) {
         if (!c.slots.some((s) => s.level >= it.level && s.current > 0))
           return 'No suitable spell slot remaining';
@@ -667,7 +765,7 @@
   function spend(c, it, slotLevel, confirmedConcentration = '') {
     const reason = availability(c, it, slotLevel);
     if (reason) throw new Error(reason);
-    if (it.kind === 'spell' && it.level > 0 && it.usesSlot && slotLevel === undefined)
+    if (it.level > 0 && it.usesSlot && slotLevel === undefined)
       throw new Error('Choose a spell slot level.');
     const warning = concentrationUseWarning(c, it);
     if (warning && confirmedConcentration !== warning.token)
@@ -675,8 +773,7 @@
     if (it.requiresConcentration) setConcentration(c, true, it.id);
     if (it.economy !== 'free') c.turn[it.economy] = false;
     if (it.resourceId) c.resources.find((r) => r.id === it.resourceId).current -= it.resourceCost;
-    if (it.kind === 'spell' && it.level > 0 && it.usesSlot)
-      c.slots.find((s) => s.level === Number(slotLevel)).current--;
+    if (it.level > 0 && it.usesSlot) c.slots.find((s) => s.level === Number(slotLevel)).current--;
   }
   function damage(c, amount) {
     amount = integer(amount, 0, 99999);
@@ -960,6 +1057,7 @@
     deletePlayer,
     overlayState,
     abilities,
+    abilityTextLimit,
     skills,
     colors,
     uid,

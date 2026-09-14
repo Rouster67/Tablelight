@@ -307,7 +307,7 @@ module.exports = async function ({
     await click('[data-action="edit-item"]');
     assert.ok(
       await run(
-        `const upgrade=document.querySelector('#item-form [name="upgrades"]'),label=upgrade.closest('label'),damage=document.querySelector('#item-form [name="damage"]'),description=document.querySelector('#item-form [name="description"]');return upgrade.maxLength===40000 && label.querySelector('span').textContent==='Upcast / upgrades' && label.getBoundingClientRect().top>=damage.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().left-damage.getBoundingClientRect().left)<1 && description.getBoundingClientRect().top>upgrade.getBoundingClientRect().bottom;`
+        `const upgrade=document.querySelector('#item-form [name="upgrades"]'),label=upgrade.closest('label'),damage=document.querySelector('#item-form [name="damage"]'),description=document.querySelector('#item-form [name="description"]');return upgrade.maxLength===40000 && label.querySelector('span').textContent==='Upcast / Upgrades' && label.getBoundingClientRect().top>=damage.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().left-damage.getBoundingClientRect().left)<1 && description.getBoundingClientRect().top>upgrade.getBoundingClientRect().bottom;`
       )
     );
     await run(
@@ -320,7 +320,7 @@ module.exports = async function ({
     );
     assert.ok(
       await run(
-        `const source=document.querySelector('#item-form [name="source"]'),label=source.closest('label'),description=document.querySelector('#item-form [name="description"]');return label.querySelector('span').textContent==='Source' && label.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().right-description.getBoundingClientRect().right)<1;`
+        `const source=document.querySelector('#item-form [name="source"]'),label=source.closest('label'),description=document.querySelector('#item-form [name="description"]');return label.querySelector('span').textContent==='Reference' && label.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().right-description.getBoundingClientRect().right)<1;`
       )
     );
     await run(
@@ -399,7 +399,7 @@ module.exports = async function ({
     assert.equal(raw.characters[0].items[0].description, undefined);
     assert.equal(raw.characters[0].items[0].source, undefined);
     assert.equal(raw.characters[0].items[0].upgrades, undefined);
-    assert.equal(raw.version, 6);
+    assert.equal(raw.version, 8);
     results.push('Reload restores linked abilities; disk stores each definition once.');
     await click('[data-action="view-help"]');
     await click('[data-action="show-license"]');

@@ -85,16 +85,25 @@
       ? `<span class="pips">${Array.from({ length: max }, (_, i) => `<i class="${i < current ? 'filled' : ''}"></i>`).join('')}</span>`
       : `<b>${current} / ${max}</b>`;
   }
-  function abilityDetails(it) {
+  function abilityDetails(it, c) {
+    const pool = c?.resources.find((r) => r.id === it.resourceId);
     return {
       metadata: [
-        ['Range', it.range],
+        ['Trigger', it.trigger],
         ['Duration', it.duration],
-        ['Concentration', it.requiresConcentration ? 'Required' : ''],
+        ['Range', it.range],
+        ['Area', it.area],
+        ['Casting Time', it.castingTime],
+        ['Spell Level', it.level == null ? '' : TL.levelLabel(it)],
         ['Components', it.components],
+        ['School', it.school],
         ['Attack', it.attack],
-        ['Damage', it.damage],
         ['Save', it.save],
+        ['On Save', it.onSave],
+        ['Damage / Healing', it.damage],
+        ['Concentration', it.requiresConcentration ? 'Yes' : ''],
+        ['Linked resource pool', pool?.name],
+        ['Charges spent per use', pool ? String(it.resourceCost) : ''],
       ].filter((x) => x[1]),
       description: it.description || 'No description entered.',
       sections: TL.abilityTextSections(it),
@@ -102,19 +111,19 @@
     };
   }
   function sourceReference(source) {
-    return source ? `<p class="ability-source"><small>Source</small> ${esc(source)}</p>` : '';
+    return source ? `<p class="ability-source"><small>Reference</small> ${esc(source)}</p>` : '';
   }
   function renderTextSections(sections, textClass) {
     return sections
       .map(({ label, text }) =>
         label
-          ? `<div class="ability-upgrades"><h4>${esc(label)}</h4><p class="${textClass}">${esc(text)}</p></div>`
+          ? `<div class="ability-text-section ${label === 'Upcast / upgrades' ? 'ability-upgrades' : ''}"><h4>${esc(label)}</h4><p class="${textClass}">${esc(text)}</p></div>`
           : `<p class="${textClass}">${esc(text)}</p>`
       )
       .join('');
   }
-  function renderAbilityDetails(it) {
-    const details = abilityDetails(it);
+  function renderAbilityDetails(it, c) {
+    const details = abilityDetails(it, c);
     return `<div class="detail-meta">${details.metadata
       .map(([label, value]) => `<div><small>${esc(label)}</small>${esc(value)}</div>`)
       .join(
@@ -144,7 +153,7 @@
   function concentrationOptions(c, query = '', mode = 'dm') {
     const choices = TL.concentrationChoices(c, query);
     if (!choices.length)
-      return `<p class="hint">${query ? 'No matching concentration abilities.' : 'No abilities marked Requires concentration. Add or edit this character’s abilities on the DM screen to mark them.'}</p>`;
+      return `<p class="hint">${query ? 'No matching concentration abilities.' : 'No abilities marked Concentration. Add or edit this character’s abilities on the DM screen to mark them.'}</p>`;
     return choices
       .map((it) => {
         const current = c.concentrating && c.concentrationItemId === it.id;
@@ -160,7 +169,7 @@
     if (!c.hud.expanded)
       return `<div class="hud-collapsed" title="${esc(c.name)}">${portrait(c)}</div>`;
     const detail = c.items.find((i) => i.id === c.hud.detailId),
-      details = detail && abilityDetails(detail);
+      details = detail && abilityDetails(detail, c);
     const page = Math.min(c.hud.page, countPages(c) - 1);
     let panel = overviewPanel(c);
     if (detail)

@@ -144,7 +144,7 @@
     if (detail) {
       const reason = TL.availability(c, detail);
       let use;
-      if (detail.kind === 'spell' && detail.level > 0 && detail.usesSlot)
+      if (detail.level > 0 && detail.usesSlot)
         use = c.slots
           .filter((s) => s.level >= detail.level && s.current)
           .map((s) =>

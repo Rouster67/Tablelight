@@ -996,15 +996,15 @@ p {
 .ability-source small {
   color: var(--gold);
 }
-.ability-upgrades {
+.ability-text-section {
   margin-top: 16px;
 }
-.ability-upgrades h4 {
+.ability-text-section h4 {
   margin: 0 0 6px;
   font-size: 12px;
   color: var(--gold);
 }
-.ability-upgrades p {
+.ability-text-section p {
   margin-top: 0;
 }
 .hud-panel .ability-source {

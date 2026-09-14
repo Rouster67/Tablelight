@@ -27,7 +27,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F04 | Launch update prompt and Windows installer         | Released            |
 | F05 | Source reference on abilities                      | Implemented locally |
 | F06 | Concentration reminder when applying damage        | Released            |
-| F07 | Character-based attack bonuses and save DCs        | Considering         |
+| F07 | Manual ability fields (revised scope)              | Implemented locally |
 | F08 | Upcast and level-based upgrade text                | Implemented locally |
 | F09 | Uploaded icons for abilities                       | Planned candidate   |
 | F10 | DM notice and targeted undo for player ability use | Considering         |
@@ -167,14 +167,15 @@ rollback are not included. See [network use](UPDATES.md) and [release instructio
 **Requested:** Add an optional source field when creating or editing a spell, action, or feature.
 For example, a user could enter `PHB pg. 284`.
 
-**Implemented design (September 13, 2026):** One optional shared Source text field, up to 300
+**Implemented design (September 13, 2026):** One shared Reference text field, up to 300
 characters, displayed with ability details on the DM screen, in the assignment preview, and on
 the player HUD. Library search includes references. Empty sources are hidden and long references
 wrap inside the fixed HUD. Source text does not change costs, personal bindings, or availability.
 Links remain outside this first milestone.
 
-**Status:** Implemented locally on `codex/ability-details-and-review`; release pending. Format 5
-retains source references and accepts existing formats 1–4. Regression checks cover migration,
+**Status:** Implemented locally on `codex/ability-details-and-review`; release pending. Reference
+retains the original source data and stays below Description at the bottom right. Current saves
+use format 8 and accept formats 1–7. Regression checks cover migration,
 active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
 saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 
@@ -210,37 +211,25 @@ uses preserve concentration and costs. Unflagged uses preserve existing concentr
 change uses the existing save format and updates both screens; Undo restores concentration and
 costs together. This follow-up was also released in 1.10.0.
 
-## F07 — Character-based attack bonuses and save DCs
+## F07 — Manual ability fields (revised scope)
 
-**Requested:** Derive an ability's attack bonus and save DC from the character using it. Add a
-Spellcasting ability dropdown to the character editor. Default applicable values to Auto while
-allowing manual overrides. Separately, provide a dropdown for the ability the target must save
-with, such as Dexterity.
+**User correction (September 13, 2026):** Replace the proposed attack/DC calculation controls with
+manual fields. Do not calculate ability values. Every type must offer Trigger, Duration, Range,
+Area, Casting Time, Spell Level, Components, School, Attack, Save, On Save, Damage / Healing,
+Upcast / Upgrades, Name, Type, standard-slot and Concentration checkboxes, Reference, Description,
+linked resource pool, charges per use, Requirements, and Special.
 
-**Already present:** The character editor has a Spellcasting ability dropdown and automatic spell
-attack/DC values with optional numeric overrides. Individual library abilities still use shared
-free-form attack and save text. The missing work is connecting structured ability fields to those
-character values and separating the target's saving throw ability from the save DC.
+**Implemented locally, awaiting review:** Attack, Save, and On Save are plain text. Type keeps
+its dropdown; Spell Level is available on all types. Casting Time is free text alongside the
+existing explicit Turn cost selector. Resource links and charge costs remain character-specific.
+Upcast / Upgrades stays below Damage / Healing, and Reference replaces the Source label below
+Description, at the bottom right. All fields can be left blank. Shared text appears consistently
+on DM details, assignment previews, and the fixed, rotatable player HUD.
 
-**Suggested approach:**
-
-- Separate three concepts: the user's attack bonus, the user's save DC, and the target's saving
-  throw ability. Include None where an attack or save does not apply.
-- Store calculation choices in the shared ability definition, then resolve numbers for the
-  assigned character. One shared entry must be able to show different values for different users.
-- Support the character's selected spellcasting ability, a specifically chosen ability, and a
-  fixed override. Decide how proficiency and additional bonuses are configured.
-- Put character-specific exceptions on that character's assignment so an override does not
-  accidentally change every character using the library entry.
-- Show the resolved value and an understandable breakdown on the DM side. In the standalone
-  library, display Auto rather than inventing a value without a character.
-- Preserve existing manual attack/save text when migrating saved abilities. Also allow abilities
-  that require neither an attack roll nor a saving throw.
-
-**Open decisions:** How should weapon attacks, multiple casting abilities on one character,
-features using a different stat, and homebrew formulas work? Should shared fixed values and
-per-character overrides both be available? Clarify which parts of the current free-form attack
-and save fields remain as descriptive text.
+Save format 8 imports formats 1–7 and preserves existing text and character state. Fixed values
+entered in the earlier preview are retained as manual text; differing personal exceptions become
+separate library variants. No automatic ability calculation remains. F10 notices and targeted
+undo still require their own approved milestone.
 
 ## F08 — Upcast and level-based upgrade text
 
@@ -250,9 +239,9 @@ when a cantrip or feature improves as the character levels up.
 **Implemented locally, awaiting review:** One shared multiline **Upcast / upgrades** field sits
 directly beneath Damage / healing in the editor. It accepts 40,000 characters for spells, cantrips,
 actions, and features. DM details, assignment previews, and HUD details show populated upgrades
-after the description, with Source last at the bottom right. Library search includes the text.
+after the description, with Reference last at the bottom right. Library search includes the text.
 Long sections page with repeated headings inside the fixed HUD frame; shorter edits clamp only
-invalid page selections. Save format 6 retains upgrades and imports existing formats 1–5.
+invalid page selections. Current development saves retain upgrades in format 8 and import formats 1–7.
 
 This milestone uses user-authored text only. Per-level rows, matching-text highlights, automatic
 damage calculations, and applied effects remain outside this feature.

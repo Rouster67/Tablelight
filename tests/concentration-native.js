@@ -40,7 +40,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await run(
-        `return document.getElementById('concentration-picker-list').textContent.includes('Requires concentration');`
+        `return document.getElementById('concentration-picker-list').textContent.includes('Concentration');`
       )
     );
     await click('[data-action="close-modal"]');

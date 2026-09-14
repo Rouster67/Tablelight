@@ -2,12 +2,12 @@
 
 ## Unreleased
 
-- Add shared Upcast / upgrades text directly beneath Damage / healing in the ability editor. Show it after the description in DM details, assignment previews, and player HUDs, keeping Source last at the bottom right. Blank upgrades stay hidden; library search includes entered upgrades.
-- Page long upgrade text with a repeated heading and clamp an open HUD's page when shared text becomes shorter. Preserve existing ability text, each character's values, fixed HUD dimensions, and rotation. Higher-slot casting still only spends its normal costs; upgrade effects remain manual.
-- Place the Source field below the description in the ability editor, with no optional label. Display references at the bottom right of ability details on both screens and in assignment previews.
-
-- Add an optional shared Source reference to abilities, shown in DM details, assignment previews, and player HUD details and included in library search. Blank sources stay hidden, long references wrap inside the existing HUD size, and shared edits preserve each character's costs and availability.
-- Write save format 6 to retain source references and upgrade text while continuing to import formats 1–5. Older app versions, including the earlier source-only development build, cannot read the new format; retain an exported backup from before upgrading if returning to an older app.
+- Add manual Trigger, Area, Casting Time, School, On Save, Requirements, and Special fields to every ability type. Keep Attack and Save as user-written text, with no automatic ability calculations. Keep the existing Type dropdown and explicit turn-cost tracking, and allow Spell Level on every type.
+- Label the checkbox Concentration and rename Source to Reference. Keep Reference beneath Description at the bottom right and Upcast / Upgrades directly beneath Damage / Healing. Fields can be left blank.
+- Show consistent manual details on the DM screen, assignment previews, and player HUDs. Search the new fields and page long Description, Upgrades, Requirements, and Special sections within the fixed HUD size and rotation.
+- Preserve shared-library behavior, each character's resource links and charge costs, existing text, and later resource spending when saving an open editor.
+- Add shared source references and upcast/upgrade text. Blank details stay hidden; upgrades describe improvements without calculating or applying damage, healing, or effects.
+- Write save format 8 and import formats 1–7. Preserve manually entered fixed values from the earlier calculation preview as text, with separate library variants for personal exceptions. Remove its automatic modes and numeric controls.
 
 ## 1.10.2 — 2026-09-13
 

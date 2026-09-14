@@ -23,6 +23,17 @@ function matchingLibrary(query, filter) {
         entry.name,
         entry.description,
         entry.upgrades,
+        entry.trigger,
+        entry.duration,
+        entry.area,
+        entry.castingTime,
+        entry.school,
+        entry.attack,
+        entry.save,
+        entry.onSave,
+        entry.damage,
+        entry.requirements,
+        entry.special,
         entry.source,
         entry.kind,
         labels[entry.economy],
@@ -86,28 +97,31 @@ function chooseLibraryEntry(characterId) {
   );
 }
 
-function characterBindingFields(c, binding) {
-  return `<div class="form-section"><h3>For ${esc(c.name)} only</h3><p>These settings do not affect other characters.</p><div class="form-grid two"><label class="form-field"><span>Linked resource pool (optional)</span><select name="resourceId">${options([['', 'No resource cost'], ...c.resources.map((r) => [r.id, r.name])], binding.resourceId)}</select></label>${field('Charges spent per use', 'resourceCost', binding.resourceCost, 'number', 'min="1" max="999" required')}<label class="row hint full"><input name="disabled" type="checkbox" ${binding.disabled ? 'checked' : ''}>Mark unavailable for this character</label></div><p class="hint space-top">Add custom resources in Edit character, below spell slots. Slots and remaining charges are always tracked separately for each character.</p></div>`;
+function readCharacterBinding(data) {
+  return {
+    resourceId: data.get('resourceId'),
+    resourceCost: data.get('resourceCost') === '' ? 1 : Number(data.get('resourceCost')),
+    disabled: data.has('disabled'),
+  };
 }
-
+function characterBindingFields(c, binding = {}) {
+  if (!c)
+    return `<div class="form-section full"><h3>Resources</h3><div class="form-grid two"><label class="form-field"><span>Linked resource pool</span><select disabled><option>Choose a character first</option></select></label><label class="form-field"><span>Charges spent per use</span><input type="number" value="1" disabled></label></div><p class="hint space-top">Link a resource pool when adding this ability to a character.</p></div>`;
+  return `<div class="form-section full"><h3>For ${esc(c.name)} only</h3><div class="form-grid two"><label class="form-field"><span>Linked resource pool</span><select name="resourceId">${options([['', 'No resource cost'], ...c.resources.map((r) => [r.id, r.name])], binding.resourceId || '')}</select></label>${field('Charges spent per use', 'resourceCost', binding.resourceCost ?? 1, 'number', 'min="1" max="999"')}<label class="row hint full"><input name="disabled" type="checkbox" ${binding.disabled ? 'checked' : ''}>Mark unavailable for this character</label></div><p class="hint space-top">Each character keeps their own resource pool and charges.</p></div>`;
+}
 function attachLibraryEntry(libraryId, characterId) {
   const entry = state.library.find((e) => e.id === libraryId),
-    c = TL.allCharacters(state).find((c) => c.id === characterId);
+    c = TL.findCharacter(state, characterId);
   if (!entry || !c) return;
   modal(
     'Add ' + esc(entry.name),
-    `<form id="attach-form"><div class="eyebrow">${esc(entry.kind)} · ${esc(labels[entry.economy])}</div>${HUD.renderAbilityDetails(entry)}${characterBindingFields(c, { resourceId: '', resourceCost: 1, disabled: false })}</form>`,
+    `<form id="attach-form"><div class="eyebrow">${esc(entry.kind)} · ${esc(labels[entry.economy])}</div>${HUD.renderAbilityDetails(entry, c)}${characterBindingFields(c)}</form>`,
     `<span class="hint">Linked to the shared library.</span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="attach-form" type="submit" class="primary">Add to ${esc(c.name)}</button></div>`
   );
   submitForm('attach-form', (data) => {
     if (
       commit(
-        () =>
-          TL.attachItem(state, c.id, entry.id, {
-            resourceId: data.get('resourceId'),
-            resourceCost: Number(data.get('resourceCost')),
-            disabled: data.has('disabled'),
-          }),
+        () => TL.attachItem(state, c.id, entry.id, readCharacterBinding(data)),
         'Ability added to ' + c.name
       )
     )
@@ -139,7 +153,7 @@ function assignLibraryEntry(libraryId) {
 
 function editLibraryEntry(id, characterId = '', itemId = '') {
   const entry = state.library.find((e) => e.id === id),
-    c = TL.allCharacters(state).find((c) => c.id === characterId);
+    c = TL.findCharacter(state, characterId);
   const binding = c?.items.find((it) => it.id === itemId),
     originalBinding = binding && TL.clone(binding);
   const draft = TL.clone(
@@ -153,16 +167,25 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
   if (!entry) draft.name = '';
   const original = TL.clone(draft),
     users = entry ? libraryUsers(id) : [];
+  const textField = (label, key, full = false) =>
+    `<label class="form-field ${full ? 'full' : ''}"><span>${label}</span><input name="${key}" maxlength="${TL.abilityTextLimit(key)}" value="${esc(draft[key])}"></label>`;
+  const textArea = (label, key, rows, full = true) =>
+    `<label class="form-field ${full ? 'full' : ''}"><span>${label}</span><textarea name="${key}" rows="${rows}" maxlength="${TL.abilityTextLimit(key)}">${esc(draft[key])}</textarea></label>`;
   modal(
     entry ? 'Edit library entry' : 'Create a library entry',
-    `<form id="item-form"><p class="note">${entry ? `Shared entry${users.length ? ' · used by ' + users.map((c) => esc(c.name)).join(', ') : ''}. Changes below update every character using it.` : 'Save this once to reuse it across characters. No rules are preloaded.'}</p><div class="form-grid two space-top">${field('Name', 'name', draft.name, 'text', 'required maxlength="160"')}<label class="form-field"><span>Type</span><select name="kind">${options(
+    `<form id="item-form"><p class="note">${entry ? 'Shared entry' + (users.length ? ' · used by ' + users.map((c) => esc(c.name)).join(', ') : '') + '. Changes below update every character using it.' : 'Save this once to reuse it across characters. No rules are preloaded.'}</p><div class="form-grid two space-top">
+    ${textField('Name', 'name')}<label class="form-field"><span>Type</span><select name="kind">${options(
       [
         ['action', 'Action / ability'],
         ['spell', 'Spell'],
         ['feature', 'Class / species / other feature'],
       ],
       draft.kind
-    )}</select></label><label class="form-field"><span>Turn cost</span><select name="economy">${options(
+    )}</select></label>
+    ${textField('Trigger', 'trigger')}${textField('Duration', 'duration')}${textField('Range', 'range')}${textField('Area', 'area')}
+    ${textField('Casting Time', 'castingTime')}<label class="form-field"><span>Spell Level</span><select name="level">${options([['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])], draft.level ?? '')}</select></label>
+    ${textField('Components', 'components')}${textField('School', 'school')}${textField('Attack', 'attack')}${textField('Save', 'save')}${textField('On Save', 'onSave')}
+    <label class="form-field"><span>Turn cost</span><select name="economy">${options(
       [
         ['action', 'Action'],
         ['bonus', 'Bonus action'],
@@ -170,29 +193,21 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
         ['free', 'Free / other'],
       ],
       draft.economy
-    )}</select></label><label class="form-field"><span>Spell level (spells only)</span><select name="level">${options(
-      [['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])],
-      draft.level ?? ''
-    )}</select></label><label class="row hint full"><input type="checkbox" name="usesSlot" ${draft.usesSlot ? 'checked' : ''}>Leveled spells spend a standard spell slot</label><label class="row hint full"><input type="checkbox" name="requiresConcentration" ${draft.requiresConcentration ? 'checked' : ''}>Requires concentration (any ability type)</label>${[
-      ['Range / target', 'range'],
-      ['Duration', 'duration'],
-      ['Components', 'components'],
-      ['Attack bonus / roll', 'attack'],
-      ['Damage / healing', 'damage'],
-      ['Saving throw', 'save'],
-    ]
-      .map(([label, key]) => field(label, key, draft[key], 'text', 'maxlength="300"'))
-      .join(
-        ''
-      )}<label class="form-field full"><span>Upcast / upgrades</span><textarea name="upgrades" rows="4" maxlength="40000" placeholder="Describe improvements from higher spell slots or character levels.">${esc(draft.upgrades)}</textarea></label><label class="form-field full"><span>Full description / rules</span><textarea name="description" rows="9" maxlength="40000" placeholder="Enter your own rules or homebrew text.">${esc(draft.description)}</textarea></label><label class="form-field full ability-source-field"><span>Source</span><input name="source" maxlength="300" value="${esc(draft.source)}"></label><p class="hint full">These details are shared. You can write “your spell attack” or “your spell save DC” when values vary by character. Only turn costs, slots, and linked charges are spent automatically; apply other effects yourself.</p></div>${c ? characterBindingFields(c, binding || { resourceId: '', resourceCost: 1, disabled: false }) : ''}</form>`,
+    )}</select></label>
+    <label class="row hint"><input type="checkbox" name="usesSlot" ${draft.usesSlot ? 'checked' : ''}>Spend a standard spell slot</label><label class="row hint"><input type="checkbox" name="requiresConcentration" ${draft.requiresConcentration ? 'checked' : ''}>Concentration</label>
+    ${textField('Damage / Healing', 'damage', true)}${textArea('Upcast / Upgrades', 'upgrades', 4)}
+    ${textArea('Requirements', 'requirements', 3, false)}${textArea('Special', 'special', 3, false)}
+    ${characterBindingFields(c, binding)}${textArea('Description', 'description', 9)}
+    <label class="form-field full ability-source-field"><span>Reference</span><input name="source" maxlength="300" value="${esc(draft.source)}"></label>
+    </div></form>`,
     `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
   );
+  const initialFields = new FormData(document.getElementById('item-form'));
   submitForm('item-form', (data) => {
-    for (const key of TL.definitionFields)
-      draft[key] = ['level', 'usesSlot', 'requiresConcentration'].includes(key)
-        ? draft[key]
-        : data.get(key).trim();
-    if (!draft.name) throw new Error('Enter a name.');
+    for (const key of TL.definitionFields) {
+      if (['level', 'usesSlot', 'requiresConcentration'].includes(key)) continue;
+      draft[key] = data.get(key) === initialFields.get(key) ? original[key] : data.get(key);
+    }
     draft.level = data.get('level') === '' ? null : Number(data.get('level'));
     draft.usesSlot = data.has('usesSlot');
     draft.requiresConcentration = data.has('requiresConcentration');
@@ -210,15 +225,9 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
           state.library.push(TL.libraryEntry(draft));
         }
         if (c) {
-          const settings = {
-            resourceId: data.get('resourceId'),
-            resourceCost: Number(data.get('resourceCost')),
-            disabled: data.has('disabled'),
-          };
+          const settings = readCharacterBinding(data);
           if (binding) {
-            const target = TL.allCharacters(state)
-              .find((x) => x.id === c.id)
-              ?.items.find((it) => it.id === itemId);
+            const target = TL.findCharacter(state, c.id)?.items.find((it) => it.id === itemId);
             if (!target) throw new Error('This character ability no longer exists.');
             const merged = TL.mergeChanges(
               originalBinding,

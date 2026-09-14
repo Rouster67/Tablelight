@@ -137,6 +137,16 @@ module.exports = async function ({
       setOverlay,
       store,
     });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-fields')
+    return require('./ability-fields-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'manual')
     return require('./manual-fixture')({
       app,

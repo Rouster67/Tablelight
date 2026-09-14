@@ -50,32 +50,60 @@ Only the main process accesses the file system. `storage.js` writes a temporary 
 
 ## Shared library
 
-Save format version 6 keeps `library` and `conditionLibrary` alongside `characters` (active party), `roster` (saved players outside the party), `settings`, and `activeId`. Ability library entries own names, type, turn economy, spell level and slot use, metadata, and descriptions. Character items store `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`. Slots, resource counts, HP, and turn state remain on the character. Version 1.5 ignores legacy round values; it no longer stores, sends, displays, or increments a round counter.
+Save format version 8 keeps `library` and `conditionLibrary` alongside `characters` (active
+party), `roster` (inactive saved players), `settings`, and `activeId`. Library entries own
+`name`, `kind`, `economy`, `level`, `usesSlot`, `requiresConcentration`, and the manual text
+fields: `trigger`, `duration`, `range`, `area`, `castingTime`, `components`, `school`,
+`attack`, `save`, `onSave`, `damage`, `upgrades`, `requirements`, `special`, `description`,
+and `source`. The visible Reference label retains the existing `source` storage key.
+Assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
+Slots, resources, HP, turn state, and HUD settings belong to each character.
 
-The optional shared `source` field is plain text bounded to 300 characters, defaulting to empty.
-`HUD.abilityDetails` supplies the same ordered metadata and description to DM details, library
-assignment previews, and paged HUD details. Source is a separate footer below the description,
-aligned to the right; HUD controls stay above that footer. The editor also places its Source
-field below the description on the right. Empty sources are omitted; renderers escape text
-and wrap long references inside their existing columns. Library search includes sources. Exact
-legacy-definition matching includes the source, so different references remain distinct.
+All ability text is manual. There is no ability attack/DC resolver, automatic mode, formula,
+target-stat control, or new personal numeric setting. Existing character-sheet calculations
+remain independent. Spell Level is retained for every type. A selected level above zero plus
+`usesSlot` controls the slot chooser and spending, regardless of type; no text is parsed to
+infer a cost. Casting Time is plain text; `economy` retains explicit turn-cost tracking.
 
-The shared `upgrades` field defaults to empty and accepts 40,000 characters of plain text for all
-ability types. It appears directly beneath Damage / healing in the editor. `TL.abilityTextSections`
-orders the main description and populated upgrades; `HUD.abilityDetails` and the same section
-renderer supply DM details, assignment previews, and the HUD. Source follows both sections.
-`TL.abilityTextPages` uses the existing 640-character text chunks, combines short sections when
-they fit (allowing space for headings), and repeats the upgrade label on later pages. Normalization
-clamps only out-of-range selected detail pages after resolving shared definitions, so shortening
-text preserves valid selections and all positioning. The fixed HUD frame and internal scrolling
-remain unchanged. Upgrades are searchable, participate in exact-content legacy matching, and are
-stored only in library definitions. They do not alter spending, damage, healing, or other effects.
+`abilityTextLimit` bounds description, upgrades, requirements, and special to 40,000 characters;
+attack/save to 2,000; and other text to 300. Missing text defaults to empty. The editor accepts
+blank fields, keeps Type and Spell Level dropdowns, and labels the concentration flag simply
+Concentration. Upcast / Upgrades sits immediately below Damage / Healing. Reference is below
+Description on the right. Resource controls are local to the selected character and disabled
+with an explanation when editing an unassigned definition.
 
-`normalize` resolves definitions into character items in memory so the controller and HUD use the same display and spending code. The library remains authoritative. `toBackup` removes those repeated display fields before serialization. Updates to a shared definition reach every linked character after normalization. Saving the character-specific settings merges only fields actually changed, preserving concurrent TV interactions.
+`HUD.abilityDetails(item, character)` supplies the same ordered metadata to DM details,
+assignment previews, and HUDs, including linked pool name and per-use cost when a character is
+available. `TL.abilityTextSections` orders Description, populated Upgrades, Requirements, and
+Special. The shared section renderer escapes all text. Reference follows all sections as a
+right-aligned footer; HUD use controls stay above it. Empty fields are hidden.
+`TL.abilityTextPages` splits long sections into 640-character chunks, packs short sections,
+and repeats section labels. Normalization clamps invalid detail pages after resolving shared
+definitions. Position, scale, rotation, fixed 880 × 650 frame, and internal scrolling stay intact.
+Library search and exact-content matching include every new text field.
 
-Old version 1 saves are accepted. Unlinked items are migrated to library entries using exact normalized definition content, including name and full description. Same-name entries with different content stay separate. Character item IDs and HUD detail selections remain stable. Duplicate legacy attachments are retained; new attachments prevent adding the same library entry to a character twice. Missing library references and duplicate definition IDs are errors, not silently discarded data.
+`normalize` resolves library definitions into character items in memory. `toBackup` removes
+repeated definition fields before serialization. Shared edits reach active and inactive players;
+changed-field merging preserves concurrent HUD spending. Untouched inputs retain their original
+text, including legacy whitespace or line breaks that a single-line input cannot display.
+DM details refresh when shared text changes.
 
-A linked library entry cannot be deleted until removed from all its characters, including inactive saved players. Removing an item or character leaves the library intact. A full backup restore replaces the active party, inactive roster, and both libraries after confirmation. Formats 1–5 migrate to format 6 while preserving character state and defaulting missing sources/upgrades to empty. Format 6 requires upgrade-text support; retaining format 5 would let the earlier source-only development build silently discard upgrades. Keep pre-upgrade exports for downgrades; an older app may recover a previous-format save instead of the latest data.
+Formats 1–7 import into format 8. Older missing fields become blank; legacy unlinked items match
+by their full normalized definition content. Different same-name definitions remain separate.
+Missing references and duplicate definition IDs remain errors. IDs, selections, resources, and
+all character state are preserved. Older readers reject format 8 rather than discard new fields.
+
+The uncommitted calculation preview wrote format 7. Its migration preserves explicitly entered
+fixed attack/DC numbers and a selected target ability as appended plain text, without calculating
+Auto values or parsing existing notes. Personal exceptions that differ from the shared manual
+result become separate reusable library variants; identical variants share a definition. Their
+assignment IDs and resource bindings remain unchanged. The version 8 whitelist drops the retired
+numeric settings and override keys. Repeated save/load cycles do not append the text again.
+
+An in-use library entry cannot be deleted until removed from every active or inactive character.
+Removing a character or assignment leaves the library intact. A confirmed backup restore replaces
+the party, roster, and both libraries. Existing snapshot Undo behavior is unchanged; targeted use
+undo and notices remain a separate, unimplemented milestone.
 
 ## Conditions and concentration
 
