@@ -73,21 +73,10 @@
       .toUpperCase();
   const portrait = (c) =>
     `<div class="portrait" style="--accent:${c.accent};--hp:${Math.max(0, c.hp / c.maxHp) * 100}%">${c.avatar ? `<img src="${c.avatar}" alt="${esc(c.name)}">` : `<span>${esc(initial(c))}</span>`}</div>`;
-  function pages(text, size = 640) {
-    const out = [];
-    let rest = text || 'No description entered.';
-    while (rest.length > size) {
-      let cut = rest.lastIndexOf(' ', size);
-      if (cut < size / 2) cut = size;
-      out.push(rest.slice(0, cut));
-      rest = rest.slice(cut).trimStart();
-    }
-    out.push(rest);
-    return out;
-  }
+  const pages = TL.textPages;
   function countPages(c) {
     const detail = c.items.find((i) => i.id === c.hud.detailId);
-    if (detail) return pages(abilityDetails(detail).description).length;
+    if (detail) return TL.abilityTextPages(detail).length;
     if (c.hud.panel === 'resources') return Math.max(1, Math.ceil(c.resources.length / 6));
     return Math.max(1, Math.ceil(TL.panelItems(c).length / 5));
   }
@@ -108,11 +97,21 @@
         ['Save', it.save],
       ].filter((x) => x[1]),
       description: it.description || 'No description entered.',
+      sections: TL.abilityTextSections(it),
       source: it.source || '',
     };
   }
   function sourceReference(source) {
     return source ? `<p class="ability-source"><small>Source</small> ${esc(source)}</p>` : '';
+  }
+  function renderTextSections(sections, textClass) {
+    return sections
+      .map(({ label, text }) =>
+        label
+          ? `<div class="ability-upgrades"><h4>${esc(label)}</h4><p class="${textClass}">${esc(text)}</p></div>`
+          : `<p class="${textClass}">${esc(text)}</p>`
+      )
+      .join('');
   }
   function renderAbilityDetails(it) {
     const details = abilityDetails(it);
@@ -120,7 +119,7 @@
       .map(([label, value]) => `<div><small>${esc(label)}</small>${esc(value)}</div>`)
       .join(
         ''
-      )}</div><p class="description-text">${esc(details.description)}</p>${sourceReference(details.source)}`;
+      )}</div>${renderTextSections(details.sections, 'description-text')}${sourceReference(details.source)}`;
   }
   function resourceIcon(r) {
     const shape = TL.resourceIcons.includes(r.icon) ? r.icon : 'circle';
@@ -169,7 +168,7 @@
         .map(([k, v]) => `<span><small>${k}</small>${esc(v)}</span>`)
         .join(
           ''
-        )}</div><p class="hud-description">${esc(pages(details.description)[page])}</p>${countPages(c) > 1 ? `<div class="hud-page">Description ${page + 1} / ${countPages(c)}</div>` : ''}${sourceReference(details.source)}</section>`;
+        )}</div>${renderTextSections(TL.abilityTextPages(detail)[page], 'hud-description')}${countPages(c) > 1 ? `<div class="hud-page">Details ${page + 1} / ${countPages(c)}</div>` : ''}${sourceReference(details.source)}</section>`;
     else if (c.hud.panel === 'sheet') panel = sheetPanel(c);
     else if (c.hud.panel === 'resources')
       panel = `<section class="hud-panel"><div class="eyebrow">Custom resources</div>${

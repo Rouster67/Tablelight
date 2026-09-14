@@ -144,6 +144,7 @@
       components: '',
       attack: '',
       damage: '',
+      upgrades: '',
       save: '',
       description: '',
       disabled: false,
@@ -164,6 +165,7 @@
     'components',
     'attack',
     'damage',
+    'upgrades',
     'save',
     'description',
   ];
@@ -173,7 +175,10 @@
     const defaults = item(),
       entry = { id: str(raw.id, 300) || uid() };
     for (const key of definitionFields)
-      entry[key] = str(raw[key] ?? defaults[key], key === 'description' ? 40000 : 300);
+      entry[key] = str(
+        raw[key] ?? defaults[key],
+        ['description', 'upgrades'].includes(key) ? 40000 : 300
+      );
     entry.name = entry.name.trim() || 'Unnamed ability';
     entry.kind = ['action', 'spell', 'feature'].includes(raw.kind) ? raw.kind : 'action';
     entry.economy = ['action', 'bonus', 'reaction', 'free'].includes(raw.economy)
@@ -185,6 +190,39 @@
     return entry;
   }
   const definitionKey = (entry) => JSON.stringify(definitionFields.map((key) => entry[key]));
+  function textPages(text, size = 640) {
+    const out = [];
+    let rest = text || 'No description entered.';
+    while (rest.length > size) {
+      let cut = rest.lastIndexOf(' ', size);
+      if (cut < size / 2) cut = size;
+      out.push(rest.slice(0, cut));
+      rest = rest.slice(cut).trimStart();
+    }
+    out.push(rest);
+    return out;
+  }
+  function abilityTextSections(it) {
+    const sections = [{ label: '', text: it.description || 'No description entered.' }];
+    if (it.upgrades?.trim()) sections.push({ label: 'Upcast / upgrades', text: it.upgrades });
+    return sections;
+  }
+  function abilityTextPages(it) {
+    const result = [];
+    for (const section of abilityTextSections(it)) {
+      for (const text of textPages(section.text)) {
+        const last = result.at(-1);
+        // Short sections share a page. Repeat the upgrade heading on each longer page.
+        if (
+          last &&
+          last.reduce((length, part) => length + part.text.length + 32, 0) + text.length + 32 <= 640
+        )
+          last.push({ label: section.label, text });
+        else result.push([{ label: section.label, text }]);
+      }
+    }
+    return result;
+  }
   function attachItem(state, characterId, libraryId, settings = {}) {
     const c = findCharacter(state, characterId),
       entry = state.library.find((e) => e.id === libraryId);
@@ -433,11 +471,12 @@
         'components',
         'attack',
         'damage',
+        'upgrades',
         'save',
         'description',
         'resourceId',
       ])
-        it[k] = str(r[k] ?? it[k], k === 'description' ? 40000 : 300);
+        it[k] = str(r[k] ?? it[k], ['description', 'upgrades'].includes(k) ? 40000 : 300);
       if (!it.id) it.id = uid();
       it.libraryId = str(r.libraryId, 300);
       it.kind = ['action', 'spell', 'feature'].includes(r.kind) ? r.kind : 'action';
@@ -484,7 +523,7 @@
     return c;
   }
   function normalize(raw) {
-    if (!raw || ![1, 2, 3, 4, 5].includes(raw.version) || !Array.isArray(raw.characters))
+    if (!raw || ![1, 2, 3, 4, 5, 6].includes(raw.version) || !Array.isArray(raw.characters))
       throw new Error('This is not a supported Tablelight party backup.');
     if (raw.characters.length > PARTY_LIMIT)
       throw new Error('A party can contain up to eight players.');
@@ -526,6 +565,8 @@
         for (const key of definitionFields) it[key] = entry[key];
       }
     for (const c of players) {
+      const detail = c.items.find((it) => it.id === c.hud.detailId);
+      if (detail) c.hud.page = Math.min(c.hud.page, abilityTextPages(detail).length - 1);
       if (c.concentrationItemId) {
         const current = c.items.find(
           (it) => it.id === c.concentrationItemId && it.requiresConcentration
@@ -567,7 +608,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 5,
+      version: 6,
       conditionLibrary,
       libraryVersion: 1,
       library,
@@ -952,6 +993,9 @@
     mergeChanges,
     hudCommand,
     definitionFields,
+    textPages,
+    abilityTextSections,
+    abilityTextPages,
     libraryEntry,
     attachItem,
     removeLibraryEntry,

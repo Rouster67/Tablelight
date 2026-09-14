@@ -40,7 +40,7 @@ test('new library is empty and can exist without a character', () => {
 test('migration deduplicates exact definitions and preserves every character binding and HUD', () => {
   const raw = legacy(),
     state = TL.normalize(raw);
-  assert.equal(state.version, 5);
+  assert.equal(state.version, 6);
   assert.equal(state.library.length, 1);
   const [a, b] = state.characters;
   assert.equal(a.items[0].libraryId, b.items[0].libraryId);
@@ -113,7 +113,7 @@ test('storage writes shared definitions once and can reload linked entries and e
       state = TL.normalize(legacy());
     store.save(state);
     const raw = JSON.parse(fs.readFileSync(store.file, 'utf8'));
-    assert.equal(raw.version, 5);
+    assert.equal(raw.version, 6);
     assert.equal(raw.library[0].description, 'Test text');
     assert.equal(raw.characters[0].items[0].description, undefined);
     assert.deepEqual(store.load().state, state);

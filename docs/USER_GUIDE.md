@@ -90,6 +90,16 @@ HUD details. The Source field is below the description, and references appear at
 of the opened ability's details. Library search also matches sources. Leave it blank to hide it. References are
 plain text, up to 300 characters, and do not change any costs or character values.
 
+**Upcast / upgrades (unreleased):** Write improvements from higher spell slots or character levels
+in the multiline box directly below **Damage / healing**. This shared field works for spells,
+cantrips, actions, and features and accepts up to 40,000 characters. Leave it blank to hide the
+section. In an opened ability, upgrades follow the main description and Source stays last at the
+bottom right. Short descriptions and upgrades fit together on one HUD page; longer text uses
+Previous and Next, repeating the upgrade heading on its pages. Shortening shared text moves an
+out-of-range page to the last available page without changing anyone's HUD size or rotation.
+Library search includes upgrade text. Choose the spell slot to spend as usual and apply any
+damage, healing, or other improvements yourself; the text does not calculate or apply effects.
+
 ## Move and rotate individual bubbles
 
 Every character has their own position, rotation, size, and visibility. Moving one never moves another.
@@ -202,7 +212,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Source-reference development builds write save format 5. Existing saves in formats 1–4 migrate automatically, preserving players, party membership, conditions, concentration, and both libraries. Source references are included in saves and exports. Tablelight 1.10.2 and earlier cannot read format 5 and may instead recover an earlier save. Keep a pre-update exported backup if you need to return to an older app; do not reopen your upgraded live save with it.
+Ability-details development builds write save format 6. Existing saves in formats 1–5 migrate automatically, preserving players, party membership, conditions, concentration, and both libraries. Source references and upgrade text are included in saves and exports. Earlier builds, including the source-only development build, cannot read format 6 and may instead recover an earlier save. Keep a pre-update exported backup if you need to return to an older app; do not reopen your upgraded live save with it.
 
 ## Keyboard shortcuts
 

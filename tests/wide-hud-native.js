@@ -99,6 +99,69 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     results.push(
       'Descriptions, metadata, pagination, and spell spending work inside the right column.'
     );
+    const longUpgrades = (
+      'Higher slot: user-written improvements.\n\n' +
+      'x'.repeat(800) +
+      '\n'
+    ).repeat(50);
+    await run(
+      `commit(()=>{state.library[0].upgrades=${JSON.stringify(longUpgrades)};TL.startTurn(selected());});await saveQueue;`
+    );
+    const firstUpgradePage = await run(
+      `return TL.abilityTextPages(selected().items[0]).findIndex(parts=>parts.some(part=>part.label));`
+    );
+    while (getState().characters[0].hud.page < firstUpgradePage) {
+      const next = getState().characters[0].hud.page + 1;
+      await wait(() =>
+        tv(
+          `return document.querySelector('.hud-pagination span')?.textContent.startsWith('${next} /');`
+        )
+      );
+      await command('.hud-pagination', { type: 'page', amount: 1 });
+      await wait(() => getState().characters[0].hud.page === next);
+    }
+    await wait(() =>
+      tv(
+        `return document.querySelector('.ability-upgrades')?.textContent.includes('Higher slot:');`
+      )
+    );
+    assert.ok(
+      await tv(
+        `const section=document.querySelector('.hud-section-content'),upgrade=document.querySelector('.ability-upgrades'),panel=document.querySelector('.hud-panel');section.scrollTop=section.scrollHeight;return upgrade.scrollWidth<=upgrade.clientWidth && panel.lastElementChild.classList.contains('ability-source') && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===650;`
+      )
+    );
+    await shot('04-long-upgrades');
+    const beforeUse = getState().characters[0];
+    const expectedUse = JSON.parse(JSON.stringify(beforeUse));
+    expectedUse.slots[2].current -= 1;
+    expectedUse.turn.bonus = false;
+    await command('.hud-use-controls', { type: 'use', level: 3 });
+    await wait(() => getState().characters[0].slots[2].current === 0);
+    assert.deepEqual(getState().characters[0], expectedUse);
+    await run(`commit(()=>selected().hud.page=999);await saveQueue;`);
+    await wait(() =>
+      tv(
+        `return document.querySelector('.ability-upgrades h4')?.textContent==='Upcast / upgrades';`
+      )
+    );
+    const lastPage = getState().characters[0].hud.page;
+    assert.ok(lastPage > 50);
+    await run(
+      `commit(()=>state.library[0].upgrades='Short revised improvement.');await saveQueue;`
+    );
+    const clampedPage = getState().characters[0].hud.page;
+    assert.ok(clampedPage < lastPage);
+    await wait(() =>
+      tv(
+        `return document.querySelector('.ability-upgrades')?.textContent.includes('Short revised improvement.');`
+      )
+    );
+    await command('.hud-pagination', { type: 'page', amount: -1 });
+    await wait(() => getState().characters[0].hud.page === clampedPage - 1);
+    assert.deepEqual(getState().characters[0].hud, { ...expectedUse.hud, page: clampedPage - 1 });
+    results.push(
+      'Maximum-length upgrade paragraphs and long words remain reachable with repeated headings; higher-slot use only spends its selected slot and turn cost, and shortening open text clamps navigation.'
+    );
     await command('.hud-nav', { type: 'panel', panel: 'resources' });
     await wait(() => getState().characters[0].hud.panel === 'resources');
     await wait(() => tv(`return !!document.querySelector('.hud-browser .hud-resource');`));

@@ -28,7 +28,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F05 | Source reference on abilities                      | Implemented locally |
 | F06 | Concentration reminder when applying damage        | Released            |
 | F07 | Character-based attack bonuses and save DCs        | Considering         |
-| F08 | Upcast and level-based upgrade text                | Planned candidate   |
+| F08 | Upcast and level-based upgrade text                | Implemented locally |
 | F09 | Uploaded icons for abilities                       | Planned candidate   |
 | F10 | DM notice and targeted undo for player ability use | Considering         |
 | F12 | Class overlay color themes                         | Planned candidate   |
@@ -247,13 +247,15 @@ and save fields remain as descriptive text.
 **Requested:** Add a section for what changes when a spell is cast with a higher-level slot, or
 when a cantrip or feature improves as the character levels up.
 
-**Suggested approach:** Begin with a separate user-authored Upcast / upgrades text field in the
-shared library, displayed with the full ability description on both screens. Support spells,
-cantrips, and other features without shipping any rules text.
+**Implemented locally, awaiting review:** One shared multiline **Upcast / upgrades** field sits
+directly beneath Damage / healing in the editor. It accepts 40,000 characters for spells, cantrips,
+actions, and features. DM details, assignment previews, and HUD details show populated upgrades
+after the description, with Source last at the bottom right. Library search includes the text.
+Long sections page with repeated headings inside the fixed HUD frame; shorter edits clamp only
+invalid page selections. Save format 6 retains upgrades and imports existing formats 1–5.
 
-**Open decisions:** Is one text field enough, or would optional rows for each slot level or character
-level be easier to read? Should a chosen casting level highlight matching text? Automatically
-calculating damage or applying effects is a separate scope from documenting the upgrade.
+This milestone uses user-authored text only. Per-level rows, matching-text highlights, automatic
+damage calculations, and applied effects remain outside this feature.
 
 ## F09 — Uploaded icons for abilities
 

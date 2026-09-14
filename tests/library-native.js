@@ -71,6 +71,8 @@ module.exports = async function ({
       source: 'Test manual p. 42 <img src=x onerror=window.invalidTest=true>',
       description: 'Original user rules. <script>window.invalidTest=true</script>',
       range: 'Self',
+      damage: 'User-written damage',
+      upgrades: 'At higher character levels: <img src=x onerror=window.invalidTest=true>',
     });
     await wait(() => getState().library.length === 1);
     assert.equal(getState().characters.length, 0);
@@ -110,6 +112,12 @@ module.exports = async function ({
     );
     await input('library-search', '');
     assert.equal(await run('return window.invalidTest;'), undefined);
+    await input('library-search', 'higher character levels');
+    assert.equal(
+      await run(`return document.querySelectorAll('#library-list .library-row').length;`),
+      1
+    );
+    await input('library-search', '');
     results.push(
       'Search matches descriptions and source references; entered HTML remains harmless text.'
     );
@@ -141,6 +149,11 @@ module.exports = async function ({
     assert.equal(
       await run(`return document.querySelectorAll('#attach-form .ability-source img').length;`),
       0
+    );
+    assert.ok(
+      await run(
+        `const upgrade=document.querySelector('#attach-form .ability-upgrades');return upgrade.textContent.includes('At higher character levels: <img') && !upgrade.querySelector('img');`
+      )
     );
     await fill('attach-form', { resourceId: pool, resourceCost: 2 });
     await wait(() => getState().characters[0].items.length === 1);
@@ -186,11 +199,14 @@ module.exports = async function ({
       name: 'Revised test technique',
       source: 'Revised manual p. 84 <img src=x onerror=window.invalidTest=true>',
       description: 'Changed once for both players.',
+      upgrades:
+        'Higher levels: improved user-written effect. <img src=x onerror=window.invalidTest=true>',
     });
     await wait(() =>
       getState().characters.every((c) => c.items[0].name === 'Revised test technique')
     );
     assert.equal(getState().characters[0].resources[0].current, 1);
+    assert.ok(getState().characters.every((c) => c.items[0].upgrades.startsWith('Higher levels:')));
     assert.equal(getState().characters[1].items[0].disabled, true);
     assert.ok(
       getState().characters.every((c) => c.items[0].source.startsWith('Revised manual p. 84'))
@@ -252,6 +268,17 @@ module.exports = async function ({
         `[...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880 && el.offsetHeight===650)`
       )
     );
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-upgrades').length===2 && [...document.querySelectorAll('.ability-upgrades')].every(el=>el.textContent.includes('Higher levels: improved user-written effect. <img'))`
+      )
+    );
+    assert.equal(
+      await overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-upgrades img').length`
+      ),
+      0
+    );
     await click(`[data-action="select"][data-id="${a}"]`);
     await click('[data-action="tab"][data-tab="feature"]');
     await click('[data-action="view-item"]');
@@ -267,12 +294,26 @@ module.exports = async function ({
     await shot('06-source-details');
     assert.ok(
       await run(
+        `const upgrade=document.querySelector('.modal-body .ability-upgrades'),description=document.querySelector('.description-text'),source=document.querySelector('.modal-body .ability-source');return upgrade.textContent.includes('Higher levels: improved user-written effect. <img') && upgrade.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && source.getBoundingClientRect().top>=upgrade.getBoundingClientRect().bottom && !upgrade.querySelector('img');`
+      )
+    );
+    assert.ok(
+      await run(
         `const source=document.querySelector('.modal-body .ability-source'),description=document.querySelector('.description-text');return source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right';`
       )
     );
     await click('[data-action="close-modal"]');
     // Save an already-open shared editor after another character spends from the HUD.
     await click('[data-action="edit-item"]');
+    assert.ok(
+      await run(
+        `const upgrade=document.querySelector('#item-form [name="upgrades"]'),label=upgrade.closest('label'),damage=document.querySelector('#item-form [name="damage"]'),description=document.querySelector('#item-form [name="description"]');return upgrade.maxLength===40000 && label.querySelector('span').textContent==='Upcast / upgrades' && label.getBoundingClientRect().top>=damage.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().left-damage.getBoundingClientRect().left)<1 && description.getBoundingClientRect().top>upgrade.getBoundingClientRect().bottom;`
+      )
+    );
+    await run(
+      `document.querySelector('#item-form [name="upgrades"]').scrollIntoView({block:'center'});`
+    );
+    await shot('09-upgrades-editor');
     assert.equal(
       await run(`return document.querySelector('#item-form [name="source"]').maxLength;`),
       300
@@ -289,7 +330,7 @@ module.exports = async function ({
     await overlay.webContents.executeJavaScript(
       `window.tablelight.hudCommand({type:'use',characterId:${JSON.stringify(b)},itemId:${JSON.stringify(getState().characters[1].items[0].id)}})`
     );
-    await fill('item-form', { source: '' });
+    await fill('item-form', { source: '', upgrades: '' });
     await wait(() => getState().library[0].source === '');
     assert.equal(getState().characters[1].turn.bonus, false);
     assert.equal(getState().characters[0].resources[0].current, 1);
@@ -298,12 +339,23 @@ module.exports = async function ({
         `document.querySelectorAll('.ability-source').length===0`
       )
     );
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-upgrades').length===0`
+      )
+    );
     await click('[data-action="edit-item"]');
-    await fill('item-form', { source: 'Final test reference p. 86' });
+    await fill('item-form', {
+      source: 'Final test reference p. 86',
+      upgrades: 'Final upgrade text for higher character levels.',
+    });
     await wait(() => getState().library[0].source === 'Final test reference p. 86');
     assert.equal(getState().characters[1].hud.rotation, 180);
     results.push(
       'Source references match DM, assignment preview, and rotated fixed-size HUDs; clearing hides the row and stale editor saves preserve HUD spending.'
+    );
+    results.push(
+      'Upgrades sit beneath Damage / healing in the editor, follow descriptions on both screens, survive shared edits, and disappear when cleared without undoing later spending.'
     );
     await wait(() =>
       overlay.webContents.executeJavaScript(
@@ -339,10 +391,15 @@ module.exports = async function ({
     assert.equal(saved.library.length, 2);
     assert.equal(saved.characters[0].items[0].description, 'Changed once for both players.');
     assert.equal(saved.characters[0].items[0].source, 'Final test reference p. 86');
+    assert.equal(
+      saved.characters[0].items[0].upgrades,
+      'Final upgrade text for higher character levels.'
+    );
     const raw = JSON.parse(fs.readFileSync(store.file, 'utf8'));
     assert.equal(raw.characters[0].items[0].description, undefined);
     assert.equal(raw.characters[0].items[0].source, undefined);
-    assert.equal(raw.version, 5);
+    assert.equal(raw.characters[0].items[0].upgrades, undefined);
+    assert.equal(raw.version, 6);
     results.push('Reload restores linked abilities; disk stores each definition once.');
     await click('[data-action="view-help"]');
     await click('[data-action="show-license"]');

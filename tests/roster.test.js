@@ -17,7 +17,7 @@ test('old parties migrate intact to an eight-seat party with an empty saved rost
       settings: { partyOrderVersion: 1 },
     };
     const state = TL.normalize(legacy);
-    assert.equal(state.version, 5);
+    assert.equal(state.version, 6);
     assert.deepEqual(state.characters, chars);
     assert.deepEqual(state.roster, []);
     assert.equal(state.activeId, chars[2].id);

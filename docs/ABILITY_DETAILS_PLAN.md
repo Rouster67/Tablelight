@@ -1,7 +1,17 @@
 # Ability details and DM review — proposed plan
 
-Status: the user authorized the first commit, Milestone 1 (F05), on September 13, 2026.
-Source references are implemented locally; later milestones and their open decisions await approval.
+Status: Source references (F05) are complete. The user approved Milestone 2 (F08) on September 13,
+2026, with the Upcast / upgrades box directly beneath Damage / healing. F08 is implemented locally
+for review; F07 and F10 still await approval.
+
+**Working agreement:** Edit and test, then leave changes uncommitted. The user handles staging,
+commits, and publishing. Do not perform those Git actions automatically. Work one approved
+milestone at a time.
+
+Milestone 2 verification: 84 unit tests and all 16 native scenarios (169 checks) pass, plus syntax
+and formatting checks. Reviewed the editor placement, DM details, 0°/180° HUDs, and maximum-length
+upgrade text in the fixed frame. Native checks cover higher-slot spending and shortening open
+text; unit checks also cover inactive characters, backup round trips, and independent selections.
 Milestone 1 verification: 79 unit tests and all 16 native scenarios pass, along with syntax and
 formatting checks. Source screenshots were reviewed on a 2560 × 1440 primary display, with
 1440 × 950 DM test windows, 0°/180° player HUDs, and a maximum-length source in the fixed frame.
@@ -87,6 +97,12 @@ Completion and tests:
 Add one optional shared multiline “Upcast / upgrades” field, proposed maximum 40,000 characters,
 matching the main description limit. Allow it for spells, cantrips, actions, and features.
 Keep the original description untouched. Show the new section after it when populated.
+
+Approved layout: the editor box is directly beneath Damage / healing, labeled **Upcast / upgrades**
+without “optional.” In opened details, the main description comes first, upgrades follow, and
+Source stays last at the bottom right. Short sections share a HUD page when they fit. Development
+saves use format 6 and accept formats 1–5, protecting upgrades from older readers that discard
+unknown fields.
 
 Extend the shared text sections and HUD page count together so both descriptions are reachable,
 including when the main description is blank. Retain section labels across pages and preserve
