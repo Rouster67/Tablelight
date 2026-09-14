@@ -123,10 +123,83 @@
         ? 'Cantrip'
         : 'Level ' + it.level;
   const normalizeSpellLevel = (raw) =>
-    raw.kind !== 'spell' || raw.level === null || raw.level === undefined || raw.level === ''
+    raw.level === null || raw.level === undefined || raw.level === ''
       ? null
       : integer(raw.level, 0, 9);
   const freshTurn = (c) => ({ action: true, bonus: true, reaction: true, movement: c.speed });
+  const abilityTextLimit = (key) =>
+    ['description', 'upgrades', 'requirements', 'special'].includes(key)
+      ? 40000
+      : ['attack', 'save'].includes(key)
+        ? 2000
+        : 300;
+  // Convert only values explicitly entered in the rejected format-7 editor. Never calculate Auto.
+  function legacyPlainAbility(entry) {
+    const append = (text, extra) => (extra ? (text ? text + '\n' : '') + extra : text || '');
+    const attack =
+      entry.attackValue?.mode === 'fixed' && Number.isInteger(entry.attackValue.value)
+        ? signed(entry.attackValue.value)
+        : '';
+    const save =
+      entry.saveDCValue?.mode === 'fixed' && Number.isInteger(entry.saveDCValue.value)
+        ? 'DC ' + entry.saveDCValue.value
+        : '';
+    const target =
+      {
+        str: 'Strength',
+        dex: 'Dexterity',
+        con: 'Constitution',
+        int: 'Intelligence',
+        wis: 'Wisdom',
+        cha: 'Charisma',
+      }[entry.targetSaveAbility] || '';
+    return {
+      ...entry,
+      attack: append(entry.attack, attack),
+      save: append(entry.save, [target, save].filter(Boolean).join(' ')),
+    };
+  }
+  function migrateManualAbilities(raw) {
+    const copy = clone(raw);
+    if (!Array.isArray(copy.library)) return copy;
+    const originals = new Map(
+      copy.library.filter((e) => e && typeof e === 'object').map((e) => [e.id, e])
+    );
+    copy.library = copy.library.map((e) =>
+      e && typeof e === 'object' ? legacyPlainAbility(e) : e
+    );
+    const variants = new Map();
+    for (const c of [...copy.characters, ...(Array.isArray(copy.roster) ? copy.roster : [])]) {
+      if (!Array.isArray(c?.items)) continue;
+      for (const it of c.items) {
+        if (!it || typeof it !== 'object') continue;
+        const original = originals.get(it.libraryId);
+        if (!original) {
+          if (!it.libraryId) Object.assign(it, legacyPlainAbility(it));
+          continue;
+        }
+        if (it.attackOverride == null && it.saveDCOverride == null && it.targetSaveOverride == null)
+          continue;
+        const definition = libraryEntry(
+          legacyPlainAbility({
+            ...original,
+            attackValue: it.attackOverride ?? original.attackValue,
+            saveDCValue: it.saveDCOverride ?? original.saveDCValue,
+            targetSaveAbility: it.targetSaveOverride ?? original.targetSaveAbility,
+          })
+        );
+        const key = definitionKey(definition);
+        if (key === definitionKey(libraryEntry(legacyPlainAbility(original)))) continue;
+        if (!variants.has(key)) {
+          definition.id = uid();
+          copy.library.push(definition);
+          variants.set(key, definition.id);
+        }
+        it.libraryId = variants.get(key);
+      }
+    }
+    return copy;
+  }
   function item(data = {}) {
     return {
       id: uid(),
@@ -138,11 +211,20 @@
       requiresConcentration: false,
       resourceId: '',
       resourceCost: 1,
+      trigger: '',
+      area: '',
+      castingTime: '',
+      school: '',
+      onSave: '',
+      requirements: '',
+      special: '',
+      source: '',
       range: '',
       duration: '',
       components: '',
       attack: '',
       damage: '',
+      upgrades: '',
       save: '',
       description: '',
       disabled: false,
@@ -157,11 +239,20 @@
     'level',
     'usesSlot',
     'requiresConcentration',
+    'trigger',
+    'area',
+    'castingTime',
+    'school',
+    'onSave',
+    'requirements',
+    'special',
+    'source',
     'range',
     'duration',
     'components',
     'attack',
     'damage',
+    'upgrades',
     'save',
     'description',
   ];
@@ -171,7 +262,7 @@
     const defaults = item(),
       entry = { id: str(raw.id, 300) || uid() };
     for (const key of definitionFields)
-      entry[key] = str(raw[key] ?? defaults[key], key === 'description' ? 40000 : 300);
+      entry[key] = str(raw[key] ?? defaults[key], abilityTextLimit(key));
     entry.name = entry.name.trim() || 'Unnamed ability';
     entry.kind = ['action', 'spell', 'feature'].includes(raw.kind) ? raw.kind : 'action';
     entry.economy = ['action', 'bonus', 'reaction', 'free'].includes(raw.economy)
@@ -183,6 +274,44 @@
     return entry;
   }
   const definitionKey = (entry) => JSON.stringify(definitionFields.map((key) => entry[key]));
+  function textPages(text, size = 640) {
+    const out = [];
+    let rest = text || 'No description entered.';
+    while (rest.length > size) {
+      let cut = rest.lastIndexOf(' ', size);
+      if (cut < size / 2) cut = size;
+      out.push(rest.slice(0, cut));
+      rest = rest.slice(cut).trimStart();
+    }
+    out.push(rest);
+    return out;
+  }
+  function abilityTextSections(it) {
+    const sections = [{ label: '', text: it.description || 'No description entered.' }];
+    for (const [key, label] of [
+      ['upgrades', 'Upcast / upgrades'],
+      ['requirements', 'Requirements'],
+      ['special', 'Special'],
+    ])
+      if (it[key]?.trim()) sections.push({ label, text: it[key] });
+    return sections;
+  }
+  function abilityTextPages(it) {
+    const result = [];
+    for (const section of abilityTextSections(it)) {
+      for (const text of textPages(section.text)) {
+        const last = result.at(-1);
+        // Short sections share a page. Repeat the upgrade heading on each longer page.
+        if (
+          last &&
+          last.reduce((length, part) => length + part.text.length + 32, 0) + text.length + 32 <= 640
+        )
+          last.push({ label: section.label, text });
+        else result.push([{ label: section.label, text }]);
+      }
+    }
+    return result;
+  }
   function attachItem(state, characterId, libraryId, settings = {}) {
     const c = findCharacter(state, characterId),
       entry = state.library.find((e) => e.id === libraryId);
@@ -191,7 +320,7 @@
       throw new Error('This character already has this library entry.');
     if (c.items.length >= 500) throw new Error('This character already has 500 abilities.');
     const binding = item({
-      ...entry,
+      ...clone(entry),
       id: uid(),
       libraryId,
       resourceId: settings.resourceId || '',
@@ -207,6 +336,115 @@
     if (allCharacters(state).some((c) => c.items.some((it) => it.libraryId === id)))
       throw new Error('Remove this entry from its characters before deleting it from the library.');
     state.library = state.library.filter((entry) => entry.id !== id);
+  }
+  function libraryAssignments(state, id) {
+    return allCharacters(state)
+      .flatMap((c) => c.items.filter((it) => it.libraryId === id).map((it) => [c.id, it.id]))
+      .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  }
+  function deleteLibraryEntry(state, id, localCharacterIds = [], expectedAssignments) {
+    const entry = state.library.find((e) => e.id === id);
+    if (!entry) throw new Error('This library entry no longer exists.');
+    const assignments = libraryAssignments(state, id);
+    if (expectedAssignments && JSON.stringify(assignments) !== JSON.stringify(expectedAssignments))
+      throw new Error('The assigned characters changed. Review the list before deleting.');
+    if (!Array.isArray(localCharacterIds))
+      throw new Error('Choose which characters keep a local copy.');
+    const keep = new Set(localCharacterIds);
+    if ([...keep].some((characterId) => !assignments.some(([id]) => id === characterId)))
+      throw new Error('A selected character no longer has this ability. Review the list.');
+    // Prepare replacements before mutating. Keeping the assignment ID preserves HUD and concentration links.
+    const replacements = allCharacters(state).map((c) => ({
+      c,
+      removed: new Set(
+        c.items.filter((it) => it.libraryId === id && !keep.has(c.id)).map((it) => it.id)
+      ),
+      items: c.items.flatMap((it) => {
+        if (it.libraryId !== id) return [it];
+        if (!keep.has(c.id)) return [];
+        return [{ ...it, ...libraryEntry(entry), id: it.id, libraryId: '', local: true }];
+      }),
+    }));
+    for (const { c, items, removed } of replacements) {
+      c.items = items;
+      if (removed.has(c.hud.detailId)) {
+        c.hud.detailId = '';
+        c.hud.page = 0;
+      }
+      if (removed.has(c.concentrationItemId)) setConcentration(c, false);
+    }
+    state.library = state.library.filter((e) => e.id !== id);
+  }
+  function duplicateName(name, entries) {
+    const names = new Set(entries.map((entry) => entry.name.trim().toLowerCase()));
+    const base = name.replace(/ \(\d+\)$/, '').trim() || 'Unnamed ability';
+    for (let n = 1; ; n++) {
+      const suffix = ' (' + n + ')';
+      const candidate = base.slice(0, 300 - suffix.length).trimEnd() + suffix;
+      if (!names.has(candidate.toLowerCase())) return candidate;
+    }
+  }
+  function duplicateLibraryEntry(state, id) {
+    const entry = state.library.find((e) => e.id === id);
+    if (!entry) throw new Error('This library entry no longer exists.');
+    if (state.library.length >= 5000)
+      throw new Error('The library can contain up to 5,000 entries.');
+    const copy = libraryEntry({
+      ...entry,
+      id: uid(),
+      name: duplicateName(entry.name, state.library),
+    });
+    state.library.push(copy);
+    return copy;
+  }
+  function duplicateLocalItem(state, characterId, itemId) {
+    const c = findCharacter(state, characterId),
+      original = c?.items.find((it) => it.id === itemId);
+    if (!original) throw new Error('This character ability no longer exists.');
+    if (c.items.length >= 500) throw new Error('This character already has 500 abilities.');
+    const definition = original.local
+      ? original
+      : state.library.find((e) => e.id === original.libraryId);
+    if (!definition) throw new Error('This library entry no longer exists.');
+    return createLocalItem(
+      state,
+      characterId,
+      {
+        ...definition,
+        name: duplicateName(definition.name, c.items),
+      },
+      original
+    );
+  }
+  function createLocalItem(state, characterId, definition = {}, settings = {}) {
+    const c = findCharacter(state, characterId);
+    if (!c) throw new Error('This character no longer exists.');
+    if (c.items.length >= 500) throw new Error('This character already has 500 abilities.');
+    if (settings.resourceId && !c.resources.some((r) => r.id === settings.resourceId))
+      throw new Error('Choose a resource belonging to this character.');
+    const copy = item({
+      ...libraryEntry(definition),
+      id: uid(),
+      libraryId: '',
+      local: true,
+      resourceId: settings.resourceId || '',
+      resourceCost: integer(settings.resourceCost ?? 1, 1, 999),
+      disabled: settings.disabled === true,
+    });
+    c.items.push(copy);
+    return copy;
+  }
+  function copyLibraryItemLocally(state, characterId, libraryId) {
+    const c = findCharacter(state, characterId),
+      entry = state.library.find((e) => e.id === libraryId);
+    if (!c || !entry) throw new Error('Character or library entry no longer exists.');
+    const taken = c.items.some(
+      (it) => it.name.trim().toLowerCase() === entry.name.trim().toLowerCase()
+    );
+    return createLocalItem(state, characterId, {
+      ...entry,
+      name: taken ? duplicateName(entry.name, c.items) : entry.name,
+    });
   }
   function conditionEntry(raw = {}) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw))
@@ -266,7 +504,7 @@
       throw new Error('Invalid concentration setting.');
     const it = active && c.items.find((it) => it.id === itemId && it.requiresConcentration);
     if (active && !it)
-      throw new Error('Choose one of this character’s abilities marked Requires concentration.');
+      throw new Error('Choose one of this character’s abilities marked Concentration.');
     c.concentrating = active;
     c.concentrationItemId = active ? it.id : '';
     c.concentration = active ? it.name : '';
@@ -275,6 +513,7 @@
     const backup = normalize(state);
     for (const c of allCharacters(backup))
       c.items = c.items.map((it) => ({
+        ...(it.local ? { ...libraryEntry(it), local: true } : {}),
         id: it.id,
         libraryId: it.libraryId,
         resourceId: it.resourceId,
@@ -425,18 +664,34 @@
       for (const k of [
         'id',
         'name',
+        'trigger',
+        'area',
+        'castingTime',
+        'school',
+        'onSave',
+        'requirements',
+        'special',
+        'source',
         'range',
         'duration',
         'components',
         'attack',
         'damage',
+        'upgrades',
         'save',
         'description',
         'resourceId',
       ])
-        it[k] = str(r[k] ?? it[k], k === 'description' ? 40000 : 300);
+        it[k] = str(r[k] ?? it[k], abilityTextLimit(k));
       if (!it.id) it.id = uid();
       it.libraryId = str(r.libraryId, 300);
+      if (r.local !== undefined && typeof r.local !== 'boolean')
+        throw new Error('An ability’s character-only setting must be true or false.');
+      if (r.local === true) {
+        if (it.libraryId)
+          throw new Error('A character-only ability cannot also link to the library.');
+        it.local = true;
+      }
       it.kind = ['action', 'spell', 'feature'].includes(r.kind) ? r.kind : 'action';
       it.economy = ['action', 'bonus', 'reaction', 'free'].includes(r.economy)
         ? r.economy
@@ -481,8 +736,13 @@
     return c;
   }
   function normalize(raw) {
-    if (!raw || ![1, 2, 3, 4].includes(raw.version) || !Array.isArray(raw.characters))
+    if (
+      !raw ||
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(raw.version) ||
+      !Array.isArray(raw.characters)
+    )
       throw new Error('This is not a supported Tablelight party backup.');
+    if (raw.version === 7) raw = migrateManualAbilities(raw);
     if (raw.characters.length > PARTY_LIMIT)
       throw new Error('A party can contain up to eight players.');
     if ((raw.version >= 3 || raw.roster !== undefined) && !Array.isArray(raw.roster))
@@ -504,6 +764,10 @@
     const byContent = new Map(library.map((e) => [definitionKey(e), e]));
     for (const c of players)
       for (const it of c.items) {
+        if (it.local) {
+          Object.assign(it, libraryEntry(it));
+          continue;
+        }
         let entry = byId.get(it.libraryId);
         if (it.libraryId && !entry)
           throw new Error('An ability refers to a missing library entry.');
@@ -520,9 +784,12 @@
           }
           it.libraryId = entry.id;
         }
-        for (const key of definitionFields) it[key] = entry[key];
+        for (const key of definitionFields)
+          it[key] = entry[key] && typeof entry[key] === 'object' ? clone(entry[key]) : entry[key];
       }
     for (const c of players) {
+      const detail = c.items.find((it) => it.id === c.hud.detailId);
+      if (detail) c.hud.page = Math.min(c.hud.page, abilityTextPages(detail).length - 1);
       if (c.concentrationItemId) {
         const current = c.items.find(
           (it) => it.id === c.concentrationItemId && it.requiresConcentration
@@ -533,7 +800,7 @@
     }
     if (library.length > 5000) throw new Error('The library can contain up to 5,000 entries.');
     if (
-      (raw.version === 4 || raw.conditionLibrary !== undefined) &&
+      (raw.version >= 4 || raw.conditionLibrary !== undefined) &&
       !Array.isArray(raw.conditionLibrary)
     )
       throw new Error('The condition library must be a list.');
@@ -564,7 +831,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 4,
+      version: 9,
       conditionLibrary,
       libraryVersion: 1,
       library,
@@ -596,7 +863,7 @@
       const r = c.resources.find((r) => r.id === it.resourceId);
       if (!r || r.current < it.resourceCost) return 'Not enough ' + (r?.name || 'resource charges');
     }
-    if (it.kind === 'spell' && it.level > 0 && it.usesSlot) {
+    if (it.level > 0 && it.usesSlot) {
       if (slotLevel === undefined) {
         if (!c.slots.some((s) => s.level >= it.level && s.current > 0))
           return 'No suitable spell slot remaining';
@@ -623,7 +890,7 @@
   function spend(c, it, slotLevel, confirmedConcentration = '') {
     const reason = availability(c, it, slotLevel);
     if (reason) throw new Error(reason);
-    if (it.kind === 'spell' && it.level > 0 && it.usesSlot && slotLevel === undefined)
+    if (it.level > 0 && it.usesSlot && slotLevel === undefined)
       throw new Error('Choose a spell slot level.');
     const warning = concentrationUseWarning(c, it);
     if (warning && confirmedConcentration !== warning.token)
@@ -631,8 +898,7 @@
     if (it.requiresConcentration) setConcentration(c, true, it.id);
     if (it.economy !== 'free') c.turn[it.economy] = false;
     if (it.resourceId) c.resources.find((r) => r.id === it.resourceId).current -= it.resourceCost;
-    if (it.kind === 'spell' && it.level > 0 && it.usesSlot)
-      c.slots.find((s) => s.level === Number(slotLevel)).current--;
+    if (it.level > 0 && it.usesSlot) c.slots.find((s) => s.level === Number(slotLevel)).current--;
   }
   function damage(c, amount) {
     amount = integer(amount, 0, 99999);
@@ -916,6 +1182,7 @@
     deletePlayer,
     overlayState,
     abilities,
+    abilityTextLimit,
     skills,
     colors,
     uid,
@@ -949,9 +1216,18 @@
     mergeChanges,
     hudCommand,
     definitionFields,
+    textPages,
+    abilityTextSections,
+    abilityTextPages,
     libraryEntry,
     attachItem,
+    duplicateLibraryEntry,
+    duplicateLocalItem,
+    createLocalItem,
+    copyLibraryItemLocally,
     removeLibraryEntry,
+    libraryAssignments,
+    deleteLibraryEntry,
     toBackup,
   };
 });

@@ -50,13 +50,100 @@ Only the main process accesses the file system. `storage.js` writes a temporary 
 
 ## Shared library
 
-Save format version 4 keeps `library` and `conditionLibrary` alongside `characters` (active party), `roster` (saved players outside the party), `settings`, and `activeId`. Ability library entries own names, type, turn economy, spell level and slot use, metadata, and descriptions. Character items store `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`. Slots, resource counts, HP, and turn state remain on the character. Version 1.5 ignores legacy round values; it no longer stores, sends, displays, or increments a round counter.
+Save format version 9 keeps `library` and `conditionLibrary` alongside `characters` (active
+party), `roster` (inactive saved players), `settings`, and `activeId`. Library entries own
+`name`, `kind`, `economy`, `level`, `usesSlot`, `requiresConcentration`, and the manual text
+fields: `trigger`, `duration`, `range`, `area`, `castingTime`, `components`, `school`,
+`attack`, `save`, `onSave`, `damage`, `upgrades`, `requirements`, `special`, `description`,
+and `source`. The visible Reference label retains the existing `source` storage key.
+Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
+Slots, resources, HP, turn state, and HUD settings belong to each character.
 
-`normalize` resolves definitions into character items in memory so the controller and HUD use the same display and spending code. The library remains authoritative. `toBackup` removes those repeated display fields before serialization. Updates to a shared definition reach every linked character after normalization. Saving the character-specific settings merges only fields actually changed, preserving concurrent TV interactions.
+Character-only items have `local: true` and an empty `libraryId`. They store their complete
+normalized definition on the character alongside resource link, cost, and availability. The
+normalizer explicitly skips legacy library promotion for these items, even for exact matches;
+`toBackup` retains their definition fields. A local item with a nonempty library link is rejected,
+as is a non-boolean local flag. Unmarked legacy unlinked abilities still migrate to the library.
 
-Old version 1 saves are accepted. Unlinked items are migrated to library entries using exact normalized definition content, including name and full description. Same-name entries with different content stay separate. Character item IDs and HUD detail selections remain stable. Duplicate legacy attachments are retained; new attachments prevent adding the same library entry to a character twice. Missing library references and duplicate definition IDs are errors, not silently discarded data.
+`duplicateLibraryEntry` creates a new definition without assignments. `duplicateLocalItem` copies
+the current definition and the originating character's cost settings, creates a fresh item ID,
+and adds only a local item. Neither action spends or resets resources, changes concentration,
+or changes HUD selection. Names use the first available numbered suffix, ignoring case, within
+the library or destination character respectively. Existing numeric suffixes use the same base;
+long names reserve room within the 300-character limit. Limits remain 5,000 shared definitions
+and 500 abilities per character. Both actions run through ordinary session Undo.
 
-A linked library entry cannot be deleted until removed from all its characters, including inactive saved players. Removing an item or character leaves the library intact. A full backup restore replaces the active party, inactive roster, and both libraries after confirmation. New saves require Tablelight 1.8+; older apps reject version 4 instead of silently dropping condition definitions.
+`createLocalItem` adds a new independent definition and validates the destination and resource
+link before mutation. `copyLibraryItemLocally` copies directly from a library definition without
+attaching it, preserving its name unless already used on that character; resource bindings start
+empty. The character Add dialog exposes both paths below the shared choices. Picker search and
+filter retain local-copy mode and permit copying an already assigned definition. New blank local
+drafts create an item only on Save. `HUD.abilityName` escapes names and prefixes local names with
+an accessible person icon in character lists, details, HUD lists, and concentration choices;
+the icon is presentation only and never stored as part of the name.
+
+The common editor uses a local branch that merges only edited fields into the latest local item.
+It never creates or updates a library definition for that branch. Its title, save action, and
+note identify the character-only scope; character rows and views label local copies. Local
+removal uses a separate explanation. Copying immediately opens the new editor; Cancel leaves
+the created copy. Missing/stale source or destination items fail without recreating deleted data.
+
+All ability text is manual. There is no ability attack/DC resolver, automatic mode, formula,
+target-stat control, or new personal numeric setting. Existing character-sheet calculations
+remain independent. Spell Level is retained for every type. A selected level above zero plus
+`usesSlot` controls the slot chooser and spending, regardless of type; no text is parsed to
+infer a cost. Casting Time is plain text; `economy` retains explicit turn-cost tracking.
+
+`abilityTextLimit` bounds description, upgrades, requirements, and special to 40,000 characters;
+attack/save to 2,000; and other text to 300. Missing text defaults to empty. The editor accepts
+blank fields, keeps Type and Spell Level dropdowns, and labels the concentration flag simply
+Concentration. Upcast / Upgrades sits immediately below Damage / Healing. Reference is below
+Description on the right. Resource controls are local to the selected character and disabled
+with an explanation when editing an unassigned definition.
+
+`HUD.abilityDetails(item, character)` supplies the same ordered metadata to DM details,
+assignment previews, and HUDs, including linked pool name and per-use cost when a character is
+available. `TL.abilityTextSections` orders Description, populated Upgrades, Requirements, and
+Special. The shared section renderer escapes all text. Reference follows all sections as a
+right-aligned footer; HUD use controls stay above it. Empty fields are hidden.
+`TL.abilityTextPages` splits long sections into 640-character chunks, packs short sections,
+and repeats section labels. Normalization clamps invalid detail pages after resolving shared
+definitions. Position, scale, rotation, fixed 880 × 650 frame, and internal scrolling stay intact.
+Library search and exact-content matching include every new text field.
+
+`normalize` resolves library definitions into character items in memory. `toBackup` removes
+repeated definition fields before serialization. Shared edits reach active and inactive players;
+changed-field merging preserves concurrent HUD spending. Untouched inputs retain their original
+text, including legacy whitespace or line breaks that a single-line input cannot display.
+DM details refresh when shared text changes.
+
+Formats 1–8 import into format 9. Older missing fields become blank; legacy unlinked items match
+by their full normalized definition content. Different same-name definitions remain separate.
+Missing references and duplicate definition IDs remain errors. IDs, selections, resources, and
+all character state are preserved. Older readers reject format 9 rather than promote local copies
+into the shared library. Inactive roster, overlay rendering, resource spending, concentration,
+backup recovery, and session Undo all retain local items by their own stable IDs.
+
+The uncommitted calculation preview wrote format 7. Its migration preserves explicitly entered
+fixed attack/DC numbers and a selected target ability as appended plain text, without calculating
+Auto values or parsing existing notes. Personal exceptions that differ from the shared manual
+result become separate reusable library variants; identical variants share a definition. Their
+assignment IDs and resource bindings remain unchanged. The version 9 whitelist drops the retired
+numeric settings and override keys. Repeated save/load cycles do not append the text again.
+
+Assigned ability deletion uses `deleteLibraryEntry` to remove the definition and resolve every
+active or inactive assignment in one commit. Checked characters retain their assignment IDs,
+names, current definition fields, resource bindings and availability, with `local: true` and an
+empty library link. Unchecked assignments are removed; only their matching HUD detail and
+concentration links are cleared. Existing locals, other abilities, spent resources, turn state
+and placement remain unchanged. Conversion works at the 500-ability character limit because it
+replaces the existing assignment. `libraryAssignments` snapshots character and assignment IDs;
+both deletion dialogs require review again when this set changes, while final confirmation uses
+the latest shared text and character costs. The full operation uses ordinary session Undo.
+The lower-level `removeLibraryEntry` remains restricted to unassigned definitions.
+Removing a character or assignment leaves the library intact. A confirmed backup restore replaces
+the party, roster, and both libraries. Existing snapshot Undo behavior is unchanged; targeted use
+undo and notices remain a separate, unimplemented milestone.
 
 ## Conditions and concentration
 
@@ -64,7 +151,7 @@ Condition definitions contain `id`, `name`, and `description`. Characters store 
 
 The DM Add dialog searches existing entries or creates and assigns a definition in a single undoable commit. The TV's Add menu uses an overlay-authenticated, read-only `hud:conditions` query while HUD controls are enabled. Queries return at most 100 alphabetical name/description matches, with a total count; they do not include character data. Its bounded `condition-add` command accepts only existing IDs and active party members, preventing creation from the TV. The menu preserves its search and internal scroll during state updates, ignores stale search responses, and closes when its HUD is hidden, collapsed, or made click-through. Summary scrolling is restored after transient forms mount so their added height remains available.
 
-Formats 1–3 migrate automatically. A legacy character condition note becomes one complete definition, retaining punctuation and qualifiers; identical notes share an entry. Format 4 requires a condition library array and rejects missing references or duplicate definition IDs.
+Formats 1–3 migrate automatically. A legacy character condition note becomes one complete definition, retaining punctuation and qualifiers; identical notes share an entry. Formats 4–5 require a condition library array and reject missing references or duplicate definition IDs.
 
 Ability definitions include a shared `requiresConcentration` boolean, defaulting to false for every kind and economy. The DM and TV selectors filter the character's resolved items by that flag, with name/description search. They include spent or disabled entries because tracking concentration does not itself spend costs. Selecting sends a character-specific item ID; validation rejects unassigned or unflagged abilities and free-text requests.
 

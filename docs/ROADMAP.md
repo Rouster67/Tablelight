@@ -19,20 +19,20 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                               | Status            |
-| --- | -------------------------------------------------- | ----------------- |
-| F01 | Passive abilities section                          | Considering       |
-| F02 | Messages sent to individual player overlays        | Considering       |
-| F03 | Visible application version on the DM screen       | Released          |
-| F04 | Launch update prompt and Windows installer         | Released          |
-| F05 | Source reference on abilities                      | Planned candidate |
-| F06 | Concentration reminder when applying damage        | Released          |
-| F07 | Character-based attack bonuses and save DCs        | Considering       |
-| F08 | Upcast and level-based upgrade text                | Planned candidate |
-| F09 | Uploaded icons for abilities                       | Planned candidate |
-| F10 | DM notice and targeted undo for player ability use | Considering       |
-| F12 | Class overlay color themes                         | Planned candidate |
-| F13 | Bundled illustrated PDF user guide                 | Planned candidate |
+| ID  | Idea                                               | Status              |
+| --- | -------------------------------------------------- | ------------------- |
+| F01 | Passive abilities section                          | Considering         |
+| F02 | Messages sent to individual player overlays        | Considering         |
+| F03 | Visible application version on the DM screen       | Released            |
+| F04 | Launch update prompt and Windows installer         | Released            |
+| F05 | Source reference on abilities                      | Implemented locally |
+| F06 | Concentration reminder when applying damage        | Released            |
+| F07 | Manual ability fields (revised scope)              | Implemented locally |
+| F08 | Upcast and level-based upgrade text                | Implemented locally |
+| F09 | Uploaded icons for abilities                       | Planned candidate   |
+| F10 | DM notice and targeted undo for player ability use | Considering         |
+| F12 | Class overlay color themes                         | Planned candidate   |
+| F13 | Bundled illustrated PDF user guide                 | Planned candidate   |
 
 ## F01 — Passive abilities section
 
@@ -167,11 +167,17 @@ rollback are not included. See [network use](UPDATES.md) and [release instructio
 **Requested:** Add an optional source field when creating or editing a spell, action, or feature.
 For example, a user could enter `PHB pg. 284`.
 
-**Suggested approach:** Store this reference in the shared library definition and display it with
-the ability's details on both screens. Keep it free-form so it supports homebrew, different books,
-and a user's own notes. Consider including it in library search.
+**Implemented design (September 13, 2026):** One shared Reference text field, up to 300
+characters, displayed with ability details on the DM screen, in the assignment preview, and on
+the player HUD. Library search includes references. Empty sources are hidden and long references
+wrap inside the fixed HUD. Source text does not change costs, personal bindings, or availability.
+Links remain outside this first milestone.
 
-**Open decision:** Is a single text field enough, or would an optional link be useful later?
+**Status:** Implemented locally on `codex/ability-details-and-review`; release pending. Reference
+retains the original source data and stays below Description at the bottom right. Current saves
+use format 9 and accept formats 1–8. Regression checks cover migration,
+active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
+saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 
 ## F06 — Concentration reminder when applying damage
 
@@ -205,50 +211,54 @@ uses preserve concentration and costs. Unflagged uses preserve existing concentr
 change uses the existing save format and updates both screens; Undo restores concentration and
 costs together. This follow-up was also released in 1.10.0.
 
-## F07 — Character-based attack bonuses and save DCs
+## F07 — Manual ability fields (revised scope)
 
-**Requested:** Derive an ability's attack bonus and save DC from the character using it. Add a
-Spellcasting ability dropdown to the character editor. Default applicable values to Auto while
-allowing manual overrides. Separately, provide a dropdown for the ability the target must save
-with, such as Dexterity.
+**User correction (September 13, 2026):** Replace the proposed attack/DC calculation controls with
+manual fields. Do not calculate ability values. Every type must offer Trigger, Duration, Range,
+Area, Casting Time, Spell Level, Components, School, Attack, Save, On Save, Damage / Healing,
+Upcast / Upgrades, Name, Type, standard-slot and Concentration checkboxes, Reference, Description,
+linked resource pool, charges per use, Requirements, and Special.
 
-**Already present:** The character editor has a Spellcasting ability dropdown and automatic spell
-attack/DC values with optional numeric overrides. Individual library abilities still use shared
-free-form attack and save text. The missing work is connecting structured ability fields to those
-character values and separating the target's saving throw ability from the save DC.
+**Implemented locally, awaiting review:** Attack, Save, and On Save are plain text. Type keeps
+its dropdown; Spell Level is available on all types. Casting Time is free text alongside the
+existing explicit Turn cost selector. Resource links and charge costs remain character-specific.
+Upcast / Upgrades stays below Damage / Healing, and Reference replaces the Source label below
+Description, at the bottom right. All fields can be left blank. Shared text appears consistently
+on DM details, assignment previews, and the fixed, rotatable player HUD.
 
-**Suggested approach:**
+Save format 9 imports formats 1–8 and preserves existing text and character state. Fixed values
+entered in the earlier preview are retained as manual text; differing personal exceptions become
+separate library variants. No automatic ability calculation remains. F10 notices and targeted
+undo still require their own approved milestone.
 
-- Separate three concepts: the user's attack bonus, the user's save DC, and the target's saving
-  throw ability. Include None where an attack or save does not apply.
-- Store calculation choices in the shared ability definition, then resolve numbers for the
-  assigned character. One shared entry must be able to show different values for different users.
-- Support the character's selected spellcasting ability, a specifically chosen ability, and a
-  fixed override. Decide how proficiency and additional bonuses are configured.
-- Put character-specific exceptions on that character's assignment so an override does not
-  accidentally change every character using the library entry.
-- Show the resolved value and an understandable breakdown on the DM side. In the standalone
-  library, display Auto rather than inventing a value without a character.
-- Preserve existing manual attack/save text when migrating saved abilities. Also allow abilities
-  that require neither an attack roll nor a saving throw.
+**Approved duplication follow-up:** Duplicate creates a numbered library version. Duplicate
+locally only, available in each character ability row, creates an independently editable ability
+on that character without adding it to the library. This supports special-resource variants of
+slot-based spells. Copies retain every manual field and cost setting; local copies survive saves,
+backups, inactive-party moves, and Undo. Local names have a person icon. The character Add dialog
+also offers smaller buttons to create a blank local ability or copy directly from the library
+without a shared link. Hover text explains each choice. Implemented locally for review before starting F10.
 
-**Open decisions:** How should weapon attacks, multiple casting abilities on one character,
-features using a different stat, and homebrew formulas work? Should shared fixed values and
-per-character overrides both be available? Clarify which parts of the current free-form attack
-and save fields remain as descriptive text.
+**Approved library deletion follow-up:** Assigned abilities show a warning with all affected
+characters and choices to edit, remove every assignment and delete, or keep selected local copies
+before deleting the library entry. The checklist defaults to all assigned characters, including
+inactive players. Kept assignments preserve their names and independent costs; unchecked ones
+are removed. The operation supports ordinary Undo, and changed assignments require another review.
 
 ## F08 — Upcast and level-based upgrade text
 
 **Requested:** Add a section for what changes when a spell is cast with a higher-level slot, or
 when a cantrip or feature improves as the character levels up.
 
-**Suggested approach:** Begin with a separate user-authored Upcast / upgrades text field in the
-shared library, displayed with the full ability description on both screens. Support spells,
-cantrips, and other features without shipping any rules text.
+**Implemented locally, awaiting review:** One shared multiline **Upcast / upgrades** field sits
+directly beneath Damage / healing in the editor. It accepts 40,000 characters for spells, cantrips,
+actions, and features. DM details, assignment previews, and HUD details show populated upgrades
+after the description, with Reference last at the bottom right. Library search includes the text.
+Long sections page with repeated headings inside the fixed HUD frame; shorter edits clamp only
+invalid page selections. Current development saves retain upgrades in format 9 and import formats 1–8.
 
-**Open decisions:** Is one text field enough, or would optional rows for each slot level or character
-level be easier to read? Should a chosen casting level highlight matching text? Automatically
-calculating damage or applying effects is a separate scope from documenting the upgrade.
+This milestone uses user-authored text only. Per-level rows, matching-text highlights, automatic
+damage calculations, and applied effects remain outside this feature.
 
 ## F09 — Uploaded icons for abilities
 

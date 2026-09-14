@@ -75,13 +75,88 @@ Open **Ability library** in the sidebar to create, search, filter, or edit your 
 
 On a character, **+ Add → Create new** saves a new entry to the library and adds it to that character. **+ Add → Choose existing** searches the library and links an entry you already wrote. You can also use **Add to character** from the library.
 
-Each Ability library row has **Delete** beside **Edit**. Deleting asks for confirmation and supports Undo. An entry used by a character must be removed from that character first.
+Each Ability library row has **Delete** beside **Edit**. For an assigned ability, a warning lists every character using it, including characters outside the active party. Choose:
 
-The name, description, spell details, and turn cost are shared. Editing them updates every linked character. Each character keeps their own resource pool link, charges spent per use, remaining resources, and unavailable flag. The editor labels these character-only settings separately. For bonuses that vary by character, write “your spell attack” or “your spell save DC” in the shared description, or create separate variants with different values.
+- **Edit instead** to open the shared editor. This white button sits immediately left of the yellow **Make local copies and delete…** button.
+- **Remove and delete** to remove the ability from all assigned characters and delete it from the library.
+- **Make local copies and delete…** to choose who keeps an independent copy. A second dialog lists every assigned character, all checked by default. Checked characters keep a local version with the same name and their own resource settings; unchecked characters lose the assignment. **Go back** returns to the warning. **Make local copies and delete** confirms the choices and deletes the library entry.
 
-Every ability in the DM’s character lists has **Remove from character** alongside View, Use, and Edit. Confirming removes the ability from that character and keeps its library entry. **Undo** restores the assignment. Deleting a character also keeps the library. To delete a library entry, first remove it from any characters using it; the app tells you which ones. Undo can reverse these changes during the current session.
+Existing local copies and spent resources remain unchanged. If assignments change while the warning is open, review the refreshed list before confirming. **Undo** restores a confirmed deletion and its assignments together during the current session.
+
+**Duplicate abilities (unreleased):** Click **Duplicate** on an Ability library row to make a
+separate library version. It gets a name such as **Guiding Bolt (1)**, then **Guiding Bolt (2)**
+if the first name is taken. The copy opens for editing and is not assigned to anyone automatically.
+
+On a character's ability tab, click the **copy icon** between Use and Edit. Hovering shows
+**Duplicate locally only**. The row reads View, Use, copy icon, Edit, with Remove from character
+underneath. This adds a separate copy
+to that character and opens its editor. A small **person icon** before the name identifies local
+abilities in the character list, details, and HUD; hover to see **Only on this character**. You can change all
+its text and costs without changing the original or another character. It does not appear in the
+ability library, and later library edits do not change it. Numbering checks the names already on
+that character. Both duplicate buttons create the copy immediately; Cancel closes the editor and
+keeps the copy, while Undo can reverse the duplication.
+
+The character's **+ Add** dialog also has two smaller buttons:
+
+- **Create new local ability**, below Create new, opens a blank editor and saves only to this character. Cancel leaves no new ability.
+- **Create local-only copy**, below Choose existing, opens the library picker. Click **Copy locally** to make an independent character copy, even if the shared ability is already assigned. The name stays the same unless it is already on this character, in which case a number is added. The copy opens for editing immediately; Cancel keeps it, and Undo can remove it.
+
+Hover over either smaller button for an explanation. These options never add to or edit the shared library.
+
+For a spell with two special casts per long rest, keep the original linked spell for slot casting.
+On the local copy, uncheck **Spend a standard spell slot**, link your special resource pool, and
+set **Charges spent per use** to 1. Set that character's pool to a maximum of 2 and **Long rest**
+recovery. The local version spends the pool; the original still spends spell slots.
+
+Local copies stay with the character when moving out of the party, reopening Tablelight, and
+exporting/restoring backups. **Remove from character** removes that local copy and supports Undo.
+
+For library-linked abilities, the name, description, spell details, and turn cost are shared. Editing them updates every linked character. Each character keeps their own resource pool link, charges spent per use, remaining resources, and unavailable flag. The editor labels these character-only settings separately. Create a local copy when an ability needs different details or slot settings for just one character.
+
+Every ability in the DM’s character lists has **Remove from character** alongside View, Use, and Edit. Confirming removes the ability from that character and keeps its library entry. **Undo** restores the assignment. Deleting a character also keeps the library. Deleting from the Ability library offers the removal and local-copy choices described above. Undo can reverse these changes during the current session.
 
 Existing abilities from older saves move into the library automatically. Exact matches share an entry; different homebrew versions remain separate. Positions, rotations, resources, and selected descriptions are preserved.
+
+**Source references (unreleased):** When creating or editing an ability, optionally enter a
+reference such as **PHB pg. 284** or your homebrew notes in **Reference**. It is shared with every
+character using that entry and appears in DM details, the Add to character preview, and player
+HUD details. The Reference field is below the description, and references appear at the bottom right
+of the opened ability's details. Library search also matches sources. Leave it blank to hide it. References are
+plain text, up to 300 characters, and do not change any costs or character values.
+
+**Upcast / upgrades (unreleased):** Write improvements from higher spell slots or character levels
+in the multiline box directly below **Damage / healing**. This shared field works for spells,
+cantrips, actions, and features and accepts up to 40,000 characters. Leave it blank to hide the
+section. In an opened ability, upgrades follow the main description and Reference stays last at the
+bottom right. Short descriptions and upgrades fit together on one HUD page; longer text uses
+Previous and Next, repeating the upgrade heading on its pages. Shortening shared text moves an
+out-of-range page to the last available page without changing anyone's HUD size or rotation.
+Library search includes upgrade text. Choose the spell slot to spend as usual and apply any
+damage, healing, or other improvements yourself; the text does not calculate or apply effects.
+
+**Manual ability fields (unreleased):** Every ability type has Name, Type, Trigger, Duration,
+Range, Area, Casting Time, Spell Level, Components, School, Attack, Save, On Save, Damage / Healing,
+Upcast / Upgrades, Requirements, Special, Description, and Reference. Enter the text you want to
+read at the table. For example, Save can say “DEX 15” and On Save can say “Half damage” or
+“No damage.” Attack and Save stay exactly as entered when character statistics change.
+
+Type keeps the existing dropdown. Spell Level offers None, Cantrip, and levels 1–9 for every
+type. Casting Time is text; the separate Turn cost dropdown controls action, bonus action,
+reaction, or free use. Check **Spend a standard spell slot** to spend a chosen slot for an ability
+with a level above zero. Check **Concentration** to use the existing concentration tracker.
+Damage, healing, improvements, and other effects remain user-written and manually applied.
+
+All fields may be left blank. A blank Name saves as Unnamed ability. Linked resource pool and
+Charges spent per use belong to each character; choose them when adding or editing that
+character’s ability. With no character selected, these controls explain where to link a pool.
+Shared edits preserve each character’s remaining resources and other independent settings.
+For different manual text, create a separate library variant.
+
+Requirements and Special accept long text and appear as labeled sections in DM and HUD details.
+The HUD pages long descriptions, upgrades, requirements, and special notes within its fixed
+frame. Reference stays last at the bottom right. Empty detail fields are hidden, and library
+search includes all these text fields. Existing ability text remains intact.
 
 ## Move and rotate individual bubbles
 
@@ -142,15 +217,15 @@ The panel indicates whether the TV overlay, player, or expanded HUD is hidden. C
 
 ## Concentration and conditions
 
-In an ability's editor, check **Requires concentration** for any action, spell, or feature that needs it. This checkbox applies to every turn cost and defaults off. It is part of the shared library entry, so edits apply to every character using that entry.
+In an ability's editor, check **Concentration** for any action, spell, or feature that needs it. This checkbox applies to every turn cost and defaults off. It is part of the shared library entry, so edits apply to every character using that entry.
 
-The expanded HUD has a **Concentrating** icon below the ability scores. With **HUD controls: on**, click the unlit icon to open a searchable list of this character's assigned abilities that are marked Requires concentration. Choose **Concentrate** beside an ability to light the icon. Hover over it to read the selected ability's name. Click the lit icon again to end concentration. **Cancel** closes the list without changing concentration. If the list is empty, flag the appropriate abilities in their editors on the DM screen.
+The expanded HUD has a **Concentrating** icon below the ability scores. With **HUD controls: on**, click the unlit icon to open a searchable list of this character's assigned abilities that are marked Concentration. Choose **Concentrate** beside an ability to light the icon. Hover over it to read the selected ability's name. Click the lit icon again to end concentration. **Cancel** closes the list without changing concentration. If the list is empty, flag the appropriate abilities in their editors on the DM screen.
 
 The DM character page has the same toggle plus **Choose ability / Change ability**. Both screens include all flagged ability types, including bonus actions and reactions. Selecting one records concentration without spending an action, slot, or charge. Use the normal ability controls to spend costs separately.
 
 The selected ability is saved by its character assignment, so renaming its shared entry updates the hover name. Removing that ability from the character or turning its concentration flag off ends concentration on it. Long rest ends concentration; short rest, Start turn, damage, and using abilities without the concentration flag leave it as set.
 
-Using an ability marked **Requires concentration** automatically selects that ability in the concentration tracker after its use is validated. This applies to spells, actions, and features, including cantrips and abilities that use custom resources. If the character is already concentrating, an **End current concentration?** warning opens on the screen where you clicked Use. It names the old ability, or says **your current ability** when no name is recorded. **Cancel** preserves the old concentration and spends nothing; **Use ability** spends the normal action, slot, and resource costs and switches concentration to the used ability. This also applies when using the same concentration ability again. On the TV, the warning stays inside that character's rotated HUD. Failed uses leave concentration and costs unchanged. **Undo** restores the previous concentration and all costs from that use together. The manual Choose ability / Change ability controls remain available for corrections.
+Using an ability marked **Concentration** automatically selects that ability in the concentration tracker after its use is validated. This applies to spells, actions, and features, including cantrips and abilities that use custom resources. If the character is already concentrating, an **End current concentration?** warning opens on the screen where you clicked Use. It names the old ability, or says **your current ability** when no name is recorded. **Cancel** preserves the old concentration and spends nothing; **Use ability** spends the normal action, slot, and resource costs and switches concentration to the used ability. This also applies when using the same concentration ability again. On the TV, the warning stays inside that character's rotated HUD. Failed uses leave concentration and costs unchanged. **Undo** restores the previous concentration and all costs from that use together. The manual Choose ability / Change ability controls remain available for corrections.
 
 While a character is concentrating, an amber concentration icon pulses beside the DM's **− Damage** button, **Apply** in the damage dialog, and the interactive HUD's **HP −1 / −5** buttons. Hover over it to see **Concentrating: [ability name]**, or **Concentrating** when no name is recorded. The icon updates as concentration changes, including while the damage dialog is open. It is only a reminder: damage applies normally, with no additional confirmation, automatic roll, or change to concentration. The icon stays steady when reduced motion is enabled in your system.
 
@@ -166,7 +241,7 @@ Conditions remain until you remove them, including after rests. Upgrading preser
 
 ## 2024 rules and homebrew
 
-Tablelight tracks the values you enter. Using an ability spends its configured costs and updates concentration when you have marked **Requires concentration**. It does not adjudicate D&D rules or automatically apply damage, healing, movement effects, conditions, or spellcasting restrictions. Enter your chosen rules and apply those effects yourself; concentration saving throws and ending concentration after a failed save remain manual.
+Tablelight tracks the values you enter. Using an ability spends its configured costs and updates concentration when you have marked **Concentration**. It does not adjudicate D&D rules or automatically apply damage, healing, movement effects, conditions, or spellcasting restrictions. Enter your chosen rules and apply those effects yourself; concentration saving throws and ending concentration after a failed save remain manual.
 
 The spell-level dropdown defaults to **None**. Actions and features need no spell level. For spells, choose None, Cantrip, or a level from 1–9. None is distinct from Cantrip and does not automatically spend a standard slot. Standard leveled spells can spend one slot of the selected level; cantrips do not spend standard slots. For special spell pools, uncheck standard slot spending and link a custom resource instead.
 
@@ -195,7 +270,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Version 1.8 writes save format version 4. Existing saves migrate automatically, preserving players, party membership, conditions, and concentration notes. Both the ability and condition libraries are included in saves and exported backups. Older app versions cannot read these new saves. Keep a pre-update exported backup if you need to return to an older version.
+Ability-details development builds write save format 9 and import formats 1–8. All manual fields, existing players, libraries, resources, and HUD choices are retained. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Older builds cannot read format 9; keep a pre-update exported backup if you need to return to an older app.
 
 ## Keyboard shortcuts
 

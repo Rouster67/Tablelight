@@ -8,7 +8,7 @@ test('new abilities default to no spell level; existing cantrips and leveled spe
   assert.equal(TL.libraryEntry().level, null);
   assert.equal(TL.libraryEntry({ kind: 'spell' }).level, null);
   assert.equal(TL.libraryEntry({ kind: 'spell', level: '' }).level, null);
-  assert.equal(TL.libraryEntry({ kind: 'action', level: 0 }).level, null);
+  assert.equal(TL.libraryEntry({ kind: 'action', level: 0 }).level, 0);
   assert.equal(TL.libraryEntry({ kind: 'spell', level: 0 }).level, 0);
   assert.equal(TL.libraryEntry({ kind: 'spell', level: 4 }).level, 4);
   const c = TL.character();

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Replace blocked deletion of assigned abilities with a warning listing every affected character, a white Edit instead button to the left of the yellow Make local copies and delete button, and a Remove and delete choice. The local-copy checklist defaults to everyone, includes inactive characters, and preserves each kept assignment's name, costs, HUD selection, and concentration. Confirmed deletion supports Undo and requires another review if assignments change while the dialog is open.
+- Mark local ability names with a small person icon on the character screen and HUD. Add smaller Create new local ability and Create local-only copy buttons beneath the shared Add choices, with hover explanations. New local abilities and direct library copies belong only to the selected character.
+- Add Duplicate to the ability library and a compact copy icon between Use and Edit on character ability rows, with the tooltip Duplicate locally only. Copies receive numbered names and open for editing. Character-only copies keep independent details, slot settings, and resource costs without entering the shared library.
+- Keep local copies through saves, exports, inactive-party moves, and Undo. Save format 9 imports formats 1–8 and prevents older readers from converting local copies into shared entries.
+- Add manual Trigger, Area, Casting Time, School, On Save, Requirements, and Special fields to every ability type. Keep Attack and Save as user-written text, with no automatic ability calculations. Keep the existing Type dropdown and explicit turn-cost tracking, and allow Spell Level on every type.
+- Label the checkbox Concentration and rename Source to Reference. Keep Reference beneath Description at the bottom right and Upcast / Upgrades directly beneath Damage / Healing. Fields can be left blank.
+- Show consistent manual details on the DM screen, assignment previews, and player HUDs. Search the new fields and page long Description, Upgrades, Requirements, and Special sections within the fixed HUD size and rotation.
+- Preserve shared-library behavior, each character's resource links and charge costs, existing text, and later resource spending when saving an open editor.
+- Add shared source references and upcast/upgrade text. Blank details stay hidden; upgrades describe improvements without calculating or applying damage, healing, or effects.
+- Preserve manually entered fixed values from the earlier calculation preview as text, with separate library variants for personal exceptions. Remove its automatic modes and numeric controls.
+
 ## 1.10.2 — 2026-09-13
 
 - Add an optional Remove all saved data choice to the Windows uninstaller, unchecked by default and requiring a separate confirmation. Ordinary uninstalls keep saves; confirmed removal clears characters, ability and condition libraries, portraits, resources, notes, settings, and the previous save. Both choices clean up the installed program, shortcuts, and update cache. Updates preserve saved data and their download cache, and command-line deletion cannot bypass the choice.

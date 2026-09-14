@@ -144,7 +144,7 @@
     if (detail) {
       const reason = TL.availability(c, detail);
       let use;
-      if (detail.kind === 'spell' && detail.level > 0 && detail.usesSlot)
+      if (detail.level > 0 && detail.usesSlot)
         use = c.slots
           .filter((s) => s.level >= detail.level && s.current)
           .map((s) =>
@@ -186,6 +186,8 @@
         'beforeend',
         `<div class="hud-pagination">${control(c, '← Previous', 'page', { amount: -1 }, c.hud.page > 0 ? '' : 'disabled')}<span>${Math.min(c.hud.page + 1, HUD.countPages(c))} / ${HUD.countPages(c)}</span>${control(c, 'Next →', 'page', { amount: 1 }, c.hud.page < HUD.countPages(c) - 1 ? '' : 'disabled')}</div>`
       );
+    const source = panel?.querySelector('.ability-source');
+    if (source) panel.appendChild(source);
     card
       .querySelector('.hud-summary')
       .insertAdjacentHTML(

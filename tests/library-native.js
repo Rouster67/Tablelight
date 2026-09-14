@@ -68,8 +68,11 @@ module.exports = async function ({
       name: 'Shared test technique',
       kind: 'feature',
       economy: 'bonus',
+      source: 'Test manual p. 42 <img src=x onerror=window.invalidTest=true>',
       description: 'Original user rules. <script>window.invalidTest=true</script>',
       range: 'Self',
+      damage: 'User-written damage',
+      upgrades: 'At higher character levels: <img src=x onerror=window.invalidTest=true>',
     });
     await wait(() => getState().library.length === 1);
     assert.equal(getState().characters.length, 0);
@@ -78,7 +81,7 @@ module.exports = async function ({
     await click('[data-action="close-modal"]');
     assert.equal(getState().library.length, 1);
     await click('#library-list [data-action="delete-library-entry"]');
-    await click('#confirm-action');
+    await click('#confirm-library-delete');
     await wait(() => getState().library.length === 0);
     await click('[data-action="undo"]');
     await wait(() => getState().library.length === 1);
@@ -102,8 +105,22 @@ module.exports = async function ({
       1
     );
     await input('library-search', '');
+    await input('library-search', 'manual 42');
+    assert.equal(
+      await run(`return document.querySelectorAll('#library-list .library-row').length;`),
+      1
+    );
+    await input('library-search', '');
     assert.equal(await run('return window.invalidTest;'), undefined);
-    results.push('Search matches descriptions; entered HTML remains harmless text.');
+    await input('library-search', 'higher character levels');
+    assert.equal(
+      await run(`return document.querySelectorAll('#library-list .library-row').length;`),
+      1
+    );
+    await input('library-search', '');
+    results.push(
+      'Search matches descriptions and source references; entered HTML remains harmless text.'
+    );
     await click('[data-action="add-character"]');
     await fill('character-form', { name: 'Test player A' });
     await wait(() => getState().characters.length === 1);
@@ -124,6 +141,20 @@ module.exports = async function ({
     await click('[data-action="choose-library-entry"]');
     await input('library-picker-search', 'technique');
     await click('[data-action="attach-library-entry"]');
+    assert.ok(
+      await run(
+        `return document.querySelector('#attach-form .ability-source').textContent.includes('Test manual p. 42 <img');`
+      )
+    );
+    assert.equal(
+      await run(`return document.querySelectorAll('#attach-form .ability-source img').length;`),
+      0
+    );
+    assert.ok(
+      await run(
+        `const upgrade=document.querySelector('#attach-form .ability-upgrades');return upgrade.textContent.includes('At higher character levels: <img') && !upgrade.querySelector('img');`
+      )
+    );
     await fill('attach-form', { resourceId: pool, resourceCost: 2 });
     await wait(() => getState().characters[0].items.length === 1);
     assert.equal(getState().library.length, 1);
@@ -166,20 +197,32 @@ module.exports = async function ({
     await shot('03-shared-editor');
     await fill('item-form', {
       name: 'Revised test technique',
+      source: 'Revised manual p. 84 <img src=x onerror=window.invalidTest=true>',
       description: 'Changed once for both players.',
+      upgrades:
+        'Higher levels: improved user-written effect. <img src=x onerror=window.invalidTest=true>',
     });
     await wait(() =>
       getState().characters.every((c) => c.items[0].name === 'Revised test technique')
     );
     assert.equal(getState().characters[0].resources[0].current, 1);
+    assert.ok(getState().characters.every((c) => c.items[0].upgrades.startsWith('Higher levels:')));
     assert.equal(getState().characters[1].items[0].disabled, true);
+    assert.ok(
+      getState().characters.every((c) => c.items[0].source.startsWith('Revised manual p. 84'))
+    );
     results.push('Editing the library updates all linked characters and preserves spent state.');
     await click('#library-list [data-action="delete-library-entry"]');
     assert.ok(
-      await run(`return document.getElementById('toast').innerText.includes('Test player A');`)
+      await run(
+        `return document.querySelector('.modal-body').textContent.includes('Test player A') && document.querySelector('.modal-body').textContent.includes('Test player B');`
+      )
     );
     assert.equal(getState().library.length, 1);
-    results.push('Deleting an in-use definition is blocked and names affected characters.');
+    await click('[data-action="close-modal"]');
+    results.push(
+      'Deleting an assigned definition opens a warning naming every affected character; Cancel leaves it unchanged.'
+    );
     await click(`[data-action="select"][data-id="${b}"]`);
     await click('[data-action="tab"][data-tab="feature"]');
     await click('[data-action="edit-item"]');
@@ -214,6 +257,123 @@ module.exports = async function ({
     );
     assert.equal(getState().characters[1].hud.rotation, 180);
     results.push('Updated shared descriptions reach the TV while preserving individual rotation.');
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-source').length===2 && [...document.querySelectorAll('.ability-source')].every(el=>el.textContent.includes('Revised manual p. 84 <img'))`
+      )
+    );
+    assert.equal(
+      await overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-source img').length`
+      ),
+      0
+    );
+    assert.ok(
+      await overlay.webContents.executeJavaScript(
+        `[...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880 && el.offsetHeight===650)`
+      )
+    );
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-upgrades').length===2 && [...document.querySelectorAll('.ability-upgrades')].every(el=>el.textContent.includes('Higher levels: improved user-written effect. <img'))`
+      )
+    );
+    assert.equal(
+      await overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-upgrades img').length`
+      ),
+      0
+    );
+    await click(`[data-action="select"][data-id="${a}"]`);
+    await click('[data-action="tab"][data-tab="feature"]');
+    await click('[data-action="view-item"]');
+    assert.ok(
+      await run(
+        `return document.querySelector('.modal-body .ability-source').textContent.includes('Revised manual p. 84 <img');`
+      )
+    );
+    assert.equal(
+      await run(`return document.querySelectorAll('.modal-body .ability-source img').length;`),
+      0
+    );
+    await shot('06-source-details');
+    assert.ok(
+      await run(
+        `const upgrade=document.querySelector('.modal-body .ability-upgrades'),description=document.querySelector('.description-text'),source=document.querySelector('.modal-body .ability-source');return upgrade.textContent.includes('Higher levels: improved user-written effect. <img') && upgrade.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && source.getBoundingClientRect().top>=upgrade.getBoundingClientRect().bottom && !upgrade.querySelector('img');`
+      )
+    );
+    assert.ok(
+      await run(
+        `const source=document.querySelector('.modal-body .ability-source'),description=document.querySelector('.description-text');return source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right';`
+      )
+    );
+    await click('[data-action="close-modal"]');
+    // Save an already-open shared editor after another character spends from the HUD.
+    await click('[data-action="edit-item"]');
+    assert.ok(
+      await run(
+        `const upgrade=document.querySelector('#item-form [name="upgrades"]'),label=upgrade.closest('label'),damage=document.querySelector('#item-form [name="damage"]'),description=document.querySelector('#item-form [name="description"]');return upgrade.maxLength===40000 && label.querySelector('span').textContent==='Upcast / Upgrades' && label.getBoundingClientRect().top>=damage.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().left-damage.getBoundingClientRect().left)<1 && description.getBoundingClientRect().top>upgrade.getBoundingClientRect().bottom;`
+      )
+    );
+    await run(
+      `document.querySelector('#item-form [name="upgrades"]').scrollIntoView({block:'center'});`
+    );
+    await shot('09-upgrades-editor');
+    assert.equal(
+      await run(`return document.querySelector('#item-form [name="source"]').maxLength;`),
+      300
+    );
+    assert.ok(
+      await run(
+        `const source=document.querySelector('#item-form [name="source"]'),label=source.closest('label'),description=document.querySelector('#item-form [name="description"]');return label.querySelector('span').textContent==='Reference' && label.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && Math.abs(label.getBoundingClientRect().right-description.getBoundingClientRect().right)<1;`
+      )
+    );
+    await run(
+      `document.querySelector('#item-form [name="source"]').scrollIntoView({block:'center'});`
+    );
+    await shot('08-source-editor');
+    await overlay.webContents.executeJavaScript(
+      `window.tablelight.hudCommand({type:'use',characterId:${JSON.stringify(b)},itemId:${JSON.stringify(getState().characters[1].items[0].id)}})`
+    );
+    await fill('item-form', { source: '', upgrades: '' });
+    await wait(() => getState().library[0].source === '');
+    assert.equal(getState().characters[1].turn.bonus, false);
+    assert.equal(getState().characters[0].resources[0].current, 1);
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-source').length===0`
+      )
+    );
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.querySelectorAll('.ability-upgrades').length===0`
+      )
+    );
+    await click('[data-action="edit-item"]');
+    await fill('item-form', {
+      source: 'Final test reference p. 86',
+      upgrades: 'Final upgrade text for higher character levels.',
+    });
+    await wait(() => getState().library[0].source === 'Final test reference p. 86');
+    assert.equal(getState().characters[1].hud.rotation, 180);
+    results.push(
+      'Source references match DM, assignment preview, and rotated fixed-size HUDs; clearing hides the row and stale editor saves preserve HUD spending.'
+    );
+    results.push(
+      'Upgrades sit beneath Damage / healing in the editor, follow descriptions on both screens, survive shared edits, and disappear when cleared without undoing later spending.'
+    );
+    await wait(() =>
+      overlay.webContents.executeJavaScript(
+        `document.body.innerText.includes('Final test reference p. 86')`
+      )
+    );
+    await overlay.webContents.executeJavaScript(
+      `new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`
+    );
+    fs.writeFileSync(
+      path.join(dir, '07-source-hud.png'),
+      (await overlay.webContents.capturePage()).toPNG()
+    );
     await click('[data-action="view-library"]');
     await run(
       `const el=document.getElementById('library-filter');el.value='spell';el.dispatchEvent(new Event('change',{bubbles:true}));`
@@ -235,9 +395,16 @@ module.exports = async function ({
     const saved = store.load().state;
     assert.equal(saved.library.length, 2);
     assert.equal(saved.characters[0].items[0].description, 'Changed once for both players.');
+    assert.equal(saved.characters[0].items[0].source, 'Final test reference p. 86');
+    assert.equal(
+      saved.characters[0].items[0].upgrades,
+      'Final upgrade text for higher character levels.'
+    );
     const raw = JSON.parse(fs.readFileSync(store.file, 'utf8'));
     assert.equal(raw.characters[0].items[0].description, undefined);
-    assert.equal(raw.version, 4);
+    assert.equal(raw.characters[0].items[0].source, undefined);
+    assert.equal(raw.characters[0].items[0].upgrades, undefined);
+    assert.equal(raw.version, 9);
     results.push('Reload restores linked abilities; disk stores each definition once.');
     await click('[data-action="view-help"]');
     await click('[data-action="show-license"]');

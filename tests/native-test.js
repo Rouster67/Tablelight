@@ -16,6 +16,16 @@ module.exports = async function ({
 }) {
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'updates-transport')
     return require('./updates-transport-native')({ app, store });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'library-deletion')
+    return require('./library-deletion-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'updates')
     return require('./updates-native')({
       app,
@@ -129,6 +139,26 @@ module.exports = async function ({
     });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'library')
     return require('./library-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-fields')
+    return require('./ability-fields-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'duplicates')
+    return require('./duplicates-native')({
       app,
       controller,
       getOverlay,

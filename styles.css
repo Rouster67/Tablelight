@@ -564,11 +564,29 @@ p {
 }
 #ability-list .character-ability-controls {
   display: grid;
-  grid-template-columns: repeat(3, auto);
+  grid-template-columns: auto auto 32px auto;
   max-width: none;
+}
+.character-ability-controls .ability-duplicate {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  padding: 5px;
 }
 .character-ability-controls .ability-remove {
   grid-column: 1 / -1;
+}
+.ability-local-icon {
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.35em;
+  vertical-align: -0.12em;
+  color: var(--mint);
+}
+.ability-local-icon svg {
+  width: 100%;
+  height: 100%;
 }
 .resource-row {
   padding: 12px 0;
@@ -982,9 +1000,37 @@ p {
 }
 .detail-meta {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 15px;
   margin: 18px 0;
+}
+.ability-source {
+  margin-top: 18px;
+  text-align: right;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ability-source small {
+  color: var(--gold);
+}
+.ability-text-section {
+  margin-top: 16px;
+}
+.ability-text-section h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--gold);
+}
+.ability-text-section p {
+  margin-top: 0;
+}
+.hud-panel .ability-source {
+  font-size: 10px;
+  color: #a9c4a8;
+}
+.detail-meta > div {
+  overflow-wrap: anywhere;
 }
 .detail-meta small {
   display: block;
