@@ -177,6 +177,35 @@ Saving throw expertise is an additive saveExpertise array alongside the legacy s
 
 characters array order is the displayed initiative order, persisted without changing HUD placements. Older saves migrate once to their previously calculated initiative order. settings.partyOrderVersion marks that migration; subsequent manual orders are authoritative. The shared panelChoices list supplies both TV and DM navigation. Currently displayed reads the selected character’s HUD panel, detail ID, and page so either screen can control the same content.
 
+## DM approval queue foundation
+
+`approval-session.js` is the inactive foundation for the agreed DM approval queue. It is available
+as CommonJS or `TLApproval` beside `TL`, but no current renderer, preload, or main-process path loads
+it. Existing use behavior, ordinary Undo, and save format 9 remain unchanged until integration.
+
+The model owns a normalized party state plus separate session-only pending requests, five resolved
+History records, counter revision markers, and command receipts. Requests reserve costs in a copied
+character projection. `playerView` uses the existing overlay filter to exclude DM notes and returns
+only the selected character's pending uses. The complete snapshot is for the trusted controller;
+it must never be broadcast directly to players.
+
+Commands run serially and identify their session and unique operation ID. Repeated successful
+commands return their original result without spending twice; small command receipts remain after
+History eviction. Approval uses the existing spending rules and captures actual deductions plus
+concentration before/after. A supplied save adapter receives only authoritative party data and must
+resolve after the write succeeds. A rejected write leaves the session, reservations, and counters
+unchanged for retry. Production save acknowledgements, window reload handling, sender authentication,
+and the single controller mutation path still need to be connected in milestone 2.
+
+Trusted synchronous `change` callbacks edit a normalized draft. Dependent changes produce a preview
+that must be confirmed against the same session revision before saving and resolving affected
+requests. Cancel discards the preview. A later successful mutation makes that preview stale.
+Callers must assign a fresh command ID to each distinct edit; a retry must identify the same edit.
+Explicit new-turn, rest, and adjustment events record resets even when counters end up equal.
+Tracked spending updates counter ownership while external corrections advance an invalidation
+marker. Those markers and exact use receipts support future targeted undo; reversal, Reconsider,
+and ordinary Undo coordination are not implemented in this milestone.
+
 ## Tests
 
 Unit tests cover cost spending, migration, linked definitions, independent bindings, save recovery, geometry, command validation, and stale-editor merging. Native scenarios exercise the real renderer and Electron windows using synthetic state, capture screenshots, and verify persistence. Run them with `npm run test:native` in a Windows desktop session. The native harness creates a unique user-data directory per scenario and never reads the normal party file.

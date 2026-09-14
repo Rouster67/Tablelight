@@ -9,6 +9,7 @@ progress; entries do not assign a release version or authorize implementation.
 - **Considering:** The idea needs more design discussion before choosing an approach.
 - **Additional suggestion:** An optional idea proposed during planning, not an accepted requirement.
 - **Agreed design:** The behavior is agreed and awaits implementation and testing.
+- **Foundation ready:** The supporting logic is tested locally; the visible feature is not connected.
 - **Implemented locally:** The agreed change is in the source and awaits testing and release.
 - **Merged; release pending:** The change is in `main`; a public app release is still pending.
 - **Released:** The change is available in a public stable app release.
@@ -19,20 +20,20 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                               | Status              |
-| --- | -------------------------------------------------- | ------------------- |
-| F01 | Passive abilities section                          | Considering         |
-| F02 | Messages sent to individual player overlays        | Considering         |
-| F03 | Visible application version on the DM screen       | Released            |
-| F04 | Launch update prompt and Windows installer         | Released            |
-| F05 | Source reference on abilities                      | Implemented locally |
-| F06 | Concentration reminder when applying damage        | Released            |
-| F07 | Manual ability fields (revised scope)              | Implemented locally |
-| F08 | Upcast and level-based upgrade text                | Implemented locally |
-| F09 | Uploaded icons for abilities                       | Planned candidate   |
-| F10 | DM notice and targeted undo for player ability use | Considering         |
-| F12 | Class overlay color themes                         | Planned candidate   |
-| F13 | Bundled illustrated PDF user guide                 | Planned candidate   |
+| ID  | Idea                                          | Status              |
+| --- | --------------------------------------------- | ------------------- |
+| F01 | Passive abilities section                     | Considering         |
+| F02 | Messages sent to individual player overlays   | Considering         |
+| F03 | Visible application version on the DM screen  | Released            |
+| F04 | Launch update prompt and Windows installer    | Released            |
+| F05 | Source reference on abilities                 | Implemented locally |
+| F06 | Concentration reminder when applying damage   | Released            |
+| F07 | Manual ability fields (revised scope)         | Implemented locally |
+| F08 | Upcast and level-based upgrade text           | Implemented locally |
+| F09 | Uploaded icons for abilities                  | Planned candidate   |
+| F10 | DM approval queue, History, and targeted undo | Foundation ready    |
+| F12 | Class overlay color themes                    | Planned candidate   |
+| F13 | Bundled illustrated PDF user guide            | Planned candidate   |
 
 ## F01 — Passive abilities section
 
@@ -272,30 +273,36 @@ is supplied. Keep icons in exported backups so entries remain portable between c
 Reuse the portrait upload approach where practical and resize images to avoid large libraries
 making saves or HUD updates slow. Users supply the images; no spell art is bundled.
 
-## F10 — DM notice and targeted undo for player ability use
+## F10 — DM approval queue, History, and targeted undo
 
-**Requested:** When a player casts or uses an ability from the overlay, open a notice on the DM
-screen containing the ability so the DM can read it. Show what that use spent, such as an action,
-a level 2 spell slot, and a custom resource charge. Include an Undo button for that use if the
-player made a mistake or the DM needs to correct it.
+**Milestone 1 complete locally:** The inactive session model implements request limits, reserved
+costs, approval/cancellation, exact spending receipts, dependency confirmations, and reset markers.
+Its 21 new tests pass alongside the existing 105. The app still uses its existing direct-use flow;
+player requests, DM queue/popups, and later History/undo controls require the next approved milestones.
 
-**Suggested approach:**
+**Agreed design:** Overlay uses request approval before spending actual costs. Pending requests
+reserve costs only on the player's display. The DM sees full ability details and can Allow,
+Deny, View character, or Minimize. Direct DM-console uses retain their existing behavior.
 
-- Show the acting character, full ability details, selected casting level, and costs actually
-  spent. Use the same event for the cost summary and undo record.
-- Keep the initial flow as the player using an ability followed by DM review. Requiring DM
-  permission before every cast would be a separate interaction choice.
-- Queue notices when several players act close together. Avoid replacing an unfinished character
-  edit or losing earlier notices.
-- Make Undo specific to the reported use. Tablelight already has session Undo, but reverting a
-  whole previous session snapshot could also undo unrelated changes made after that use.
-- Do not imply that reading the notice validates the game's rules or that undo can reverse
-  physical dice rolls or effects the DM applied outside that tracked use.
+The DM Queue icon sits at bottom right, pulses with an exclamation mark when items are waiting,
+and opens a brief list. At most three ordinary ability requests may be pending across all players.
+Reactions are red, Urgent, listed first, and exempt from that cap; normal reaction availability
+still applies. Future request types can share the queue without using the ability limit.
+Incoming requests never replace an open popup or interrupt a minimized review. Resolving a request
+does not automatically open another; the DM can review and approve in any order.
 
-**Open decisions:** How should undo work after later spending, a rest, or a resource edit? Prevent
-double undo and clearly explain when exact restoration is no longer safe. Decide whether closing
-the popup acknowledges it, whether notices survive a restart, and whether DM-triggered uses should
-also appear in the same history. F07, F08, and F09 should feed the same ability details view.
+A separate History icon at bottom left retains five resolved requests. Denied/canceled requests
+can be reconsidered using current ability data; approved uses support targeted undo. Undone uses
+cannot be reconsidered. Pending requests, History, and reservations clear on app exit, while
+approved spending remains saved.
+
+Dependency-changing edits warn before proceeding and deny affected pending requests when confirmed.
+New turns use a small warning before expiring that character's requests. Targeted undo preserves
+unrelated changes and is disabled after conflicting resource, turn, or concentration changes.
+
+See [DM approval queue and History](DM_APPROVAL_QUEUE_PLAN.md) for the complete agreed behavior,
+implementation recommendations, and milestone checks. The design is agreed; feature coding
+awaits milestone approval on `codex/dm-approval-queue`.
 
 ## F12 — Class overlay color themes
 

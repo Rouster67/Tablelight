@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add the tested session foundation for the DM approval queue: request limits, reserved costs, approval/cancellation, spending receipts, and dependency tracking. It is not connected to the running app yet; visible queue controls, History, and targeted undo remain later milestones. Existing use behavior and saved data stay unchanged.
 - Replace blocked deletion of assigned abilities with a warning listing every affected character, a white Edit instead button to the left of the yellow Make local copies and delete button, and a Remove and delete choice. The local-copy checklist defaults to everyone, includes inactive characters, and preserves each kept assignment's name, costs, HUD selection, and concentration. Confirmed deletion supports Undo and requires another review if assignments change while the dialog is open.
 - Mark local ability names with a small person icon on the character screen and HUD. Add smaller Create new local ability and Create local-only copy buttons beneath the shared Add choices, with hover explanations. New local abilities and direct library copies belong only to the selected character.
 - Add Duplicate to the ability library and a compact copy icon between Use and Edit on character ability rows, with the tooltip Duplicate locally only. Copies receive numbered names and open for editing. Character-only copies keep independent details, slot settings, and resource costs without entering the shared library.
