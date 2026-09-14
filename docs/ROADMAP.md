@@ -239,6 +239,12 @@ backups, inactive-party moves, and Undo. Local names have a person icon. The cha
 also offers smaller buttons to create a blank local ability or copy directly from the library
 without a shared link. Hover text explains each choice. Implemented locally for review before starting F10.
 
+**Approved library deletion follow-up:** Assigned abilities show a warning with all affected
+characters and choices to edit, remove every assignment and delete, or keep selected local copies
+before deleting the library entry. The checklist defaults to all assigned characters, including
+inactive players. Kept assignments preserve their names and independent costs; unchecked ones
+are removed. The operation supports ordinary Undo, and changed assignments require another review.
+
 ## F08 — Upcast and level-based upgrade text
 
 **Requested:** Add a section for what changes when a spell is cast with a higher-level slot, or

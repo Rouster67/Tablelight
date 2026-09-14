@@ -75,7 +75,13 @@ Open **Ability library** in the sidebar to create, search, filter, or edit your 
 
 On a character, **+ Add → Create new** saves a new entry to the library and adds it to that character. **+ Add → Choose existing** searches the library and links an entry you already wrote. You can also use **Add to character** from the library.
 
-Each Ability library row has **Delete** beside **Edit**. Deleting asks for confirmation and supports Undo. An entry used by a character must be removed from that character first.
+Each Ability library row has **Delete** beside **Edit**. For an assigned ability, a warning lists every character using it, including characters outside the active party. Choose:
+
+- **Edit instead** to open the shared editor. This white button sits immediately left of the yellow **Make local copies and delete…** button.
+- **Remove and delete** to remove the ability from all assigned characters and delete it from the library.
+- **Make local copies and delete…** to choose who keeps an independent copy. A second dialog lists every assigned character, all checked by default. Checked characters keep a local version with the same name and their own resource settings; unchecked characters lose the assignment. **Go back** returns to the warning. **Make local copies and delete** confirms the choices and deletes the library entry.
+
+Existing local copies and spent resources remain unchanged. If assignments change while the warning is open, review the refreshed list before confirming. **Undo** restores a confirmed deletion and its assignments together during the current session.
 
 **Duplicate abilities (unreleased):** Click **Duplicate** on an Ability library row to make a
 separate library version. It gets a name such as **Guiding Bolt (1)**, then **Guiding Bolt (2)**
@@ -108,7 +114,7 @@ exporting/restoring backups. **Remove from character** removes that local copy a
 
 For library-linked abilities, the name, description, spell details, and turn cost are shared. Editing them updates every linked character. Each character keeps their own resource pool link, charges spent per use, remaining resources, and unavailable flag. The editor labels these character-only settings separately. Create a local copy when an ability needs different details or slot settings for just one character.
 
-Every ability in the DM’s character lists has **Remove from character** alongside View, Use, and Edit. Confirming removes the ability from that character and keeps its library entry. **Undo** restores the assignment. Deleting a character also keeps the library. To delete a library entry, first remove it from any characters using it; the app tells you which ones. Undo can reverse these changes during the current session.
+Every ability in the DM’s character lists has **Remove from character** alongside View, Use, and Edit. Confirming removes the ability from that character and keeps its library entry. **Undo** restores the assignment. Deleting a character also keeps the library. Deleting from the Ability library offers the removal and local-copy choices described above. Undo can reverse these changes during the current session.
 
 Existing abilities from older saves move into the library automatically. Exact matches share an entry; different homebrew versions remain separate. Positions, rotations, resources, and selected descriptions are preserved.
 

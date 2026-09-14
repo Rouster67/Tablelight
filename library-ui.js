@@ -273,6 +273,75 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
   });
 }
 
+function libraryDeletionCharacters(users, selection) {
+  return `<div class="library-delete-characters">${users
+    .map((c) => {
+      const name = `<span>${esc(c.name)}${state.roster.some((r) => r.id === c.id) ? '<small class="hint">Not in active party</small>' : ''}</span>`;
+      return selection
+        ? `<label class="library-delete-character"><input type="checkbox" name="localCharacter" value="${esc(c.id)}" ${selection[c.id] !== false ? 'checked' : ''}>${name}</label>`
+        : `<div class="library-delete-character">${name}</div>`;
+    })
+    .join('')}</div>`;
+}
+
+function finishLibraryDeletion(id, keepIds, assignments, reopen) {
+  if (JSON.stringify(TL.libraryAssignments(state, id)) !== JSON.stringify(assignments)) {
+    reopen(
+      'The assigned characters changed while this dialog was open. Review the updated list before deleting.'
+    );
+    return;
+  }
+  if (
+    commit(() => TL.deleteLibraryEntry(state, id, keepIds, assignments), 'Library ability deleted')
+  )
+    closeModal();
+}
+
+function showLibraryDeletion(id, selection = {}, notice = '') {
+  const entry = state.library.find((e) => e.id === id);
+  if (!entry) return toast('This library entry no longer exists.', true);
+  const users = libraryUsers(id),
+    assignments = TL.libraryAssignments(state, id);
+  modal(
+    'Delete ' + esc(entry.name) + '?',
+    `${notice ? `<p class="note" role="alert">${esc(notice)}</p>` : ''}${users.length ? `<p>This ability is currently assigned to:</p>${libraryDeletionCharacters(users)}<div class="hint space-top"><p><b class="library-delete-remove">Remove and Delete:</b> Remove this ability from every listed character and delete it from the ability library.</p><p><b class="library-local-delete">Make Local Copies and Delete:</b> Choose who keeps a local copy, remove it from the other characters, and delete it from the library.</p><p><b class="library-delete-edit">Edit instead:</b> Open the ability editor without deleting anything.</p></div>` : '<p>This ability is not assigned to any character. Delete it from the ability library?</p>'}`,
+    `${button('Cancel', 'close-modal', 'subtle')}<div class="row wrap">${button('Edit instead', 'edit-library-entry', 'subtle library-delete-edit', `data-id="${esc(id)}"`)}${users.length ? '<button type="button" id="delete-with-local-copies" class="library-local-delete">Make local copies and delete…</button>' : ''}<button type="button" id="confirm-library-delete" class="danger">${users.length ? 'Remove and delete' : 'Delete ability'}</button></div>`
+  );
+  document.getElementById('confirm-library-delete').onclick = () =>
+    finishLibraryDeletion(id, [], assignments, (message) =>
+      showLibraryDeletion(id, selection, message)
+    );
+  const localButton = document.getElementById('delete-with-local-copies');
+  if (localButton) localButton.onclick = () => chooseLocalCopiesBeforeDelete(id, selection);
+}
+
+function chooseLocalCopiesBeforeDelete(id, selection = {}, notice = '') {
+  const entry = state.library.find((e) => e.id === id);
+  if (!entry) return toast('This library entry no longer exists.', true);
+  const users = libraryUsers(id),
+    assignments = TL.libraryAssignments(state, id);
+  modal(
+    'Keep local copies of ' + esc(entry.name) + '?',
+    `<form id="delete-library-form">${notice ? `<p class="note" role="alert">${esc(notice)}</p>` : ''}<p>Checked characters keep an independent local copy with their current resource settings. Unchecked characters lose this ability.</p><p class="hint space-top">The ability will be deleted from the shared library. Existing local copies are unaffected.</p>${users.length ? libraryDeletionCharacters(users, selection) : '<p class="note space-top">No characters currently have this ability.</p>'}</form>`,
+    '<button type="button" id="back-library-delete" class="subtle">Go back</button><button form="delete-library-form" type="submit" class="library-local-delete">Make local copies and delete</button>'
+  );
+  const readSelection = () =>
+    Object.fromEntries(
+      [...document.querySelectorAll('#delete-library-form [name="localCharacter"]')].map((el) => [
+        el.value,
+        el.checked,
+      ])
+    );
+  document.getElementById('back-library-delete').onclick = () =>
+    showLibraryDeletion(id, readSelection());
+  submitForm('delete-library-form', (data) => {
+    const currentSelection = readSelection();
+    finishLibraryDeletion(id, data.getAll('localCharacter'), assignments, (message) =>
+      chooseLocalCopiesBeforeDelete(id, currentSelection, message)
+    );
+  });
+}
+
 function handleLibraryAction(buttonElement) {
   const { action, id, character } = buttonElement.dataset;
   switch (action) {
@@ -315,21 +384,7 @@ function handleLibraryAction(buttonElement) {
       assignLibraryEntry(id);
       return true;
     case 'delete-library-entry': {
-      const users = libraryUsers(id);
-      if (users.length) {
-        formError(
-          'This entry is used by ' +
-            users.map((c) => c.name).join(', ') +
-            '. Remove it from those characters before deleting it from the library.'
-        );
-        return true;
-      }
-      confirmAction(
-        'Delete this library entry?',
-        'It is not assigned to a character. This removes it from the shared library. You can use Undo during this session.',
-        () => commit(() => TL.removeLibraryEntry(state, id), 'Library entry deleted'),
-        'Delete entry'
-      );
+      showLibraryDeletion(id);
       return true;
     }
     default:

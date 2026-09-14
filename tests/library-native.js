@@ -81,7 +81,7 @@ module.exports = async function ({
     await click('[data-action="close-modal"]');
     assert.equal(getState().library.length, 1);
     await click('#library-list [data-action="delete-library-entry"]');
-    await click('#confirm-action');
+    await click('#confirm-library-delete');
     await wait(() => getState().library.length === 0);
     await click('[data-action="undo"]');
     await wait(() => getState().library.length === 1);
@@ -214,10 +214,15 @@ module.exports = async function ({
     results.push('Editing the library updates all linked characters and preserves spent state.');
     await click('#library-list [data-action="delete-library-entry"]');
     assert.ok(
-      await run(`return document.getElementById('toast').innerText.includes('Test player A');`)
+      await run(
+        `return document.querySelector('.modal-body').textContent.includes('Test player A') && document.querySelector('.modal-body').textContent.includes('Test player B');`
+      )
     );
     assert.equal(getState().library.length, 1);
-    results.push('Deleting an in-use definition is blocked and names affected characters.');
+    await click('[data-action="close-modal"]');
+    results.push(
+      'Deleting an assigned definition opens a warning naming every affected character; Cancel leaves it unchanged.'
+    );
     await click(`[data-action="select"][data-id="${b}"]`);
     await click('[data-action="tab"][data-tab="feature"]');
     await click('[data-action="edit-item"]');

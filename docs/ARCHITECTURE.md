@@ -131,7 +131,16 @@ result become separate reusable library variants; identical variants share a def
 assignment IDs and resource bindings remain unchanged. The version 9 whitelist drops the retired
 numeric settings and override keys. Repeated save/load cycles do not append the text again.
 
-An in-use library entry cannot be deleted until removed from every active or inactive character.
+Assigned ability deletion uses `deleteLibraryEntry` to remove the definition and resolve every
+active or inactive assignment in one commit. Checked characters retain their assignment IDs,
+names, current definition fields, resource bindings and availability, with `local: true` and an
+empty library link. Unchecked assignments are removed; only their matching HUD detail and
+concentration links are cleared. Existing locals, other abilities, spent resources, turn state
+and placement remain unchanged. Conversion works at the 500-ability character limit because it
+replaces the existing assignment. `libraryAssignments` snapshots character and assignment IDs;
+both deletion dialogs require review again when this set changes, while final confirmation uses
+the latest shared text and character costs. The full operation uses ordinary session Undo.
+The lower-level `removeLibraryEntry` remains restricted to unassigned definitions.
 Removing a character or assignment leaves the library intact. A confirmed backup restore replaces
 the party, roster, and both libraries. Existing snapshot Undo behavior is unchanged; targeted use
 undo and notices remain a separate, unimplemented milestone.

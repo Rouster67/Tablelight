@@ -337,6 +337,44 @@
       throw new Error('Remove this entry from its characters before deleting it from the library.');
     state.library = state.library.filter((entry) => entry.id !== id);
   }
+  function libraryAssignments(state, id) {
+    return allCharacters(state)
+      .flatMap((c) => c.items.filter((it) => it.libraryId === id).map((it) => [c.id, it.id]))
+      .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  }
+  function deleteLibraryEntry(state, id, localCharacterIds = [], expectedAssignments) {
+    const entry = state.library.find((e) => e.id === id);
+    if (!entry) throw new Error('This library entry no longer exists.');
+    const assignments = libraryAssignments(state, id);
+    if (expectedAssignments && JSON.stringify(assignments) !== JSON.stringify(expectedAssignments))
+      throw new Error('The assigned characters changed. Review the list before deleting.');
+    if (!Array.isArray(localCharacterIds))
+      throw new Error('Choose which characters keep a local copy.');
+    const keep = new Set(localCharacterIds);
+    if ([...keep].some((characterId) => !assignments.some(([id]) => id === characterId)))
+      throw new Error('A selected character no longer has this ability. Review the list.');
+    // Prepare replacements before mutating. Keeping the assignment ID preserves HUD and concentration links.
+    const replacements = allCharacters(state).map((c) => ({
+      c,
+      removed: new Set(
+        c.items.filter((it) => it.libraryId === id && !keep.has(c.id)).map((it) => it.id)
+      ),
+      items: c.items.flatMap((it) => {
+        if (it.libraryId !== id) return [it];
+        if (!keep.has(c.id)) return [];
+        return [{ ...it, ...libraryEntry(entry), id: it.id, libraryId: '', local: true }];
+      }),
+    }));
+    for (const { c, items, removed } of replacements) {
+      c.items = items;
+      if (removed.has(c.hud.detailId)) {
+        c.hud.detailId = '';
+        c.hud.page = 0;
+      }
+      if (removed.has(c.concentrationItemId)) setConcentration(c, false);
+    }
+    state.library = state.library.filter((e) => e.id !== id);
+  }
   function duplicateName(name, entries) {
     const names = new Set(entries.map((entry) => entry.name.trim().toLowerCase()));
     const base = name.replace(/ \(\d+\)$/, '').trim() || 'Unnamed ability';
@@ -1188,6 +1226,8 @@
     createLocalItem,
     copyLibraryItemLocally,
     removeLibraryEntry,
+    libraryAssignments,
+    deleteLibraryEntry,
     toBackup,
   };
 });

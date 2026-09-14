@@ -1,8 +1,9 @@
 # Ability details and DM review
 
 Current branch: `codex/ability-details-and-review`. The user committed the approved manual ability
-fields as `7ff4a47`. F05, F08, and the revised manual F07 scope are complete. The user approved an
-additional duplication milestone before F10. F10 still requires separate approval.
+fields as `7ff4a47` and duplication/local creation as `96f9648`. F05, F08, and the revised manual
+F07 scope are complete. Assigned library deletion is the current approved follow-up. F10 still
+requires separate approval.
 
 **Working agreement:** Edit and test, then leave changes uncommitted. The user handles staging,
 commits, and publishing. Never perform those Git actions automatically or switch branches.
@@ -84,6 +85,23 @@ recovery, app reload, and fixed HUD dimensions/rotation. The Add options, cancel
 direct copies of already assigned abilities, filtered local pickers, local name icons, and Undo
 after creating a second local ability are also covered.
 
+## Current follow-up — deleting assigned library abilities
+
+Replace blocked deletion with a warning naming every active and inactive character assigned the
+ability. Offer Edit instead, Remove and delete, or Make local copies and delete. Edit instead is
+a white button immediately left of the yellow Make local copies and delete button. The
+second dialog lists all assignments with checked-by-default character choices and Go back.
+Confirmation keeps checked assignments as local definitions and removes unchecked assignments
+before deleting the shared entry. Kept copies retain names, IDs, cost bindings, concentration,
+and HUD selection; existing local copies remain independent.
+
+Completion checks: exercise Edit, Cancel, Go back, mixed/all/none selections, inactive characters,
+normal Undo, latest resource spending, changed-assignment review, capacity limits, backup recovery,
+reopening, and fixed HUD dimensions. No save-format change is required. F10 is still pending approval.
+
+Verification: all 105 unit tests and all 19 native desktop scenarios (186 checks) passed, plus
+syntax, formatting, and diff checks. Both deletion dialogs were visually reviewed at 1100 × 800.
+
 ## Next milestones — F10, approval required
 
 1. **Use records and targeted undo.** A successful use records a unique request/use ID, character,
@@ -154,5 +172,5 @@ Acknowledgement alone should neither enter gameplay Undo nor reopen notices when
 - Decide whether DM uses should also open notices; recording them internally is needed to track
   later spending even if only HUD uses open notices.
 
-Next review: library and character-only duplication. After it is accepted and committed by the user,
+Next review: assigned library deletion. After it is accepted and committed by the user,
 recommend the F10 use-record and targeted-undo milestone, subject to approval of these decisions.
