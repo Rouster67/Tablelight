@@ -14,6 +14,7 @@ const scenarios = [
   'updates-transport',
   'library',
   'ability-fields',
+  'duplicates',
   'interactive',
   'layout',
   'session',

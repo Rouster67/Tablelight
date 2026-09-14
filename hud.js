@@ -74,6 +74,12 @@
   const portrait = (c) =>
     `<div class="portrait" style="--accent:${c.accent};--hp:${Math.max(0, c.hp / c.maxHp) * 100}%">${c.avatar ? `<img src="${c.avatar}" alt="${esc(c.name)}">` : `<span>${esc(initial(c))}</span>`}</div>`;
   const pages = TL.textPages;
+  function abilityName(it) {
+    const icon = it.local
+      ? '<span class="ability-local-icon" role="img" aria-label="Character-only ability" title="Only on this character"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="7" r="3.5"></circle><path d="M5 21v-3a7 7 0 0 1 14 0v3"></path></svg></span>'
+      : '';
+    return icon + esc(it.name);
+  }
   function countPages(c) {
     const detail = c.items.find((i) => i.id === c.hud.detailId);
     if (detail) return TL.abilityTextPages(detail).length;
@@ -161,7 +167,7 @@
           mode === 'dm'
             ? `data-action="concentration-pick" data-character="${esc(c.id)}" data-id="${esc(it.id)}"`
             : `data-hud-concentration-pick="${esc(it.id)}"`;
-        return `<div class="condition-choice"><span><b title="${esc(it.description || it.name)}">${esc(it.name)}</b><small>${esc(it.kind)} · ${esc(labels[it.economy])}</small></span><button type="button" class="small" ${attrs} ${current ? 'disabled' : ''}>${current ? 'Current' : 'Concentrate'}</button></div>`;
+        return `<div class="condition-choice"><span><b title="${esc(it.description || it.name)}">${abilityName(it)}</b><small>${esc(it.kind)} · ${esc(labels[it.economy])}</small></span><button type="button" class="small" ${attrs} ${current ? 'disabled' : ''}>${current ? 'Current' : 'Concentrate'}</button></div>`;
       })
       .join('');
   }
@@ -173,7 +179,7 @@
     const page = Math.min(c.hud.page, countPages(c) - 1);
     let panel = overviewPanel(c);
     if (detail)
-      panel = `<section class="hud-panel"><div class="eyebrow">${esc(detail.kind)} · ${esc(labels[detail.economy] || detail.economy)}${detail.kind === 'spell' ? ` · ${TL.levelLabel(detail)}` : ''}</div><h3>${esc(detail.name)}</h3><div class="hud-metadata">${details.metadata
+      panel = `<section class="hud-panel"><div class="eyebrow">${esc(detail.kind)} · ${esc(labels[detail.economy] || detail.economy)}${detail.kind === 'spell' ? ` · ${TL.levelLabel(detail)}` : ''}</div><h3>${abilityName(detail)}</h3><div class="hud-metadata">${details.metadata
         .map(([k, v]) => `<span><small>${k}</small>${esc(v)}</span>`)
         .join(
           ''
@@ -192,7 +198,7 @@
           .slice(page * 5, page * 5 + 5)
           .map(
             (it) =>
-              `<div class="hud-option ${TL.availability(c, it) ? 'spent' : ''}"><span class="ability-symbol">${symbols[it.kind] || symbols[it.economy]}</span><div><b>${esc(it.name)}</b><small>${esc(it.kind === 'spell' ? TL.levelLabel(it) : labels[it.economy])}${it.resourceId ? ' · ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small></div><span>${TL.availability(c, it) ? 'Spent' : 'Ready'}</span></div>`
+              `<div class="hud-option ${TL.availability(c, it) ? 'spent' : ''}"><span class="ability-symbol">${symbols[it.kind] || symbols[it.economy]}</span><div><b>${abilityName(it)}</b><small>${esc(it.kind === 'spell' ? TL.levelLabel(it) : labels[it.economy])}${it.resourceId ? ' · ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small></div><span>${TL.availability(c, it) ? 'Spent' : 'Ready'}</span></div>`
           )
           .join('') || '<p class="muted">No options entered here yet.</p>'
       }</div>${countPages(c) > 1 ? `<div class="hud-page">Options ${page + 1} / ${countPages(c)}</div>` : ''}</section>`;
@@ -277,6 +283,7 @@
     countPages,
     pips,
     abilityDetails,
+    abilityName,
     renderAbilityDetails,
     render,
     mount,

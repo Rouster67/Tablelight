@@ -196,7 +196,7 @@ function renderAbilityList(c) {
     filteredItems(c)
       .map((it) => {
         const reason = TL.availability(c, it);
-        return `<div class="ability-row ${reason ? 'spent' : ''}"><span class="ability-symbol">${symbols[it.kind] || symbols[it.economy]}</span><div class="ability-main"><b>${esc(it.name)}</b><small>${esc(labels[it.economy])}${it.kind === 'spell' ? ' · ' + TL.levelLabel(it) : ''}${it.resourceId ? ' · ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small>${reason ? `<small>${esc(reason)}</small>` : ''}</div><div class="ability-controls character-ability-controls">${button('View', 'view-item', 'small', `data-id="${esc(it.id)}"`)}${button('Use', 'use-item', 'small primary', `data-id="${esc(it.id)}" ${reason ? 'disabled' : ''}`)}${button('Edit', 'edit-item', 'small subtle', `data-id="${esc(it.id)}"`)}${button('Remove from character', 'delete-item', 'small subtle danger ability-remove', `data-id="${esc(it.id)}" aria-label="Remove ${esc(it.name)} from ${esc(c.name)}"`)}</div></div>`;
+        return `<div class="ability-row ${reason ? 'spent' : ''}"><span class="ability-symbol">${symbols[it.kind] || symbols[it.economy]}</span><div class="ability-main"><b>${HUD.abilityName(it)}</b><small>${esc(labels[it.economy])}${it.kind === 'spell' ? ' · ' + TL.levelLabel(it) : ''}${it.resourceId ? ' · ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small>${reason ? `<small>${esc(reason)}</small>` : ''}</div><div class="ability-controls character-ability-controls">${button('View', 'view-item', 'small', `data-id="${esc(it.id)}"`)}${button('Use', 'use-item', 'small primary', `data-id="${esc(it.id)}" ${reason ? 'disabled' : ''}`)}${button('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4"></path></svg>', 'duplicate-local-item', 'small subtle icon ability-duplicate', `data-id="${esc(it.id)}" data-character="${esc(c.id)}" title="Duplicate locally only" aria-label="Duplicate locally only"`)}${button('Edit', 'edit-item', 'small subtle', `data-id="${esc(it.id)}"`)}${button('Remove from character', 'delete-item', 'small subtle danger ability-remove', `data-id="${esc(it.id)}" aria-label="Remove ${esc(it.name)} from ${esc(c.name)}"`)}</div></div>`;
       })
       .join('') ||
     `<div class="empty-inline">${search ? 'No matching abilities.' : 'Your rules, your choices.<br>Add your own ' + esc(labels[tab]?.toLowerCase() || 'abilities') + ' to this character.'}</div>`
@@ -451,9 +451,9 @@ function showItem(id) {
   if (!it) return;
   commit(() => expand(selected(), it.economy, it.id));
   modal(
-    esc(it.name),
-    `<div class="eyebrow">${esc(it.kind)} · ${esc(labels[it.economy])}</div><div id="ability-details" data-character="${esc(c.id)}" data-item="${esc(it.id)}">${HUD.renderAbilityDetails(it, c)}</div><div class="separator"></div><div id="detail-remote">${detailRemote(c)}</div>`,
-    `<div class="row">${button('Edit', 'edit-item', 'subtle', `data-id="${esc(id)}"`)}${button(it.disabled ? 'Mark available' : 'Mark unavailable', 'disable-item', 'subtle', `data-id="${esc(id)}"`)}</div><div class="row">${button('Close', 'close-modal', 'subtle')}${button('Use ability', 'use-item', 'primary', `data-id="${esc(id)}" ${TL.availability(c, it) ? 'disabled' : ''}`)}</div>`
+    HUD.abilityName(it),
+    `<div class="eyebrow">${esc(it.kind)} · ${esc(labels[it.economy])}${it.local ? ' · Character only' : ''}</div><div id="ability-details" data-character="${esc(c.id)}" data-item="${esc(it.id)}">${HUD.renderAbilityDetails(it, c)}</div><div class="separator"></div><div id="detail-remote">${detailRemote(c)}</div>`,
+    `<div class="row wrap">${button('Edit', 'edit-item', 'subtle', `data-id="${esc(id)}"`)}${button(it.disabled ? 'Mark available' : 'Mark unavailable', 'disable-item', 'subtle', `data-id="${esc(id)}"`)}</div><div class="row">${button('Close', 'close-modal', 'subtle')}${button('Use ability', 'use-item', 'primary', `data-id="${esc(id)}" ${TL.availability(c, it) ? 'disabled' : ''}`)}</div>`
   );
 }
 function refreshAbilityDetails() {
@@ -510,7 +510,7 @@ function useItem(id) {
   };
   if (it.level > 0 && it.usesSlot) {
     modal(
-      'Use ' + esc(it.name),
+      'Use ' + HUD.abilityName(it),
       `<form id="cast-form"><label class="form-field"><span>Spend a spell slot</span><select name="level">${options(
         c.slots
           .filter((s) => s.level >= it.level && s.current > 0)
@@ -758,6 +758,18 @@ document.addEventListener('click', async (event) => {
       case 'view-item':
         showItem(id);
         break;
+      case 'duplicate-local-item': {
+        let copy;
+        const characterId = b.dataset.character;
+        if (
+          commit(
+            () => (copy = TL.duplicateLocalItem(state, characterId, id)),
+            'Character-only copy created'
+          )
+        )
+          editLibraryEntry('', characterId, copy.id);
+        break;
+      }
       case 'use-item':
         useItem(id);
         break;
@@ -789,7 +801,9 @@ document.addEventListener('click', async (event) => {
       case 'delete-item':
         confirmAction(
           'Remove ability from character?',
-          'The entry stays in your shared library for reuse. This removes only this character’s link and settings. It can be undone.',
+          selected().items.find((it) => it.id === id)?.local
+            ? 'This removes the character-only copy and its settings. It can be undone.'
+            : 'The entry stays in your shared library for reuse. This removes only this character’s link and settings. It can be undone.',
           () =>
             commit(() => {
               selected().items = selected().items.filter((i) => i.id !== id);

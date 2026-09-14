@@ -56,12 +56,14 @@ function renderCurrentDisplay(c) {
     page = Math.min(c.hud.page, total - 1);
   let content = '';
   if (detail)
-    content = `<b>${esc(detail.name)}</b><p class="current-description">${esc(HUD.pages(detail.description)[page])}</p>${button('← Back to list', 'panel', 'small subtle', `data-panel="${esc(c.hud.panel)}"`)}`;
+    content = `<b>${HUD.abilityName(detail)}</b><p class="current-description">${esc(HUD.pages(detail.description)[page])}</p>${button('← Back to list', 'panel', 'small subtle', `data-panel="${esc(c.hud.panel)}"`)}`;
   else if (['action', 'bonus', 'reaction', 'free', 'spell', 'feature'].includes(c.hud.panel))
     content = `<div class="current-options">${
       TL.panelItems(c)
         .slice(page * 5, page * 5 + 5)
-        .map((it) => button(esc(it.name), 'hud-detail', 'small subtle', `data-id="${esc(it.id)}"`))
+        .map((it) =>
+          button(HUD.abilityName(it), 'hud-detail', 'small subtle', `data-id="${esc(it.id)}"`)
+        )
         .join('') || '<p class="hint">No abilities in this list yet.</p>'
     }</div>`;
   else if (c.hud.panel === 'resources')

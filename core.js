@@ -337,6 +337,77 @@
       throw new Error('Remove this entry from its characters before deleting it from the library.');
     state.library = state.library.filter((entry) => entry.id !== id);
   }
+  function duplicateName(name, entries) {
+    const names = new Set(entries.map((entry) => entry.name.trim().toLowerCase()));
+    const base = name.replace(/ \(\d+\)$/, '').trim() || 'Unnamed ability';
+    for (let n = 1; ; n++) {
+      const suffix = ' (' + n + ')';
+      const candidate = base.slice(0, 300 - suffix.length).trimEnd() + suffix;
+      if (!names.has(candidate.toLowerCase())) return candidate;
+    }
+  }
+  function duplicateLibraryEntry(state, id) {
+    const entry = state.library.find((e) => e.id === id);
+    if (!entry) throw new Error('This library entry no longer exists.');
+    if (state.library.length >= 5000)
+      throw new Error('The library can contain up to 5,000 entries.');
+    const copy = libraryEntry({
+      ...entry,
+      id: uid(),
+      name: duplicateName(entry.name, state.library),
+    });
+    state.library.push(copy);
+    return copy;
+  }
+  function duplicateLocalItem(state, characterId, itemId) {
+    const c = findCharacter(state, characterId),
+      original = c?.items.find((it) => it.id === itemId);
+    if (!original) throw new Error('This character ability no longer exists.');
+    if (c.items.length >= 500) throw new Error('This character already has 500 abilities.');
+    const definition = original.local
+      ? original
+      : state.library.find((e) => e.id === original.libraryId);
+    if (!definition) throw new Error('This library entry no longer exists.');
+    return createLocalItem(
+      state,
+      characterId,
+      {
+        ...definition,
+        name: duplicateName(definition.name, c.items),
+      },
+      original
+    );
+  }
+  function createLocalItem(state, characterId, definition = {}, settings = {}) {
+    const c = findCharacter(state, characterId);
+    if (!c) throw new Error('This character no longer exists.');
+    if (c.items.length >= 500) throw new Error('This character already has 500 abilities.');
+    if (settings.resourceId && !c.resources.some((r) => r.id === settings.resourceId))
+      throw new Error('Choose a resource belonging to this character.');
+    const copy = item({
+      ...libraryEntry(definition),
+      id: uid(),
+      libraryId: '',
+      local: true,
+      resourceId: settings.resourceId || '',
+      resourceCost: integer(settings.resourceCost ?? 1, 1, 999),
+      disabled: settings.disabled === true,
+    });
+    c.items.push(copy);
+    return copy;
+  }
+  function copyLibraryItemLocally(state, characterId, libraryId) {
+    const c = findCharacter(state, characterId),
+      entry = state.library.find((e) => e.id === libraryId);
+    if (!c || !entry) throw new Error('Character or library entry no longer exists.');
+    const taken = c.items.some(
+      (it) => it.name.trim().toLowerCase() === entry.name.trim().toLowerCase()
+    );
+    return createLocalItem(state, characterId, {
+      ...entry,
+      name: taken ? duplicateName(entry.name, c.items) : entry.name,
+    });
+  }
   function conditionEntry(raw = {}) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw))
       throw new Error('Invalid condition entry.');
@@ -404,6 +475,7 @@
     const backup = normalize(state);
     for (const c of allCharacters(backup))
       c.items = c.items.map((it) => ({
+        ...(it.local ? { ...libraryEntry(it), local: true } : {}),
         id: it.id,
         libraryId: it.libraryId,
         resourceId: it.resourceId,
@@ -575,6 +647,13 @@
         it[k] = str(r[k] ?? it[k], abilityTextLimit(k));
       if (!it.id) it.id = uid();
       it.libraryId = str(r.libraryId, 300);
+      if (r.local !== undefined && typeof r.local !== 'boolean')
+        throw new Error('An ability’s character-only setting must be true or false.');
+      if (r.local === true) {
+        if (it.libraryId)
+          throw new Error('A character-only ability cannot also link to the library.');
+        it.local = true;
+      }
       it.kind = ['action', 'spell', 'feature'].includes(r.kind) ? r.kind : 'action';
       it.economy = ['action', 'bonus', 'reaction', 'free'].includes(r.economy)
         ? r.economy
@@ -619,7 +698,11 @@
     return c;
   }
   function normalize(raw) {
-    if (!raw || ![1, 2, 3, 4, 5, 6, 7, 8].includes(raw.version) || !Array.isArray(raw.characters))
+    if (
+      !raw ||
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(raw.version) ||
+      !Array.isArray(raw.characters)
+    )
       throw new Error('This is not a supported Tablelight party backup.');
     if (raw.version === 7) raw = migrateManualAbilities(raw);
     if (raw.characters.length > PARTY_LIMIT)
@@ -643,6 +726,10 @@
     const byContent = new Map(library.map((e) => [definitionKey(e), e]));
     for (const c of players)
       for (const it of c.items) {
+        if (it.local) {
+          Object.assign(it, libraryEntry(it));
+          continue;
+        }
         let entry = byId.get(it.libraryId);
         if (it.libraryId && !entry)
           throw new Error('An ability refers to a missing library entry.');
@@ -706,7 +793,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 8,
+      version: 9,
       conditionLibrary,
       libraryVersion: 1,
       library,
@@ -1096,6 +1183,10 @@
     abilityTextPages,
     libraryEntry,
     attachItem,
+    duplicateLibraryEntry,
+    duplicateLocalItem,
+    createLocalItem,
+    copyLibraryItemLocally,
     removeLibraryEntry,
     toBackup,
   };

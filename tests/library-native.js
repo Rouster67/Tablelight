@@ -399,7 +399,7 @@ module.exports = async function ({
     assert.equal(raw.characters[0].items[0].description, undefined);
     assert.equal(raw.characters[0].items[0].source, undefined);
     assert.equal(raw.characters[0].items[0].upgrades, undefined);
-    assert.equal(raw.version, 8);
+    assert.equal(raw.version, 9);
     results.push('Reload restores linked abilities; disk stores each definition once.');
     await click('[data-action="view-help"]');
     await click('[data-action="show-license"]');

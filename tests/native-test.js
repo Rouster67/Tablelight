@@ -147,6 +147,16 @@ module.exports = async function ({
       setOverlay,
       store,
     });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'duplicates')
+    return require('./duplicates-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'manual')
     return require('./manual-fixture')({
       app,

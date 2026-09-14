@@ -50,14 +50,43 @@ Only the main process accesses the file system. `storage.js` writes a temporary 
 
 ## Shared library
 
-Save format version 8 keeps `library` and `conditionLibrary` alongside `characters` (active
+Save format version 9 keeps `library` and `conditionLibrary` alongside `characters` (active
 party), `roster` (inactive saved players), `settings`, and `activeId`. Library entries own
 `name`, `kind`, `economy`, `level`, `usesSlot`, `requiresConcentration`, and the manual text
 fields: `trigger`, `duration`, `range`, `area`, `castingTime`, `components`, `school`,
 `attack`, `save`, `onSave`, `damage`, `upgrades`, `requirements`, `special`, `description`,
 and `source`. The visible Reference label retains the existing `source` storage key.
-Assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
+Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
 Slots, resources, HP, turn state, and HUD settings belong to each character.
+
+Character-only items have `local: true` and an empty `libraryId`. They store their complete
+normalized definition on the character alongside resource link, cost, and availability. The
+normalizer explicitly skips legacy library promotion for these items, even for exact matches;
+`toBackup` retains their definition fields. A local item with a nonempty library link is rejected,
+as is a non-boolean local flag. Unmarked legacy unlinked abilities still migrate to the library.
+
+`duplicateLibraryEntry` creates a new definition without assignments. `duplicateLocalItem` copies
+the current definition and the originating character's cost settings, creates a fresh item ID,
+and adds only a local item. Neither action spends or resets resources, changes concentration,
+or changes HUD selection. Names use the first available numbered suffix, ignoring case, within
+the library or destination character respectively. Existing numeric suffixes use the same base;
+long names reserve room within the 300-character limit. Limits remain 5,000 shared definitions
+and 500 abilities per character. Both actions run through ordinary session Undo.
+
+`createLocalItem` adds a new independent definition and validates the destination and resource
+link before mutation. `copyLibraryItemLocally` copies directly from a library definition without
+attaching it, preserving its name unless already used on that character; resource bindings start
+empty. The character Add dialog exposes both paths below the shared choices. Picker search and
+filter retain local-copy mode and permit copying an already assigned definition. New blank local
+drafts create an item only on Save. `HUD.abilityName` escapes names and prefixes local names with
+an accessible person icon in character lists, details, HUD lists, and concentration choices;
+the icon is presentation only and never stored as part of the name.
+
+The common editor uses a local branch that merges only edited fields into the latest local item.
+It never creates or updates a library definition for that branch. Its title, save action, and
+note identify the character-only scope; character rows and views label local copies. Local
+removal uses a separate explanation. Copying immediately opens the new editor; Cancel leaves
+the created copy. Missing/stale source or destination items fail without recreating deleted data.
 
 All ability text is manual. There is no ability attack/DC resolver, automatic mode, formula,
 target-stat control, or new personal numeric setting. Existing character-sheet calculations
@@ -88,16 +117,18 @@ changed-field merging preserves concurrent HUD spending. Untouched inputs retain
 text, including legacy whitespace or line breaks that a single-line input cannot display.
 DM details refresh when shared text changes.
 
-Formats 1–7 import into format 8. Older missing fields become blank; legacy unlinked items match
+Formats 1–8 import into format 9. Older missing fields become blank; legacy unlinked items match
 by their full normalized definition content. Different same-name definitions remain separate.
 Missing references and duplicate definition IDs remain errors. IDs, selections, resources, and
-all character state are preserved. Older readers reject format 8 rather than discard new fields.
+all character state are preserved. Older readers reject format 9 rather than promote local copies
+into the shared library. Inactive roster, overlay rendering, resource spending, concentration,
+backup recovery, and session Undo all retain local items by their own stable IDs.
 
 The uncommitted calculation preview wrote format 7. Its migration preserves explicitly entered
 fixed attack/DC numbers and a selected target ability as appended plain text, without calculating
 Auto values or parsing existing notes. Personal exceptions that differ from the shared manual
 result become separate reusable library variants; identical variants share a definition. Their
-assignment IDs and resource bindings remain unchanged. The version 8 whitelist drops the retired
+assignment IDs and resource bindings remain unchanged. The version 9 whitelist drops the retired
 numeric settings and override keys. Repeated save/load cycles do not append the text again.
 
 An in-use library entry cannot be deleted until removed from every active or inactive character.

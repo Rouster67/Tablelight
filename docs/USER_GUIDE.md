@@ -77,7 +77,36 @@ On a character, **+ Add → Create new** saves a new entry to the library and ad
 
 Each Ability library row has **Delete** beside **Edit**. Deleting asks for confirmation and supports Undo. An entry used by a character must be removed from that character first.
 
-The name, description, spell details, and turn cost are shared. Editing them updates every linked character. Each character keeps their own resource pool link, charges spent per use, remaining resources, and unavailable flag. The editor labels these character-only settings separately. For bonuses that vary by character, write “your spell attack” or “your spell save DC” in the shared description, or create separate variants with different values.
+**Duplicate abilities (unreleased):** Click **Duplicate** on an Ability library row to make a
+separate library version. It gets a name such as **Guiding Bolt (1)**, then **Guiding Bolt (2)**
+if the first name is taken. The copy opens for editing and is not assigned to anyone automatically.
+
+On a character's ability tab, click the **copy icon** between Use and Edit. Hovering shows
+**Duplicate locally only**. The row reads View, Use, copy icon, Edit, with Remove from character
+underneath. This adds a separate copy
+to that character and opens its editor. A small **person icon** before the name identifies local
+abilities in the character list, details, and HUD; hover to see **Only on this character**. You can change all
+its text and costs without changing the original or another character. It does not appear in the
+ability library, and later library edits do not change it. Numbering checks the names already on
+that character. Both duplicate buttons create the copy immediately; Cancel closes the editor and
+keeps the copy, while Undo can reverse the duplication.
+
+The character's **+ Add** dialog also has two smaller buttons:
+
+- **Create new local ability**, below Create new, opens a blank editor and saves only to this character. Cancel leaves no new ability.
+- **Create local-only copy**, below Choose existing, opens the library picker. Click **Copy locally** to make an independent character copy, even if the shared ability is already assigned. The name stays the same unless it is already on this character, in which case a number is added. The copy opens for editing immediately; Cancel keeps it, and Undo can remove it.
+
+Hover over either smaller button for an explanation. These options never add to or edit the shared library.
+
+For a spell with two special casts per long rest, keep the original linked spell for slot casting.
+On the local copy, uncheck **Spend a standard spell slot**, link your special resource pool, and
+set **Charges spent per use** to 1. Set that character's pool to a maximum of 2 and **Long rest**
+recovery. The local version spends the pool; the original still spends spell slots.
+
+Local copies stay with the character when moving out of the party, reopening Tablelight, and
+exporting/restoring backups. **Remove from character** removes that local copy and supports Undo.
+
+For library-linked abilities, the name, description, spell details, and turn cost are shared. Editing them updates every linked character. Each character keeps their own resource pool link, charges spent per use, remaining resources, and unavailable flag. The editor labels these character-only settings separately. Create a local copy when an ability needs different details or slot settings for just one character.
 
 Every ability in the DM’s character lists has **Remove from character** alongside View, Use, and Edit. Confirming removes the ability from that character and keeps its library entry. **Undo** restores the assignment. Deleting a character also keeps the library. To delete a library entry, first remove it from any characters using it; the app tells you which ones. Undo can reverse these changes during the current session.
 
@@ -235,7 +264,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Ability-details development builds write save format 8 and import formats 1–7. All manual fields, existing players, libraries, resources, and HUD choices are retained. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Older builds cannot read format 8; keep a pre-update exported backup if you need to return to an older app.
+Ability-details development builds write save format 9 and import formats 1–8. All manual fields, existing players, libraries, resources, and HUD choices are retained. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Older builds cannot read format 9; keep a pre-update exported backup if you need to return to an older app.
 
 ## Keyboard shortcuts
 

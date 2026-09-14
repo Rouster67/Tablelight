@@ -175,7 +175,7 @@ Links remain outside this first milestone.
 
 **Status:** Implemented locally on `codex/ability-details-and-review`; release pending. Reference
 retains the original source data and stays below Description at the bottom right. Current saves
-use format 8 and accept formats 1–7. Regression checks cover migration,
+use format 9 and accept formats 1–8. Regression checks cover migration,
 active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
 saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 
@@ -226,10 +226,18 @@ Upcast / Upgrades stays below Damage / Healing, and Reference replaces the Sourc
 Description, at the bottom right. All fields can be left blank. Shared text appears consistently
 on DM details, assignment previews, and the fixed, rotatable player HUD.
 
-Save format 8 imports formats 1–7 and preserves existing text and character state. Fixed values
+Save format 9 imports formats 1–8 and preserves existing text and character state. Fixed values
 entered in the earlier preview are retained as manual text; differing personal exceptions become
 separate library variants. No automatic ability calculation remains. F10 notices and targeted
 undo still require their own approved milestone.
+
+**Approved duplication follow-up:** Duplicate creates a numbered library version. Duplicate
+locally only, available in each character ability row, creates an independently editable ability
+on that character without adding it to the library. This supports special-resource variants of
+slot-based spells. Copies retain every manual field and cost setting; local copies survive saves,
+backups, inactive-party moves, and Undo. Local names have a person icon. The character Add dialog
+also offers smaller buttons to create a blank local ability or copy directly from the library
+without a shared link. Hover text explains each choice. Implemented locally for review before starting F10.
 
 ## F08 — Upcast and level-based upgrade text
 
@@ -241,7 +249,7 @@ directly beneath Damage / healing in the editor. It accepts 40,000 characters fo
 actions, and features. DM details, assignment previews, and HUD details show populated upgrades
 after the description, with Reference last at the bottom right. Library search includes the text.
 Long sections page with repeated headings inside the fixed HUD frame; shorter edits clamp only
-invalid page selections. Current development saves retain upgrades in format 8 and import formats 1–7.
+invalid page selections. Current development saves retain upgrades in format 9 and import formats 1–8.
 
 This milestone uses user-authored text only. Per-level rows, matching-text highlights, automatic
 damage calculations, and applied effects remain outside this feature.

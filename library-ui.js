@@ -53,7 +53,7 @@ function matchingLibrary(query, filter) {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function libraryRows(query, filter, characterId = '') {
+function libraryRows(query, filter, characterId = '', localCopy = false) {
   const entries = matchingLibrary(query, filter),
     c = TL.allCharacters(state).find((c) => c.id === characterId);
   if (!entries.length)
@@ -64,7 +64,7 @@ function libraryRows(query, filter, characterId = '') {
       .map((entry) => {
         const users = libraryUsers(entry.id),
           attached = c?.items.some((it) => it.libraryId === entry.id);
-        return `<div class="ability-row library-row"><span class="ability-symbol">${symbols[entry.kind]}</span><div class="ability-main"><b>${esc(entry.name)}</b><small>${esc(entry.kind)} · ${esc(labels[entry.economy])}${entry.kind === 'spell' ? ' · ' + TL.levelLabel(entry) : ''}</small><p class="library-excerpt">${esc(entry.description || 'No description yet.')}</p><small>${users.length ? 'Used by ' + users.map((c) => esc(c.name)).join(', ') : 'Ready to add to a character'}</small></div><div class="ability-controls">${c ? button(attached ? 'Already added' : 'Choose', 'attach-library-entry', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}" ${attached ? 'disabled' : ''}`) : button('Add to character', 'assign-library-entry', 'small', `data-id="${esc(entry.id)}" ${TL.allCharacters(state).length ? '' : 'disabled'}`)}<span class="library-edit-controls">${button('Edit', 'edit-library-entry', 'small subtle', `data-id="${esc(entry.id)}"`)}${!c ? button('Delete', 'delete-library-entry', 'small subtle danger', `data-id="${esc(entry.id)}" aria-label="Delete ${esc(entry.name)} from library"`) : ''}</span></div></div>`;
+        return `<div class="ability-row library-row"><span class="ability-symbol">${symbols[entry.kind]}</span><div class="ability-main"><b>${esc(entry.name)}</b><small>${esc(entry.kind)} · ${esc(labels[entry.economy])}${entry.kind === 'spell' ? ' · ' + TL.levelLabel(entry) : ''}</small><p class="library-excerpt">${esc(entry.description || 'No description yet.')}</p><small>${users.length ? 'Used by ' + users.map((c) => esc(c.name)).join(', ') : 'Ready to add to a character'}</small></div><div class="ability-controls">${c && localCopy ? button('Copy locally', 'copy-library-locally', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}"`) : c ? button(attached ? 'Already added' : 'Choose', 'attach-library-entry', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}" ${attached ? 'disabled' : ''}`) : button('Add to character', 'assign-library-entry', 'small', `data-id="${esc(entry.id)}" ${TL.allCharacters(state).length ? '' : 'disabled'}`)}${!c ? button('Duplicate', 'duplicate-library-entry', 'small subtle', `data-id="${esc(entry.id)}" aria-label="Duplicate ${esc(entry.name)} in library"`) : ''}<span class="library-edit-controls">${!localCopy ? button('Edit', 'edit-library-entry', 'small subtle', `data-id="${esc(entry.id)}"`) : ''}${!c ? button('Delete', 'delete-library-entry', 'small subtle danger', `data-id="${esc(entry.id)}" aria-label="Delete ${esc(entry.name)} from library"`) : ''}</span></div></div>`;
       })
       .join('') +
     (entries.length > 100
@@ -82,18 +82,19 @@ function addItemChoice() {
   if (!c) return;
   modal(
     'Add an ability to ' + esc(c.name),
-    `<p class="hint">Build a new library entry, or reuse one you have already saved.</p><div class="library-choices space-top">${button('<b>Create new</b><span>Write a spell, action, or feature. Save it to the library and add it to this character.</span>', 'new-library-entry', 'library-choice', `data-character="${esc(c.id)}"`)}${button('<b>Choose existing</b><span>Search your shared library and add an entry to this character.</span>', 'choose-library-entry', 'library-choice', `data-character="${esc(c.id)}"`)}</div>`,
+    `<p class="hint">Create or choose an ability. Use the smaller buttons to keep it only on this character.</p><div class="library-choices space-top"><div class="library-choice-group">${button('<b>Create new</b><span>Write a spell, action, or feature. Save it to the library and add it to this character.</span>', 'new-library-entry', 'library-choice', `data-character="${esc(c.id)}"`)}${button('Create new local ability', 'new-local-item', 'small subtle library-local-choice', `data-character="${esc(c.id)}" title="Create a new ability for this character only, without saving it in the ability library."`)}</div><div class="library-choice-group">${button('<b>Choose existing</b><span>Search your shared library and add an entry to this character.</span>', 'choose-library-entry', 'library-choice', `data-character="${esc(c.id)}"`)}${button('Create local-only copy', 'choose-local-library-entry', 'small subtle library-local-choice', `data-character="${esc(c.id)}" title="Choose an ability from the library and make an independent copy for this character only. The copy will not be saved in or linked to the library."`)}</div></div>`,
+
     `<span></span>${button('Cancel', 'close-modal', 'subtle')}`
   );
 }
 
-function chooseLibraryEntry(characterId) {
+function chooseLibraryEntry(characterId, localCopy = false) {
   const c = TL.allCharacters(state).find((c) => c.id === characterId);
   if (!c) return;
   modal(
-    'Choose an ability for ' + esc(c.name),
-    `<div class="list-toolbar library-toolbar"><input id="library-picker-search" aria-label="Search existing abilities" placeholder="Search your library…"><select id="library-picker-filter" aria-label="Filter existing abilities">${options(libraryTypes, 'all')}</select></div><div id="library-picker-list" class="ability-list" data-character="${esc(c.id)}">${libraryRows('', 'all', c.id)}</div>`,
-    `<span class="hint">Each character keeps their own resource charges.</span><div class="row">${button('Create new', 'new-library-entry', 'subtle', `data-character="${esc(c.id)}"`)}${button('Cancel', 'close-modal', 'subtle')}</div>`
+    (localCopy ? 'Copy an ability for ' : 'Choose an ability for ') + esc(c.name),
+    `<div class="list-toolbar library-toolbar"><input id="library-picker-search" aria-label="Search existing abilities" placeholder="Search your library…"><select id="library-picker-filter" aria-label="Filter existing abilities">${options(libraryTypes, 'all')}</select></div><div id="library-picker-list" class="ability-list" data-character="${esc(c.id)}" data-local-copy="${localCopy}">${libraryRows('', 'all', c.id, localCopy)}</div>`,
+    `<span class="hint">${localCopy ? 'Copies belong only to this character.' : 'Each character keeps their own resource charges.'}</span><div class="row">${button(localCopy ? 'Create new local ability' : 'Create new', localCopy ? 'new-local-item' : 'new-library-entry', 'subtle', `data-character="${esc(c.id)}"`)}${button('Cancel', 'close-modal', 'subtle')}</div>`
   );
 }
 
@@ -151,20 +152,22 @@ function assignLibraryEntry(libraryId) {
   submitForm('assign-form', (data) => attachLibraryEntry(libraryId, data.get('characterId')));
 }
 
-function editLibraryEntry(id, characterId = '', itemId = '') {
+function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false) {
   const entry = state.library.find((e) => e.id === id),
     c = TL.findCharacter(state, characterId);
   const binding = c?.items.find((it) => it.id === itemId),
     originalBinding = binding && TL.clone(binding);
+  const local = binding?.local === true || localDraft;
+  if (local && !c) return toast('This character no longer exists.', true);
   const draft = TL.clone(
-    entry ||
+    (binding?.local ? TL.libraryEntry(binding) : entry) ||
       TL.libraryEntry({
         name: '',
         kind: c && ['spell', 'feature'].includes(tab) ? tab : 'action',
         economy: c && ['bonus', 'reaction', 'free'].includes(tab) ? tab : 'action',
       })
   );
-  if (!entry) draft.name = '';
+  if (!entry && !binding) draft.name = '';
   const original = TL.clone(draft),
     users = entry ? libraryUsers(id) : [];
   const textField = (label, key, full = false) =>
@@ -172,8 +175,14 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
   const textArea = (label, key, rows, full = true) =>
     `<label class="form-field ${full ? 'full' : ''}"><span>${label}</span><textarea name="${key}" rows="${rows}" maxlength="${TL.abilityTextLimit(key)}">${esc(draft[key])}</textarea></label>`;
   modal(
-    entry ? 'Edit library entry' : 'Create a library entry',
-    `<form id="item-form"><p class="note">${entry ? 'Shared entry' + (users.length ? ' · used by ' + users.map((c) => esc(c.name)).join(', ') : '') + '. Changes below update every character using it.' : 'Save this once to reuse it across characters. No rules are preloaded.'}</p><div class="form-grid two space-top">
+    local
+      ? binding
+        ? 'Edit character-only ability'
+        : 'Create a character-only ability'
+      : entry
+        ? 'Edit library entry'
+        : 'Create a library entry',
+    `<form id="item-form"><p class="note">${local ? 'Only for ' + esc(c.name) + '. This ability has its own details and costs and is not in the ability library.' : entry ? 'Shared entry' + (users.length ? ' · used by ' + users.map((c) => esc(c.name)).join(', ') : '') + '. Changes below update every character using it.' : 'Save this once to reuse it across characters. No rules are preloaded.'}</p><div class="form-grid two space-top">
     ${textField('Name', 'name')}<label class="form-field"><span>Type</span><select name="kind">${options(
       [
         ['action', 'Action / ability'],
@@ -200,7 +209,7 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
     ${characterBindingFields(c, binding)}${textArea('Description', 'description', 9)}
     <label class="form-field full ability-source-field"><span>Reference</span><input name="source" maxlength="300" value="${esc(draft.source)}"></label>
     </div></form>`,
-    `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
+    `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${local ? (binding ? 'Save character ability' : 'Save to character') : entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
   );
   const initialFields = new FormData(document.getElementById('item-form'));
   submitForm('item-form', (data) => {
@@ -213,7 +222,15 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
     draft.requiresConcentration = data.has('requiresConcentration');
     const success = commit(
       () => {
-        if (entry) {
+        if (local) {
+          if (!binding) {
+            TL.createLocalItem(state, c.id, draft, readCharacterBinding(data));
+            return;
+          }
+          const target = TL.findCharacter(state, c.id)?.items.find((it) => it.id === itemId);
+          if (!target?.local) throw new Error('This character-only ability no longer exists.');
+          Object.assign(target, TL.libraryEntry(TL.mergeChanges(original, draft, target)));
+        } else if (entry) {
           const index = state.library.findIndex((e) => e.id === id);
           if (index < 0) throw new Error('This library entry no longer exists.');
           state.library[index] = TL.libraryEntry(
@@ -242,11 +259,15 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
           } else TL.attachItem(state, c.id, draft.id, settings);
         }
       },
-      entry
-        ? 'Shared entry updated'
-        : c
-          ? 'Saved to library and added to ' + c.name
-          : 'Saved to library'
+      local
+        ? binding
+          ? 'Character ability updated'
+          : 'Ability added to ' + c.name
+        : entry
+          ? 'Shared entry updated'
+          : c
+            ? 'Saved to library and added to ' + c.name
+            : 'Saved to library'
     );
     if (success) closeModal();
   });
@@ -255,6 +276,29 @@ function editLibraryEntry(id, characterId = '', itemId = '') {
 function handleLibraryAction(buttonElement) {
   const { action, id, character } = buttonElement.dataset;
   switch (action) {
+    case 'new-local-item':
+      editLibraryEntry(undefined, character, '', true);
+      return true;
+    case 'choose-local-library-entry':
+      chooseLibraryEntry(character, true);
+      return true;
+    case 'copy-library-locally': {
+      let copy;
+      if (
+        commit(
+          () => (copy = TL.copyLibraryItemLocally(state, character, id)),
+          'Character-only copy created'
+        )
+      )
+        editLibraryEntry('', character, copy.id);
+      return true;
+    }
+    case 'duplicate-library-entry': {
+      let copy;
+      if (commit(() => (copy = TL.duplicateLibraryEntry(state, id)), 'Library entry duplicated'))
+        editLibraryEntry(copy.id);
+      return true;
+    }
     case 'new-library-entry':
       editLibraryEntry(undefined, character);
       return true;
@@ -299,7 +343,8 @@ function refreshLibraryPicker() {
     list.innerHTML = libraryRows(
       document.getElementById('library-picker-search').value,
       document.getElementById('library-picker-filter').value,
-      list.dataset.character
+      list.dataset.character,
+      list.dataset.localCopy === 'true'
     );
 }
 document.addEventListener('input', (event) => {

@@ -1,15 +1,14 @@
 # Ability details and DM review
 
-Current branch: `codex/ability-details-and-review`, based on the user's committed F08 work at
-`1c7b6a3`. Source references (F05) and Upcast / Upgrades (F08) are complete. The user replaced
-the F07 calculation proposal with manual ability fields. This correction is implemented locally
-for review; F10 is still unimplemented and requires separate approval.
+Current branch: `codex/ability-details-and-review`. The user committed the approved manual ability
+fields as `7ff4a47`. F05, F08, and the revised manual F07 scope are complete. The user approved an
+additional duplication milestone before F10. F10 still requires separate approval.
 
 **Working agreement:** Edit and test, then leave changes uncommitted. The user handles staging,
 commits, and publishing. Never perform those Git actions automatically or switch branches.
 Work one approved milestone at a time.
 
-Current verification: all 90 unit tests and all 17 native desktop scenarios (175 checks) pass,
+Manual-fields verification: all 90 unit tests and all 17 native desktop scenarios (175 checks) passed,
 along with syntax, formatting, and diff checks. Reviewed the editor and DM detail screenshots at
 1440 × 950. Native checks cover both player HUDs, shared edits after later spending, long text,
 reloading saves, independent resource costs, fixed frames, rotation, and click-through behavior.
@@ -21,7 +20,7 @@ long upgrade section and section-aware HUD paging. The editor places upgrades di
 Damage / Healing. Reference remains below Description at the bottom right. Saves retain shared
 definitions once and keep each character's resource binding and live counts separate.
 
-## Current milestone — manual ability fields
+## Approved manual ability fields
 
 The user's field list is authoritative: Name, Type, Trigger, Duration, Range, Area, Casting Time,
 Spell Level, Components, School, Attack, Save, On Save, Damage / Healing, Upcast / Upgrades,
@@ -40,7 +39,7 @@ and future notices use the same ordered metadata and sections. Reference follows
 section. Long text stays reachable through paging and internal scrolling without resizing or
 rotating a HUD.
 
-Save format 8 accepts formats 1–7. Existing text and character state remain intact. For saves
+Save format 9 accepts formats 1–8. Existing text and character state remain intact. For saves
 written by the earlier calculation preview, only explicitly entered fixed values and selected
 target abilities become text. Distinct personal manual exceptions become reusable library
 variants; automatic modes are removed. No calculated number is written into a shared entry.
@@ -56,10 +55,39 @@ Completion checks:
 - Run unit, syntax, formatting, and native desktop checks. Update the installed review copy only
   after backing it up and checking saved-data preservation. Leave source changes uncommitted.
 
+## Current milestone — library and character-only duplicates
+
+Add Duplicate to library rows and a copy icon to each character ability row. Its tooltip is
+Duplicate locally only. Arrange View, Use, copy icon, Edit on one line, with Remove underneath. Copies
+receive numbered names and open for editing. Library duplication makes a new shared definition;
+local duplication makes an independent character item that never enters the library. Local text,
+standard-slot spending, resource links, and charge costs can all be edited independently.
+
+The approved follow-up adds a person icon before every local ability name, plus two small
+buttons in the character Add dialog: Create new local ability beneath Create new, and Create
+local-only copy beneath Choose existing. Both explain their scope on hover. Blank local drafts
+save only on confirmation; the library picker makes an independent local copy immediately and
+allows abilities already assigned to that character. Shared choices keep their existing behavior.
+
+Completion checks: preserve copied details and original values; increment colliding names; support
+duplicating existing copies, removal, and ordinary Undo; preserve inactive-roster copies, save
+recovery, export/import, and character editors after later HUD spending. Verify the two-special-
+casts example: each local use spends one charge, original uses spend slots, and a long rest restores
+the selected pool. Shared edits cannot rewrite the local copy. Format 9 accepts formats 1–8 and
+keeps explicit local definitions outside library migration. HUD size and rotation remain fixed.
+
+Duplication and local-creation verification: all 99 unit tests and all 18 native desktop scenarios (182 checks)
+passed, plus syntax, formatting, and diff checks. Reviewed library controls at 1100 × 800 and
+character details/editors at 1440 × 950. Tests cover two resource casts, original slot spending,
+shared/local edits, stale editors, duplicate names, Undo, removal, inactive roster, backup
+recovery, app reload, and fixed HUD dimensions/rotation. The Add options, cancelled blank drafts,
+direct copies of already assigned abilities, filtered local pickers, local name icons, and Undo
+after creating a second local ability are also covered.
+
 ## Next milestones — F10, approval required
 
 1. **Use records and targeted undo.** A successful use records a unique request/use ID, character,
-   assignment and library IDs, sequence, origin, selected slot level, a snapshot of manual ability
+   assignment ID and library ID when linked, sequence, origin, selected slot level, a snapshot of manual ability
    details, costs actually deducted, and concentration before/after. Record only changed costs;
    a free use has none. Do not store full characters, portraits, or private notes. Records join
    the authoritative save transaction; failures/canceled warnings create no successful notice.
@@ -126,5 +154,5 @@ Acknowledgement alone should neither enter gameplay Undo nor reopen notices when
 - Decide whether DM uses should also open notices; recording them internally is needed to track
   later spending even if only HUD uses open notices.
 
-Next review: the corrected manual field editor. After it is accepted and committed by the user,
+Next review: library and character-only duplication. After it is accepted and committed by the user,
 recommend the F10 use-record and targeted-undo milestone, subject to approval of these decisions.
