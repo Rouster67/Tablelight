@@ -1,44 +1,39 @@
 # Ability icons, class themes, and player messages — proposed plan
 
-Status: awaiting the user's approval. This document does not authorize feature implementation.
-Prepared September 13, 2026 against `main` at `4b44cf49675e99f599ecb69398a042a76fdef232`
-(Tablelight 1.10.2 source).
+Status: implementation started at the user's request on September 14, 2026.
+Milestone 1 is implemented and tested locally. Milestones 2–7 remain planned.
+Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
+`f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
+in use; later theme and message choices remain proposals.
 
 ## Branch setup completed
 
-1. Checked the source checkout, current branch, untracked files, and stashes. It was on
-   `codex/ability-details-and-review`, with no uncommitted changes or stashes, at the same
-   commit as local `main`. Existing ignored files were left in place. For a future dirty
-   checkout, inspect changes first, then preserve intended work in a commit on its existing
-   branch or a named stash including untracked files; verify preservation before switching.
-   Keep ignored saves and backups in place, and never include them in a source commit.
-2. Fetched GitHub's current branches. Local `main` and `origin/main` matched exactly at the
-   commit above, including the latest roadmap update. No merge was necessary. If local main
-   were simply behind, use a fast-forward-only update; if it had diverged, preserve its commits
-   and examine the difference before choosing a merge or rebase.
-3. A new, untracked `docs/ABILITY_DETAILS_PLAN.md` appeared while the other planning task was
-   using the source folder. Preserved its work and active branch by creating a separate working
-   folder at `D:\Repos\Tablelight-source\work\visual-improvements`. Created and activated
-   `codex/ability-icons-class-themes-player-messages` there from the verified main. The name
-   identifies the shared ability images, character appearance, and recipient-specific messages.
-4. Published that exact commit through the connected GitHub account, fetched it back, and
-   configured local tracking. Verified the new folder's active branch and zero commits ahead
-   of or behind its remote. The original source folder stayed on the ability-details branch.
+1. On September 14, checked the normal source checkout, worktrees, branches, and uncommitted
+   files. The earlier separate checkout and feature branch had been removed. Main contained
+   the merged Tablelight 1.11.0 work, including character-only abilities and the DM approval queue.
+2. Fetched GitHub and confirmed main matched origin/main at
+   `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. Preserved the existing release-note edit in
+   `docs/releases/1.11.0.md` and made an additional copy in an ignored local backup folder.
+3. Verified `codex/ability-icons-class-themes-player-messages` was active in the normal
+   `D:\Repos\Tablelight-source` folder at that same commit. The name covers all three planned
+   features. Work now appears in the repository already used by GitHub Desktop.
+4. Published the branch, fetched it back, and configured upstream tracking. The branch and
+   published starting commit matched before development. Changes remain uncommitted for review.
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
-Use the separate working folder for this plan's development. The branch is published; this
-proposed plan is a local, uncommitted document. No feature code, roadmap status, application
-release, installed program, or real saved party was changed.
+The normal source folder is now the working location; the previous separate-folder instructions
+are superseded. No installed program, real saved party, or application release was changed.
 
 ## What the current project already provides
 
-- [Roadmap](ROADMAP.md): F09 and F12 are planned candidates; F02 still needs design decisions.
+- [Roadmap](ROADMAP.md): F09 has its storage foundation ready; F12 and F02 remain planned.
   These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
   focused issues with decisions and completion checklists when implementation is scheduled.
 - [Core state](../core.js): shared definitions supply each character's ability display fields.
   Backups store definitions once and retain separate assignment IDs, resource links, costs,
-  and availability. Saves use format 4 and accept formats 1–4. Up to eight players can be active;
-  inactive characters remain in the saved roster.
+  and availability. The 1.11.0 baseline uses format 9; the icon foundation writes format 10 and accepts formats 1–9. Up to eight players can be active;
+  inactive characters remain in the saved roster. Existing character-only abilities retain
+  independent definitions, including copied images.
 - [Portrait upload](../main.js): the DM can choose PNG/JPEG/WebP files, currently limited to
   25 MiB and resized to a 512-pixel longest edge. Images are saved as embedded PNG data. Icons
   can reuse the checked file-selection pattern with smaller limits and additional validation.
@@ -48,18 +43,21 @@ release, installed program, or real saved party was changed.
   need separate handling without the current text-length truncation.
 - [HUD rendering](../hud.js) and [styles](../styles.css): the TV and DM preview share rendering.
   Each character has independent position, rotation, scale, visibility, section, and detail
-  selection. Expanded HUDs remain 880 × 650 CSS pixels before scaling; bubbles are 78 × 78.
-  Many appearance colors are currently hard-coded.
+  selection. Expanded HUDs are 880 pixels wide with a growing summary and a 600-pixel minimum
+  card height plus toolbar. Pending requests add a separate column, making them 1150 pixels
+  wide. Bubbles are 78 × 78. Preserve this merged behavior rather than restoring the old fixed
+  height. Many appearance colors are currently hard-coded.
 - [Overlay](../overlay.js) and [window shapes](../window-shape.js): all players share one TV
   window. Rotated input regions let map clicks through the gaps. Full click-through disables
   player controls, while DM controls use a separate checked route. The current geometry limit
   is 16 frames, including transient notices.
 - [Storage](../storage.js): saving is atomic and preserves the previous valid save. The
-  controller keeps up to 40 complete Undo snapshots. Image size affects memory, saving, and
+  main-process approval service keeps up to 40 Undo snapshots. Image size affects memory, saving, and
   repeated TV updates as well as disk space.
 
-The existing unit test suite and JavaScript syntax checks passed during branch planning.
-Native UI scenarios were reviewed but were not run during this branch/planning session.
+The initial baseline of 155 unit tests passed. After milestone 1, all 165 unit tests and all
+22 Windows desktop scenarios passed, including the new image-import scenario. Tests used
+isolated synthetic data.
 
 ## Recommended order and milestones
 
@@ -68,12 +66,14 @@ F12 then supplies coordinated character colors and readable surfaces. F02 can re
 surfaces while adding separately tested delivery, message state, and rotated reading controls.
 Ability calculations, player-use review, and a new resources layout are outside this plan.
 
-The ability-details plan overlaps in core state, the library editor, HUD details, and save
-compatibility. Agree the shared field/rendering interfaces and integration order before coding.
-Recheck main before each milestone; do not assume another branch's proposed helper already exists.
-Coordinate format numbering so two incompatible save schemas never ship under the same number.
+The ability-details work is now merged. Build on its common details renderer, main-process
+approval service, character-only definitions, and growing HUD layout. Format 10 extends its
+format 9 saves. Recheck main before later milestones and coordinate future format changes.
 
 ### Milestone 1 — F09 image storage and compatibility
+
+Completed locally September 14, 2026. The importer and save support are connected; visible
+upload controls and thumbnails remain milestone 2. No new dependency was needed.
 
 Add an optional image to the shared library definition. Recommend static PNG, JPEG/JPG, and
 WebP uploads, limited to 5 MiB and 4,096 pixels on either source edge. Reject SVG, GIF, animation,
@@ -83,7 +83,8 @@ unrestricted decoding, then validate the decoded result. Keep file access in the
 Resize to a 256-pixel longest edge without enlarging small images. Preserve aspect ratio and
 transparency, honor source orientation, and re-encode to PNG without original metadata. Retain
 only the converted image; leave the user's source file alone. Proposed stored limits are
-300 KiB per icon and 8 MiB across the library, counting each entry once before base64 overhead.
+300 KiB per icon and 8 MiB across the library and character-only abilities, counting each
+stored definition once before base64 overhead.
 Exceeding a limit produces an error without deleting existing artwork or partially importing.
 
 Save each shared image once, including unused library entries. Include artwork in exact-content
@@ -91,9 +92,9 @@ migration comparisons so different images are not silently merged. Extend valida
 normalization, and backups together; never pass image data through an ordinary text-field limit.
 Keep character assignment IDs and resource settings separate from shared artwork.
 
-Introduce the coordinated save-format version when first writing these fields. Tablelight
-1.10.2 discards unknown fields, so keeping format 4 could silently lose icons or themes after
-loading in an older app. Accept formats 1–4 without loss; older apps should reject the new format.
+Save format 10 extends the merged format 9. Tablelight 1.11.0 would discard unknown image
+fields in format 9, so a new version prevents silent loss in older apps. Formats 1–9 remain
+readable, including legacy manual-field migration and existing character-only copies.
 
 Completion and tests:
 
@@ -107,13 +108,14 @@ Completion and tests:
   portraits, assignments, conditions, notes, resources, and HUD settings. Verify previous-save
   recovery and rejection before replacing valid data.
 - Update reader/writer version guards together, including condition-library requirements for
-  formats newer than 4. Coordinate with any newer format already shipped by the other branch.
+  formats newer than 9. Coordinate with any newer format already shipped by the other branch.
 
 ### Milestone 2 — F09 editing and shared display
 
 Add Upload/Replace, Remove, image preview, and Cancel to the shared entry editor. Explain that
 the image changes for every character using the entry. Initially fit the whole picture inside
-a fixed square with a neutral backing; do not add a crop editor or personal image overrides.
+a fixed square with a neutral backing; do not add a crop editor or per-assignment image
+overrides. Existing independent character-only abilities still retain their own image.
 
 Use one thumbnail renderer in the DM library, assignment picker/preview, character ability
 lists/details, and TV lists/details. Retain the current spell/action/feature symbols as
@@ -227,7 +229,7 @@ accessible labels, or toasts. Use a gentle pulse for five seconds, then a steady
 reduced motion starts steady. Keep the badge within the existing collapsed bubble or a reserved
 expanded-HUD corner so it does not enlarge either frame.
 
-Open text inside the expanded HUD's fixed frame. For a collapsed bubble, use a temporary card
+Open text inside the expanded HUD's current frame without changing its existing sizing rules. For a collapsed bubble, use a temporary card
 up to 480 × 320 CSS pixels before character scale, anchored at the saved center and using that
 character's rotation and scale. Fit it using existing display-edge behavior without rewriting
 saved position. Preserve section, detail page, scroll, expansion, and other placement settings.
@@ -263,12 +265,13 @@ Completion and tests:
 
 Run project syntax, unit, and formatting checks and the relevant native scenarios, then the full
 required Windows native suite before a pull request. Use isolated synthetic saves and artwork.
-Confirm migrations from formats 1–4, both libraries, inactive roster, previous-save recovery,
+Confirm migrations from formats 1–9, both libraries, inactive roster, previous-save recovery,
 independent settings, stale editors, and simultaneous player actions.
 
 Check one, two, and eight players with mixed visibility and expansion at the supported 40–250%
-scale range. Preserve the 880 × 650 expanded frame and 78 × 78 bubble, stored placement and
-rotation, display-edge fitting, column scroll, and DM preview. Exercise icons, themes, and
+scale range. Preserve the existing growing HUD, its 880-pixel normal/1150-pixel pending widths,
+the 78 × 78 bubble, stored placement and rotation, display-edge fitting, section scroll, and
+DM preview. Exercise icons, themes, and
 messages together while the map remains usable in both interaction modes.
 
 Completion and tests:
@@ -353,10 +356,11 @@ text appears; the shared renderer is not a private device or per-player security
 The DM layout preview shows notification state without automatically exposing the body or
 counting it as opened. Private delivery to personal devices is outside this plan.
 
-## Decisions to approve before coding
+## Implementation decisions and remaining proposals
 
-1. **Images:** adopt static PNG/JPEG/WebP, a 5 MiB source limit and 4,096-pixel edges, a fitted
-   256-pixel PNG, 300 KiB per stored icon, and an 8 MiB library budget? Start without a crop
+1. **Images — adopted for milestone 1:** use static PNG/JPEG/WebP, a 5 MiB source limit and 4,096-pixel edges, a fitted
+   256-pixel PNG, 300 KiB per stored icon, and an 8 MiB budget including character-only images.
+   Start without a crop
    editor or personal icon overrides; confirm performance before increasing the budget.
 2. **Themes:** adopt the proposed 13 palettes and Default, chosen independently of entered class?
    Preserve Player color for identity and custom resource colors, with opaque class reading
@@ -369,16 +373,16 @@ counting it as opened. Private delivery to personal devices is outside this plan
 5. **Lifetime:** recommend session-only messages, ending at restart, backup restore, or recipient
    removal. Keep them out of backups and gameplay Undo. Closing retains a message for reopening;
    dismissing clears it. An inbox or persistent history would require a different storage policy.
-6. **Save compatibility and integration:** introduce a new save format while accepting formats
-   1–4, and coordinate numbering and shared rendering with the ability-details branch. If a
+6. **Save compatibility — implemented in milestone 1:** write format 10 while accepting formats
+   1–9, preserving merged ability-details and character-only behavior. If a
    newer format has already shipped, extend from that format and bump again where required.
    Old saves must load without loss; older apps should reject newer-format saves clearly.
 
 Across every milestone, keep artwork in the shared library, appearance choices on each character,
 and transient messages outside gameplay saves. Extend validation, migration, serialization, and
-changed-field merging together. Preserve existing user content, resource bindings, fixed HUD
-geometry, map input, escaped text, checked window communication, and save recovery.
+changed-field merging together. Preserve existing user content, resource bindings, current HUD
+sizing rules, map input, escaped text, checked window communication, and save recovery.
 
-Recommended first milestone: **Milestone 1 — F09 image storage and compatibility**, once this
-plan and its initial decisions are approved. It proves that image handling and portable saves
-preserve existing work before connecting the new visuals.
+First milestone completed: **Milestone 1 — F09 image storage and compatibility**. The next
+milestone is **Milestone 2 — F09 editing and shared display**: connect Upload/Replace/Remove
+and matching thumbnails while preserving the tested storage and backup behavior.

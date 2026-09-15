@@ -50,6 +50,7 @@ contextBridge.exposeInMainWorld('tablelight', {
     return () => ipcRenderer.removeListener('hud:request', listener);
   },
   avatar: () => ipcRenderer.invoke('file:avatar'),
+  abilityIcon: () => ipcRenderer.invoke('file:ability-icon'),
   exportParty: () => ipcRenderer.invoke('file:export'),
   importParty: () => ipcRenderer.invoke('file:import'),
   onState: (callback) => {

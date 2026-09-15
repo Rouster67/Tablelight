@@ -220,7 +220,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await run(`commit(()=>TL.addToParty(state,${JSON.stringify(a)}));await saveQueue;`);
     const disk = JSON.parse(fs.readFileSync(store.file, 'utf8')),
       saved = store.load().state;
-    assert.equal(disk.version, 9);
+    assert.equal(disk.version, 10);
     assert.equal(disk.library.length, 2);
     const rawLocal = disk.characters.find((c) => c.id === a).items.find((it) => it.id === copy);
     assert.equal(rawLocal.local, true);

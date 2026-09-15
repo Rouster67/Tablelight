@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add the F09 icon-storage foundation: checked PNG/JPEG/WebP import, fitted 256-pixel PNG conversion, bounded image storage, and portable backups. Upload controls and visible ability thumbnails are still planned.
+- Save format 10 preserves ability images with shared definitions and existing character-only copies, imports formats 1–9, and rejects damaged icon data before replacing valid saves.
+
 ## 1.11.0 — 2026-09-14
 
 - Move the History icon to the right of the DM sidebar so Add character and Setup & help remain visible and clickable on wide and narrow windows.

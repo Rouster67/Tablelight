@@ -214,7 +214,7 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
   const initialFields = new FormData(document.getElementById('item-form'));
   submitForm('item-form', async (data) => {
     for (const key of TL.definitionFields) {
-      if (['level', 'usesSlot', 'requiresConcentration'].includes(key)) continue;
+      if (['level', 'usesSlot', 'requiresConcentration', 'icon'].includes(key)) continue;
       draft[key] = data.get(key) === initialFields.get(key) ? original[key] : data.get(key);
     }
     draft.level = data.get('level') === '' ? null : Number(data.get('level'));

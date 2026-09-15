@@ -31,7 +31,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F06 | Concentration reminder when applying damage   | Released                |
 | F07 | Manual ability fields (revised scope)         | Merged; release pending |
 | F08 | Upcast and level-based upgrade text           | Merged; release pending |
-| F09 | Uploaded icons for abilities                  | Planned candidate       |
+| F09 | Uploaded icons for abilities                  | Foundation ready        |
 | F10 | DM approval queue, History, and targeted undo | Merged; release pending |
 | F12 | Class overlay color themes                    | Planned candidate       |
 | F13 | Bundled illustrated PDF user guide            | Planned candidate       |
@@ -265,15 +265,26 @@ damage calculations, and applied effects remain outside this feature.
 
 ## F09 — Uploaded icons for abilities
 
+**Milestone 1 — foundation ready (September 14, 2026):** Added the DM-only image-import bridge,
+source validation, sandboxed PNG/JPEG/WebP conversion, and save/backup support on
+`codex/ability-icons-class-themes-player-messages`. Icons fit within a 256-pixel longest edge
+without enlarging small art or cropping. Limits are 5 MiB and 4,096 pixels per source edge,
+300 KiB per stored PNG, and 8 MiB across shared and character-only definitions. Static images
+retain transparency and orientation; animation and damaged/oversized inputs are rejected.
+Format 10 imports formats 1–9 and preserves icons through copies and previous-save recovery.
+All 165 unit tests and 22 desktop scenarios passed. Upload/replace/remove controls and displayed
+thumbnails are not connected yet; those are milestone 2. The installed program is unchanged.
+
 **Requested:** Let users upload a custom image for a spell, action, or feature.
 
 **Suggested approach:** Keep the icon with the shared library entry and show a thumbnail alongside
 the ability on both screens. Provide replace/remove controls and a sensible fallback when no image
 is supplied. Keep icons in exported backups so entries remain portable between computers.
 
-**Open decisions:** Which image formats, size limits, and cropping controls should be offered?
-Reuse the portrait upload approach where practical and resize images to avoid large libraries
-making saves or HUD updates slow. Users supply the images; no spell art is bundled.
+**Remaining work:** Connect the shared editor controls and thumbnails on both screens, preserve
+the existing character-only ability behavior, and verify memory/save responsiveness with a full
+image budget and many assignments. Use the agreed static formats and fitted images without a
+crop editor initially. Users supply the images; no spell art is bundled.
 
 ## F10 — DM approval queue, History, and targeted undo
 

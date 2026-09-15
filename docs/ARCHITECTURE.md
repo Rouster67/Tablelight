@@ -50,12 +50,13 @@ Only the main process accesses the file system. `storage.js` writes a temporary 
 
 ## Shared library
 
-Save format version 9 keeps `library` and `conditionLibrary` alongside `characters` (active
+Save format version 10 keeps `library` and `conditionLibrary` alongside `characters` (active
 party), `roster` (inactive saved players), `settings`, and `activeId`. Library entries own
 `name`, `kind`, `economy`, `level`, `usesSlot`, `requiresConcentration`, and the manual text
 fields: `trigger`, `duration`, `range`, `area`, `castingTime`, `components`, `school`,
 `attack`, `save`, `onSave`, `damage`, `upgrades`, `requirements`, `special`, `description`,
 and `source`. The visible Reference label retains the existing `source` storage key.
+The optional `icon` contains a validated, embedded PNG, defaulting to an empty string.
 Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
 Slots, resources, HP, turn state, and HUD settings belong to each character.
 
@@ -117,11 +118,11 @@ changed-field merging preserves concurrent HUD spending. Untouched inputs retain
 text, including legacy whitespace or line breaks that a single-line input cannot display.
 DM details refresh when shared text changes.
 
-Formats 1–8 import into format 9. Older missing fields become blank; legacy unlinked items match
+Formats 1–9 import into format 10. Older missing fields become blank; legacy unlinked items match
 by their full normalized definition content. Different same-name definitions remain separate.
 Missing references and duplicate definition IDs remain errors. IDs, selections, resources, and
-all character state are preserved. Older readers reject format 9 rather than promote local copies
-into the shared library. Inactive roster, overlay rendering, resource spending, concentration,
+all character state are preserved. Older readers reject format 10 rather than silently discard
+ability icons; format 9 originally introduced character-only copies. Inactive roster, overlay rendering, resource spending, concentration,
 backup recovery, and session Undo all retain local items by their own stable IDs.
 
 The uncommitted calculation preview wrote format 7. Its migration preserves explicitly entered
@@ -181,7 +182,7 @@ characters array order is the displayed initiative order, persisted without chan
 
 `approval-session.js` implements request accounting; `approval-service.js` owns it in the main
 process and serializes edits, HUD commands, approvals, and ordinary Undo. It is also available
-beside `TL` for the browser preview. Save format 9 remains unchanged.
+beside `TL` for the browser preview. Approval session data stays outside the party save format.
 
 The model owns a normalized party state plus separate session-only pending requests, five resolved
 History records, counter revision markers, and command receipts. Requests reserve costs in a copied
@@ -244,6 +245,32 @@ still be reversed with ordinary Undo. `history-ui.js` supplies the bottom-left l
 detail view, Reconsider, and Undo this use. Buttons show current reasons when blocked. Both queue
 icons respect open editors and become inert behind dependency confirmations. Reconsider opens
 its new request only if the initiating History view is still open, preserving a later editor.
+
+## Ability image foundation
+
+`ability-icon.js` loads before `core.js` in both windows. It validates bounded base64 PNGs,
+dimensions, chunk structure, CRCs, and the total image budget. New saves contain only static
+8-bit RGBA PNG icons up to 256 pixels per edge and 300 KiB each. The 8 MiB aggregate counts
+each shared definition once, plus each independent character-only definition. Linked display
+copies do not consume the budget again. Icons participate in exact-definition migration and
+copying; resource shape icons remain separate. Small bounded caches avoid repeating checks
+for every shared assignment or stat update.
+
+`image-import.js` checks source signatures, container boundaries, animation markers, and edges
+before decoding PNG, JPEG, or WebP files, with a bounded 5 MiB read and 4,096-pixel source edges.
+The authenticated, DM-only `file:ability-icon` bridge opens the file chooser and serializes imports.
+It converts pixels in a temporary hidden, sandboxed browser window: nativeImage cannot decode
+WebP in the current runtime. This window has no Node access or preload, uses a nonpersistent
+session, blocks navigation/new windows, and permits only local script and image data through
+its CSP. It times out and is destroyed after conversion or failure. No dependency was added.
+
+The renderer honors image orientation, fits the entire image to a 256-pixel longest edge,
+retains transparency, does not enlarge small artwork, and exports PNG without source metadata.
+The main process validates the returned PNG, including bounded decompression and scanline
+filters, before accepting it. `Store.validate` applies the same pixel checks during load, save,
+and backup import, before any existing save is replaced. The previous-valid-save fallback
+also validates pixels. Editor controls and visible thumbnails are the next F09 milestone;
+current editors preserve icons while changing existing fields.
 
 ## Tests
 

@@ -20,6 +20,7 @@ const { hudRegions } = require('./window-shape');
 let overlayFrames = [],
   overlayDragging = false;
 const { Store } = require('./storage');
+const { readIcon, decodeInWindow } = require('./image-import');
 const { UpdatePreferences, UpdateService } = require('./update-service');
 const packageInfo = require('./package.json');
 const updateFixture = packageInfo.name === 'tablelight-update-test' ? packageInfo.updateTest : null;
@@ -464,6 +465,23 @@ function registerIPC() {
     }
     return setOverlay(options.visible);
   });
+  let iconImportBusy = false;
+  ipcMain.handle('file:ability-icon', async (event) => {
+    auth(event);
+    if (iconImportBusy) throw new Error('An ability image is already being opened.');
+    iconImportBusy = true;
+    try {
+      const result = await dialog.showOpenDialog(controller, {
+        title: 'Choose an ability icon',
+        properties: ['openFile'],
+        filters: [{ name: 'Ability images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+      });
+      if (result.canceled) return null;
+      return await readIcon(result.filePaths[0], (data) => decodeInWindow(data, BrowserWindow));
+    } finally {
+      iconImportBusy = false;
+    }
+  });
   ipcMain.handle('file:avatar', async (event) => {
     auth(event);
     const result = await dialog.showOpenDialog(controller, {
@@ -501,6 +519,6 @@ function registerIPC() {
     });
     if (result.canceled) return null;
     const file = result.filePaths[0];
-    return TL.normalize(JSON.parse(fs.readFileSync(file, 'utf8')));
+    return store.validate(JSON.parse(fs.readFileSync(file, 'utf8')));
   });
 }

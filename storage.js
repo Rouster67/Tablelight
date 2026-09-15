@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const TL = require('./core');
+const { validateStateIcons } = require('./image-import');
 class Store {
   constructor(directory) {
     this.directory = directory;
@@ -14,11 +15,11 @@ class Store {
     if (!fs.existsSync(this.file) && !fs.existsSync(this.backup))
       return { state: TL.empty(), warning: '' };
     try {
-      return { state: TL.normalize(JSON.parse(fs.readFileSync(this.file, 'utf8'))), warning: '' };
+      return { state: this.validate(JSON.parse(fs.readFileSync(this.file, 'utf8'))), warning: '' };
     } catch (error) {
       try {
         return {
-          state: TL.normalize(JSON.parse(fs.readFileSync(this.backup, 'utf8'))),
+          state: this.validate(JSON.parse(fs.readFileSync(this.backup, 'utf8'))),
           warning: 'Your last save could not be read. The previous backup was recovered.',
         };
       } catch {
@@ -30,8 +31,11 @@ class Store {
       }
     }
   }
+  validate(raw) {
+    return validateStateIcons(TL.normalize(raw));
+  }
   save(raw) {
-    const state = TL.normalize(raw),
+    const state = this.validate(raw),
       content = JSON.stringify(TL.toBackup(state), null, 2),
       temp = this.file + '.tmp';
     fs.mkdirSync(this.directory, { recursive: true });
@@ -44,7 +48,7 @@ class Store {
     }
     if (fs.existsSync(this.file)) {
       try {
-        TL.normalize(JSON.parse(fs.readFileSync(this.file, 'utf8')));
+        this.validate(JSON.parse(fs.readFileSync(this.file, 'utf8')));
         fs.copyFileSync(this.file, this.backup);
       } catch (error) {
         if (error.code) throw error;

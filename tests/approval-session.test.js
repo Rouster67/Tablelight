@@ -515,7 +515,7 @@ test('pending and recent history remain separate from backups; restart releases 
     assert.equal(saved.characters[0].resources[0].current, 3);
     assert.equal(s.projectCharacter('c0').resources[0].current, 1);
     assert.deepEqual(raw, TL.toBackup(saved));
-    assert.equal(raw.version, 9);
+    assert.equal(raw.version, 10);
     assert.equal(raw.session, undefined);
     const restarted = new Session(saved);
     assert.deepEqual(restarted.snapshot().session.pending, []);
@@ -573,9 +573,10 @@ test('character projections and snapshots cannot mutate the session or expose ot
 
 test('browser module loads with the shared rules engine without enabling or changing the existing app', async () => {
   const context = vm.createContext({ structuredClone, crypto: require('node:crypto').webcrypto });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../ability-icon.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../core.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../approval-session.js'), 'utf8'), context);
   assert.equal(context.TLApproval.ABILITY_LIMIT, 3);
   assert.equal(context.TLApproval.HISTORY_LIMIT, 5);
-  assert.equal(new context.TLApproval.Session(context.TL.empty()).snapshot().state.version, 9);
+  assert.equal(new context.TLApproval.Session(context.TL.empty()).snapshot().state.version, 10);
 });

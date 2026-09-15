@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
 (function (root, factory) {
-  const api = factory();
+  const api = factory(
+    typeof module === 'object' && module.exports ? require('./ability-icon') : root.TLIcon
+  );
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TL = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Icon) {
   'use strict';
   const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   const skills = {
@@ -227,6 +229,7 @@
       upgrades: '',
       save: '',
       description: '',
+      icon: '',
       disabled: false,
       ...data,
     };
@@ -255,6 +258,7 @@
     'upgrades',
     'save',
     'description',
+    'icon',
   ];
   function libraryEntry(raw = {}) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw))
@@ -262,7 +266,10 @@
     const defaults = item(),
       entry = { id: str(raw.id, 300) || uid() };
     for (const key of definitionFields)
-      entry[key] = str(raw[key] ?? defaults[key], abilityTextLimit(key));
+      entry[key] =
+        key === 'icon'
+          ? Icon.normalize(raw[key])
+          : str(raw[key] ?? defaults[key], abilityTextLimit(key));
     entry.name = entry.name.trim() || 'Unnamed ability';
     entry.kind = ['action', 'spell', 'feature'].includes(raw.kind) ? raw.kind : 'action';
     entry.economy = ['action', 'bonus', 'reaction', 'free'].includes(raw.economy)
@@ -685,6 +692,7 @@
         it[k] = str(r[k] ?? it[k], abilityTextLimit(k));
       if (!it.id) it.id = uid();
       it.libraryId = str(r.libraryId, 300);
+      it.icon = it.libraryId ? '' : Icon.normalize(r.icon);
       if (r.local !== undefined && typeof r.local !== 'boolean')
         throw new Error('An ability’s character-only setting must be true or false.');
       if (r.local === true) {
@@ -738,7 +746,7 @@
   function normalize(raw) {
     if (
       !raw ||
-      ![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(raw.version) ||
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(raw.version) ||
       !Array.isArray(raw.characters)
     )
       throw new Error('This is not a supported Tablelight party backup.');
@@ -799,6 +807,7 @@
       }
     }
     if (library.length > 5000) throw new Error('The library can contain up to 5,000 entries.');
+    Icon.checkBudget({ library, characters: chars, roster });
     if (
       (raw.version >= 4 || raw.conditionLibrary !== undefined) &&
       !Array.isArray(raw.conditionLibrary)
@@ -831,7 +840,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 9,
+      version: 10,
       conditionLibrary,
       libraryVersion: 1,
       library,
