@@ -18,7 +18,7 @@
   animation: queue-pulse 2s ease-in-out infinite;
 }
 .dm-history-button {
-  left: 24px;
+  left: calc(var(--sidebar-width) + 24px);
   right: auto;
 }
 .history-actions {

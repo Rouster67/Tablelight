@@ -76,11 +76,16 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       run(
         `for(const r of [...approvalState.pending])await api.approvalCommand(approvalCommand('deny',{requestId:r.id}));closeModal();`
       );
-    assert.ok(
-      await run(
-        `const left=document.querySelector('[data-action="dm-history"]').getBoundingClientRect(),right=document.querySelector('[data-action="dm-queue"]').getBoundingClientRect();return left.left===24 && left.right<right.left;`
-      )
-    );
+    for (const width of [1440, 1100]) {
+      controller.setBounds({ width, height: 820 });
+      await new Promise((r) => setTimeout(r, 200));
+      assert.ok(
+        await run(
+          `const history=document.querySelector('[data-action="dm-history"]').getBoundingClientRect(),queue=document.querySelector('[data-action="dm-queue"]').getBoundingClientRect(),sidebar=document.querySelector('.sidebar').getBoundingClientRect();return history.left>sidebar.right && history.right<queue.left && history.bottom<=innerHeight;`
+        ),
+        'History must stay beside the sidebar without covering its Add character or Setup & help controls.'
+      );
+    }
     await click('[data-action="dm-history"]');
     assert.ok(
       await run(

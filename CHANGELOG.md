@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Move the History icon to the right of the DM sidebar so Add character and Setup & help remain visible and clickable on wide and narrow windows.
 - Keep keyboard focus inside History when its actions or list refresh, and restore focus to the underlying dialog after canceling a dependency warning.
 - Add bottom-left History for the five most recent resolved requests, with recorded ability details, outcomes, and actual costs. Reconsider opens a new request using current ability details and costs while preserving urgent priority and preventing duplicate attempts.
 - Add Undo this use to refund only an approved use’s recorded costs and concentration change. Preserve later tracked spending and unrelated work; block the complete refund after relevant resets, corrections, capacity changes, or concentration changes. Warn before denying pending requests that depend on refunded counters.

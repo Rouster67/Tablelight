@@ -2,8 +2,9 @@
 
 Branch: `codex/dm-approval-queue`, starting from `b8883db` (the merge of PR #10).
 Status: milestone 1 committed as `479ce68`; milestone 2 and the HUD layout amendment committed
-as `d6ae50e`; milestone 3 committed as `e38b6b1`. Milestone 4 automated review is complete;
-the final keyboard-focus fix is uncommitted, and the actual-table walkthrough remains.
+as `d6ae50e`; milestone 3 committed as `e38b6b1`; final keyboard-focus review committed as
+`0fcba9b`. Milestone 4 automated review and the installed-program walkthrough are complete.
+The History placement adjustment and its regression check remain uncommitted.
 This document replaces the earlier F10 post-use notice proposal in ABILITY_DETAILS_PLAN.md.
 
 Work one approved milestone at a time. Leave changes uncommitted; the user handles staging,
@@ -89,7 +90,8 @@ milestone 3. History, Reconsider, and targeted undo are connected and tested.
 
 ### History and Reconsider
 
-- History has its own icon in the bottom left of the DM console. It opens a brief list using
+- History has its own icon near the bottom left, just to the right of the DM sidebar so it
+  does not cover Add character or Setup & help. It opens a brief list using
   character, ability, and outcome. It retains the five most recently resolved requests.
 - Approved, denied, player-canceled, and expired requests appear in History. Removing an old
   entry to enforce the five-entry limit does not undo a use or refund anything.
@@ -279,5 +281,27 @@ the user should still verify readability and interaction on the physical table d
    occupy their own right column. Try the table's usual rotations and sizes with long content.
 6. Close and reopen Tablelight. Pending requests and History should clear; approved costs remain.
 
-Commit the final review fix after inspecting it, then complete this walkthrough before merging
-or publishing a release. No additional feature milestone remains in this branch's agreed scope.
+### Installed-program walkthrough results — September 14, 2026
+
+Passed on the separate DM monitor and 1440-by-2560 player monitor: reservations versus actual
+spending, Allow/Deny/Cancel, Minimize/reopen/View character, non-interruption while History is
+open, Reconsider, the three-request cap, and a red Urgent reaction above three ordinary requests.
+History retained five entries. The new-turn warning preserved the request on Cancel and marked
+it Expired on Continue. The full character column and separate pending column remained visible
+at 120% and 110% scale, including a 15-degree rotation and working Smaller/Larger controls.
+
+The live refund sequence used spell slots: two approved one-slot uses reduced four slots to two;
+undoing the earlier use restored three, preserving the later use and a separate HP change.
+Canceling the dependency warning preserved the queued use; Continue denied it and refunded only
+the chosen use. A subsequent manual slot correction disabled the older refund with a reason.
+The custom-resource variant, long details, other rotations, failed saves, and broader edge cases
+are covered by the automated suites. The History and sidebar native scenarios passed again
+after the icon move (15 check groups total), including wide and narrow placement checks.
+
+Closing and reopening the installed app cleared a pending action request and all five History
+entries while keeping an approved spell slot spent. After restoring the test slot and undoing
+the temporary copies and other test edits, the complete saved party data exactly matched the
+pre-test backup, including library entries, every character, HUD placement, scale, and rotation.
+
+No additional feature milestone remains in this branch's agreed scope. The user handles the
+remaining commit, branch publishing, and merge.
