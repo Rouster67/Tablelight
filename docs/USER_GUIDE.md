@@ -399,7 +399,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Tablelight 1.11.0 writes save format 9 and imports formats 1–8. All manual fields, existing players, libraries, resources, and HUD choices are retained. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Older app versions cannot read format 9; export a backup before updating if you may need to return to an older app. Pending approvals and History are session-only and are not included in saves or exported backups.
+This development build writes save format 10 and imports formats 1–9. Backups retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.11.0 writes format 9 and cannot read format 10; keep a backup from before updating if you may need to return to that release. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
 
 ## Keyboard shortcuts
 

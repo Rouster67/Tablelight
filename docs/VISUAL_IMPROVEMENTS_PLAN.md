@@ -1,11 +1,13 @@
-# Ability icons, class themes, and player messages — proposed plan
+# Ability icons, class themes, and player messages — implementation plan
 
 Status: implementation started at the user's request on September 14, 2026.
-Milestones 1–6 are implemented and tested locally. Milestone 7 remains planned.
+Milestones 1–6 are implemented and tested locally. Milestone 7's combined automated review is
+implemented; the physical TV walkthrough remains before release. See the
+[review record and completion checklist](VISUAL_IMPROVEMENTS_REVIEW.md).
 Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
 `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
 in use, and class themes include selection and persistence. Player-message delivery, the composer,
-mail indicators, and reading controls are implemented. Combined review remains before release.
+mail indicators, and reading controls are implemented. Release preparation remains a separate step.
 
 ## Branch setup completed
 
@@ -25,6 +27,7 @@ mail indicators, and reading controls are implemented. Combined review remains b
    (Add class palette themes and previews). Milestone 4 was committed as `a5d9ff8`
    (Add character theme selection and persistence).
    Milestone 5 was committed as `9b3340b` (Implement session-only player messaging).
+   Milestone 6 was committed as `49aa3f3` (Add player messages UI, overlay, and service).
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
 The normal source folder is now the working location; the previous separate-folder instructions
@@ -62,7 +65,7 @@ commit, uncommitted status, build time, and backup location.
 ## What the current project already provides
 
 - [Roadmap](ROADMAP.md): F09 storage, editing, and display are implemented on this branch;
-  F12 class themes and F02 delivery/reading controls are implemented. Combined review remains.
+  F12 class themes and F02 delivery/reading controls are implemented. Physical TV review remains.
   These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
   focused issues with decisions and completion checklists when implementation is scheduled.
 - [Core state](../core.js): shared definitions supply each character's ability display fields.
@@ -421,6 +424,10 @@ Completion and tests:
 - Verify reduced motion, the unread-to-opened transition, and notification-only DM previews.
 
 ### Milestone 7 — combined regression and review
+
+The combined automated scenario and documentation review are implemented. The
+[review record](VISUAL_IMPROVEMENTS_REVIEW.md) separates verified behavior from the remaining
+physical TV checks; do not treat viewport simulations as a completed HDMI/table walkthrough.
 
 Run project syntax, unit, and formatting checks and the relevant native scenarios, then the full
 required Windows native suite before a pull request. Use isolated synthetic saves and artwork.

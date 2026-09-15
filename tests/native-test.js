@@ -14,6 +14,16 @@ module.exports = async function ({
   updates,
   updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'visual-improvements')
+    return require('./visual-improvements-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'player-messages-ui')
     return require('./player-messages-ui-native')({
       app,

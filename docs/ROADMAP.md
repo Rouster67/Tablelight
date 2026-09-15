@@ -12,6 +12,8 @@ progress; entries do not assign a release version or authorize implementation.
 - **Foundation ready:** The supporting logic is tested locally; the visible feature is not connected.
 - **In progress:** An approved part is implemented; remaining milestones still need approval.
 - **Implemented locally:** The agreed change is in the source and awaits testing and release.
+- **Implemented on branch:** The agreed feature is implemented and has automated coverage; merge,
+  physical setup review where applicable, and release remain separate steps.
 - **Merged; release pending:** The change is in `main`; a public app release is still pending.
 - **Released:** The change is available in a public stable app release.
 
@@ -21,20 +23,20 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                          | Status                  |
-| --- | --------------------------------------------- | ----------------------- |
-| F01 | Passive abilities section                     | Considering             |
-| F02 | Messages sent to individual player overlays   | In progress             |
-| F03 | Visible application version on the DM screen  | Released                |
-| F04 | Launch update prompt and Windows installer    | Released                |
-| F05 | Source reference on abilities                 | Merged; release pending |
-| F06 | Concentration reminder when applying damage   | Released                |
-| F07 | Manual ability fields (revised scope)         | Merged; release pending |
-| F08 | Upcast and level-based upgrade text           | Merged; release pending |
-| F09 | Uploaded icons for abilities                  | Implemented on branch   |
-| F10 | DM approval queue, History, and targeted undo | Merged; release pending |
-| F12 | Class overlay color themes                    | Implemented on branch   |
-| F13 | Bundled illustrated PDF user guide            | Planned candidate       |
+| ID  | Idea                                          | Status                |
+| --- | --------------------------------------------- | --------------------- |
+| F01 | Passive abilities section                     | Considering           |
+| F02 | Messages sent to individual player overlays   | Implemented on branch |
+| F03 | Visible application version on the DM screen  | Released              |
+| F04 | Launch update prompt and Windows installer    | Released              |
+| F05 | Source reference on abilities                 | Released              |
+| F06 | Concentration reminder when applying damage   | Released              |
+| F07 | Manual ability fields (revised scope)         | Released              |
+| F08 | Upcast and level-based upgrade text           | Released              |
+| F09 | Uploaded icons for abilities                  | Implemented on branch |
+| F10 | DM approval queue, History, and targeted undo | Released              |
+| F12 | Class overlay color themes                    | Implemented on branch |
+| F13 | Bundled illustrated PDF user guide            | Planned candidate     |
 
 ## F01 — Passive abilities section
 
@@ -89,8 +91,9 @@ opens in the recipient's theme and orientation. DM page/scroll/close controls wo
 The preview remains notification-only, and the composer states the shared-TV visibility boundary.
 Eight HUDs, eight collapsed-message cards, and the notice fit within the validated 17-frame input
 model. Native tests check actual Windows regions, rotation/edge placement, retry races, palette
-contrast, reduced motion, and closing during movement. Combined regression and the physical TV
-walkthrough remain milestone 7 in [the implementation plan](VISUAL_IMPROVEMENTS_PLAN.md).
+contrast, reduced motion, and closing during movement. Combined regression now covers messages
+alongside icons, themes, pending approvals and guarded backup restores. The physical TV walkthrough
+remains in [the review checklist](VISUAL_IMPROVEMENTS_REVIEW.md).
 
 ## F03 — Visible application version on the DM screen
 
@@ -475,14 +478,13 @@ The version display, installer/updater, and concentration reminder (F03, F04, F0
 in 1.10.0. The update-folder fix was released in 1.10.1, and the uninstaller data-choice follow-up
 was released in 1.10.2.
 
-1. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
-2. F09 icons and F12 class themes are implemented on the visual-improvements branch. Continue
-   with combined regression and the physical TV walkthrough for icons, themes, and F02 messages.
-3. Design passive abilities and character-based calculations together where they affect the shared
-   library and character assignments (F01, F07).
-4. Prototype messages and player-use review with the actual TV setup (F02, F10). Agree on privacy
-   expectations, undo behavior, and popup placement before coding.
-5. Outline the illustrated guide (F13), then finish screenshots and walkthroughs against the
+1. F05 references, F08 upgrades, manual F07 fields, and F10 approval/History behavior were released
+   in 1.11.0. Their older proposal text remains historical context.
+2. F09 icons, F12 class themes, and F02 messages are implemented on the visual-improvements branch.
+   Finish the [physical TV review](VISUAL_IMPROVEMENTS_REVIEW.md), then prepare their release.
+3. Continue the separately agreed planning for passives (F01). Preserve the manual F07 scope;
+   automatic character calculations would require a new decision.
+4. Outline the illustrated guide (F13), then finish screenshots and walkthroughs against the
    features included in its release. Bundle the PDF and replace the three named help sections
    with its link as one complete change.
 

@@ -336,7 +336,7 @@ using the real HUD renderer and styles, with map/opacity/view controls and no ap
 saved state. Native theme checks inspect computed/composited text and control colors in both
 windows, compare Default with the theme sheet disabled, and check independent themes, geometry,
 artwork, resource colors, hover/focus, warnings, and click-through. Physical TV viewing distance
-is outside automated coverage. Unread message UI checks belong to the message milestone.
+is outside automated coverage. Message UI tests also check text/control contrast in all 14 palettes.
 
 ## Player-message delivery
 
@@ -421,3 +421,16 @@ An opened message is visible to nearby people; the composer states this next to 
 ## Tests
 
 Unit tests cover cost spending, migration, linked definitions, independent bindings, save recovery, geometry, command validation, and stale-editor merging. Native scenarios exercise the real renderer and Electron windows using synthetic state, capture screenshots, and verify persistence. Run them with `npm run test:native` in a Windows desktop session. The native harness creates a unique user-data directory per scenario and never reads the normal party file.
+
+`visual-improvements-native.js` combines artwork, independent themes, message cards and pending
+approvals in one session. It exercises real editor upload, simultaneous player HP commands,
+an older theme editor, definition-change and restore guards, and native backup export/import.
+Shared definition edits, including icon edits, retain the existing pending-use review; theme
+changes do not invalidate ability reservations. Cancelling either guard leaves messages intact;
+only a successful restore resets their session.
+
+The combined scenario records connected display bounds and scale factors, plus separate simulated
+1280 × 720, 1920 × 1080 and 2560 × 1440 viewports. It preserves saved HUD settings for mixed
+40–250% scales and five rotations. Interaction-mode changes keep the existing addition/removal
+of HUD editing controls; the inner collapsed bubble remains 78 × 78. Automated results and the
+remaining physical TV checklist are recorded in [the visual review](VISUAL_IMPROVEMENTS_REVIEW.md).
