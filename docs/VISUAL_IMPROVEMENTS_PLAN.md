@@ -1,10 +1,10 @@
 # Ability icons, class themes, and player messages — proposed plan
 
 Status: implementation started at the user's request on September 14, 2026.
-Milestones 1–3 are implemented and tested locally. Milestones 4–7 remain planned.
+Milestones 1–4 are implemented and tested locally. Milestones 5–7 remain planned.
 Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
 `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
-in use, and the class palettes are implemented; theme selection/persistence and messages remain planned.
+in use, and class themes now include selection and persistence; player messages remain planned.
 
 ## Branch setup completed
 
@@ -20,16 +20,46 @@ in use, and the class palettes are implemented; theme selection/persistence and 
 4. Published the branch, fetched it back, and configured upstream tracking. The branch and
    published starting commit matched before development. Milestone 1 was committed as
    `efbeef2` (Add ability icon storage foundation), and milestone 2 as `6bd094c`
-   (Implement ability image editing and display). Milestone 3 is ready for review and commit.
+   (Implement ability image editing and display). Milestone 3 was committed as `6302224`
+   (Add class palette themes and previews).
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
 The normal source folder is now the working location; the previous separate-folder instructions
-are superseded. No installed program, real saved party, or application release was changed.
+are superseded. Branch setup itself did not change the installed program or saved party.
+
+## Local development installation — standing workflow
+
+The user explicitly requires `D:\Programs\Tablelight` to contain the latest completed work.
+The normal **Tablelight** desktop shortcut must open that updated application. The separate
+development-preview shortcut created during troubleshooting is superseded; its copied saves
+are retained separately. This local installation is part of finishing each development step,
+including steps awaiting the user's commit. Publishing a public release remains a separate task
+after all seven milestones.
+
+After the relevant checks pass:
+
+1. Preserve a dated copy of the installed program and the current and previous party saves in
+   the source folder's ignored `backups` directory. Close the relevant Tablelight windows normally
+   before taking the final save snapshot and updating. Never force-close an editor with unsaved work.
+2. Build the current checkout using `node scripts/build-windows.cjs`. The build uses
+   `publish: 'never'`; it does not publish a release. Install that newly built installer into
+   `D:\Programs\Tablelight`, retaining the normal save location and shortcut.
+3. Verify the installed application files match the built payload and the current source,
+   check the executable and application version, and confirm the original party saves were
+   preserved. Run relevant desktop checks against the installed executable with synthetic test
+   data in an isolated folder, never against the real saved party.
+4. Open `D:\Programs\Tablelight\Tablelight.exe` through the normal shortcut and verify the new
+   controls. Report the installation update alongside the milestone's completion checks.
+
+The displayed release version remains the branch's baseline until release preparation. Verify
+the actual installed files and features to identify current development work; the version number
+alone does not identify a milestone. Keep a local installation record containing the branch,
+commit, uncommitted status, build time, and backup location.
 
 ## What the current project already provides
 
 - [Roadmap](ROADMAP.md): F09 storage, editing, and display are implemented on this branch;
-  F12 palettes/previews are ready, selection/persistence and F02 remain planned.
+  F12 class themes are implemented; F02 player messages remain planned.
   These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
   focused issues with decisions and completion checklists when implementation is scheduled.
 - [Core state](../core.js): shared definitions supply each character's ability display fields.
@@ -221,6 +251,25 @@ Completion and tests:
 
 ### Milestone 4 — F12 character selection and persistence
 
+Implemented September 15. Create and Edit share the Theme dropdown with all 14 choices.
+The optional `theme` field uses the branch's existing unreleased save format 10. Missing,
+blank, or malformed values become Default; unknown string identifiers are retained while
+the HUD displays Default. An unavailable saved choice appears separately in the editor,
+allowing unrelated edits to preserve it and an explicit Default selection to replace it.
+
+Validation covers all 14 choices with Create/Edit/Cancel/Undo, eight same-class players with
+independent palettes, all four orientations, hidden and collapsed bubbles, hidden TV windows,
+and click-through mode. Theme-only edits preserve the other characters, shared artwork,
+resource colors/counts, placement, later spending, and pending ability requests. Native export
+and restore retain active/inactive choices and store shared artwork once; a second desktop
+process verifies restart persistence. All 175 unit tests and 26 desktop scenarios pass. Existing palette contrast checks
+remain in place; physical TV viewing-distance review remains an external check.
+
+The new backup test exercises the existing confirmation for discarding pending requests during
+restore. Test automation confirms this synthetic restore rather than leaving that dialog waiting.
+The earlier overlay-size readiness fix is retained so palette comparisons begin at final display
+bounds. Update `D:\Programs\Tablelight` as part of completing this milestone.
+
 Add the same Theme dropdown to Create character and Edit character: Default plus all 13 classes,
 including Artificer. Store a stable theme identifier with the character, independently of the
 free-form class/subclass field. Multiclass and homebrew characters can choose any palette.
@@ -335,8 +384,8 @@ Completion and tests:
   and configurations checked. Separate automated results from manual observations.
 - Reconcile shared rendering and save-format changes with merged ability-details work.
 - Update architecture, user guide, roadmap progress, and changelog to describe implemented
-  behavior. Publishing an application release and updating the working installation remain
-  separate later actions.
+  behavior. Update the working installation after each completed step using the standing workflow
+  above. Publish an application release separately after all seven milestones are complete.
 
 ## Class palettes and existing colors — implemented rendering policy
 
@@ -435,7 +484,7 @@ and transient messages outside gameplay saves. Extend validation, migration, ser
 changed-field merging together. Preserve existing user content, resource bindings, current HUD
 sizing rules, map input, escaped text, checked window communication, and save recovery.
 
-Completed: **Milestones 1–3 — F09 icons and F12 palettes/previews**. The next milestone is
-**Milestone 4 — F12 character selection and persistence**: add the Theme dropdown to character
-creation/editing and preserve each character's choice in saves and backups. Release after all
-seven milestones are complete, as requested.
+Completed: **Milestones 1–4 — F09 icons and F12 class themes**. The next milestone is
+**Milestone 5 — F02 recipient state and delivery**: add session-only messages addressed by
+character ID, with safe delivery and lifecycle handling before the reading interface.
+Three milestones remain before the next release, as requested.

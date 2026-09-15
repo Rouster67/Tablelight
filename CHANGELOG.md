@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Add the rendering foundation for Default plus all 13 class overlay palettes, including Artificer. Class themes recolor each bubble, HUD, and DM preview independently, keep reading surfaces opaque over maps, and preserve player rings, ability artwork, resource colors, and HUD geometry. Character selection and saved themes follow in the next milestone.
+- Add Theme to Create and Edit character, with Default plus all 13 class palettes, including Artificer. Each choice is independent of the entered class and other players and applies to the bubble, expanded HUD, and DM preview. Preserve choices through saves, backups, remove/rejoin, and Undo; changing a theme leaves live spending and pending approvals intact.
+- Keep Default for older saves and retain unknown theme identifiers while displaying Default until a replacement is chosen. Class themes keep reading surfaces opaque over maps and preserve player rings, ability artwork, resource colors, and HUD geometry.
 - Add a local class-palette review page under `docs/theme-preview.html`, with bright/dark/patterned maps, frame opacity, and ability/detail/sheet views. The page uses synthetic characters and does not save changes.
 - Add custom ability images: Upload, Replace, Remove, and preview controls for shared and character-only spells, actions, and features. PNG/JPEG/static WebP imports fit within 256 pixels without cropping and travel with party backups. Cancel and failed imports preserve the current image.
 - Show matching fixed-size thumbnails in the DM library, assignment picker/preview, character lists/details, and TV HUDs. Keep the usual ability symbol when artwork is absent or cannot load, alongside visible names and availability labels.

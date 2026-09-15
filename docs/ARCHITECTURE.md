@@ -306,8 +306,17 @@ fallback, and DOM application helper. `hud-themes.css` loads after the existing 
 both windows; every rule is scoped to `.hud-position[data-hud-theme]`. `HUD.mount` applies the
 character's theme after decorating controls. Missing/unknown themes add no styling, and
 returning to Default removes only the module's variables, attribute, and resource-icon frames.
-Milestone 3 supplies rendering and preview only; character normalization, editor selection and
-theme persistence are deliberately the next milestone. No save-format change occurs here.
+`TL.character` defaults `theme` to `default`. Character normalization preserves nonblank string
+identifiers (up to 300 characters), including unknown choices; missing, blank, or malformed
+values use Default. The optional field travels in both character collections and the existing
+unreleased format 10 backups. There is no new format bump within this unreleased feature branch.
+
+Create and Edit use the same palette registry for the Theme dropdown. An unknown identifier
+gets an escaped selected option labeled "Default (saved theme unavailable)" so saving unrelated
+fields does not erase it. Explicitly selecting Default replaces it. Theme and free-form class
+name are separate fields. The existing changed-field merge includes `theme`, preserving later
+HUD spending and other characters' settings; theme edits do not invalidate pending requests.
+Only Save commits the choice. Existing Undo, roster membership, and backup paths retain it.
 
 Each class uses the planned dark surface/highlight pair, derived panel/control/hover/border
 colors, and common readable text/semantic colors. The outer frame uses the existing background

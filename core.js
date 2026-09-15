@@ -561,6 +561,7 @@
       id: uid(),
       name: 'New adventurer',
       className: '',
+      theme: 'default',
       species: '',
       level: 1,
       avatar: '',
@@ -635,6 +636,8 @@
     }
     if (!c.id) c.id = uid();
     if (!c.name.trim()) c.name = 'Adventurer';
+    // Retain unknown identifiers for future palettes; rendering falls back to Default.
+    c.theme = typeof raw.theme === 'string' && raw.theme.trim() ? str(raw.theme, 300) : 'default';
     if (/^#[\da-f]{6}$/i.test(raw.accent || '')) c.accent = raw.accent;
     if (
       /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(raw.avatar || '') &&

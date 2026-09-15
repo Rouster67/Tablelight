@@ -69,6 +69,26 @@ You can also open **Players & party** for a larger management screen. Search by 
 
 Only active party members participate in **Next turn**, whole-party rests, and automatic TV arrangement. Each active player's Show/Hide bubble setting still applies. You can remove everyone to leave an empty party while keeping all players saved. Tablelight does not count rounds.
 
+## Character overlay themes
+
+In **Create character** or **Edit character**, choose **Theme**, then **Save character**.
+The choices are **Default**, **Artificer**, **Barbarian**, **Bard**, **Cleric**, **Druid**,
+**Fighter**, **Monk**, **Paladin**, **Ranger**, **Rogue**, **Sorcerer**, **Warlock**, and **Wizard**.
+The selected colors appear on that character's collapsed bubble, expanded HUD, and DM preview.
+The typed **Class / subclass** does not choose a theme: multiclass, homebrew, and same-class
+characters can each use whichever palette they prefer.
+
+**Default** restores the original appearance. **Player color** still identifies the character;
+portraits, ability images, resource colors, spending, HUD size, position, and rotation stay the
+same. **Cancel** leaves the saved theme untouched; **Undo** can reverse a saved change during
+the current session. You can change themes from the DM screen while the overlay is hidden or
+click-through. Changing a theme does not show a hidden bubble or window.
+
+Themes stay with active and inactive characters, including after restarting, removing/rejoining
+the party, and exporting/restoring a backup. Older saves start with Default. If the editor says
+**Default (saved theme unavailable)**, this version cannot display that saved theme. It keeps
+the original choice when you edit other fields. Choose Default or a class theme to replace it.
+
 ## Shared ability library
 
 Open **Ability library** in the sidebar to create, search, filter, or edit your spells, actions, and features. You can build the library before adding characters. It starts empty; all text comes from you.

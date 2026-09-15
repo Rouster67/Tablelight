@@ -134,6 +134,12 @@ module.exports = async ({ app, controller, getOverlay, getState, setOverlay, sto
     );
     await setOverlay(true);
     await wait(() => tv(`return document.querySelectorAll('.hud-position').length===8;`));
+    // Windows initially constrains the hidden overlay to the work area. Measure
+    // themes only after ready-to-show restores the full display bounds.
+    await wait(() => getOverlay().isVisible());
+    const { width, height } = getOverlay().getContentBounds();
+    await wait(() => tv(`return innerWidth===${width} && innerHeight===${height};`));
+    await tv('render();');
     const savedBefore = TL.toBackup(getState());
     await tv(
       `window.themeRoot=document.querySelector('.hud-position');window.themeLink=document.querySelector('link[href="hud-themes.css"]');themeLink.disabled=true;`

@@ -33,7 +33,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F08 | Upcast and level-based upgrade text           | Merged; release pending |
 | F09 | Uploaded icons for abilities                  | Implemented on branch   |
 | F10 | DM approval queue, History, and targeted undo | Merged; release pending |
-| F12 | Class overlay color themes                    | Palettes ready          |
+| F12 | Class overlay color themes                    | Implemented on branch   |
 | F13 | Bundled illustrated PDF user guide            | Planned candidate       |
 
 ## F01 — Passive abilities section
@@ -349,9 +349,15 @@ uploaded artwork, resource colors/shapes, and saved gameplay data stay independe
 use solid reading surfaces with adjustable surrounding frame opacity. Returning to Default
 restores the original appearance, including its existing low-opacity and dimmed-spent-text
 limitations. The [local palette preview](theme-preview.html) uses synthetic characters only.
-The character Theme dropdown, independent saved selections and backup migration remain milestone 4.
-Validation passes 171 unit tests and 25 desktop scenarios, including rendered contrast checks
-and independent geometry/appearance checks for all class palettes.
+
+**Milestone 4 — selection and persistence implemented (September 15, 2026):** Create and Edit
+now include Theme, with independent choices saved for active and inactive characters. Older saves
+use Default. Unknown theme identifiers display Default but remain saved until explicitly replaced.
+Cancel, Undo, remove/rejoin, native backup export/import, and a fresh application restart preserve
+the choices. Theme edits preserve later HUD spending, pending requests, shared artwork, resource
+colors and geometry. Validation includes all 14 options, eight same-class players, hidden/collapsed
+and click-through overlays, and the existing rendered contrast checks; all 175 unit tests and
+26 desktop scenarios pass.
 
 **Requested (September 13, 2026):** Add a Theme dropdown to the character creator that changes
 that character's overlay appearance through recoloring. Include one theme per class, including
@@ -458,8 +464,8 @@ in 1.10.0. The update-folder fix was released in 1.10.1, and the uninstaller dat
 was released in 1.10.2.
 
 1. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
-2. Choose and preview the class color palettes and their interaction with existing character and
-   resource colors before implementing the Theme dropdown (F12).
+2. F09 icons and F12 class themes are implemented on the visual-improvements branch. Continue
+   with individual-player message state and delivery (F02), then its UI and combined regression.
 3. Design passive abilities and character-based calculations together where they affect the shared
    library and character assignments (F01, F07).
 4. Prototype messages and player-use review with the actual TV setup (F02, F10). Agree on privacy
