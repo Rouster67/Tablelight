@@ -75,6 +75,24 @@ Open **Ability library** in the sidebar to create, search, filter, or edit your 
 
 On a character, **+ Add → Create new** saves a new entry to the library and adds it to that character. **+ Add → Choose existing** searches the library and links an entry you already wrote. You can also use **Add to character** from the library.
 
+**Ability images:** In an ability editor, choose **Upload image** to add artwork, **Replace image**
+to change it, or **Remove image** to return to the usual spell, action, or feature symbol.
+The preview shows the complete picture. Choose **Save shared entry** (or the character-only Save
+button) to apply your changes. **Cancel** keeps the saved image; a failed upload keeps the previous
+preview so you can try again. **Undo** can reverse a saved image edit during the session.
+
+Use PNG, JPEG, or static WebP, up to **5 MiB** and **4096 pixels per side**. Tablelight fits it
+within **256 × 256 pixels**, keeps transparency and orientation, and does not crop or enlarge
+small images. Converted images have a **300 KiB** limit; all saved ability images together have
+an **8 MiB** limit. A shared image counts once, while each independent local copy counts separately.
+If saving would exceed the limit, remove or replace some artwork and try again.
+
+Shared images update every linked character, including saved players outside the active party.
+Character-only abilities keep their own images. Artwork appears beside abilities on both screens,
+including the library picker and details. Names and availability remain visible, and a missing or
+unreadable image uses the usual symbol. Images save with your party and exported backups; you do
+not need to keep the original source files for Tablelight to display them.
+
 Each Ability library row has **Delete** beside **Edit**. For an assigned ability, a warning lists every character using it, including characters outside the active party. Choose:
 
 - **Edit instead** to open the shared editor. This white button sits immediately left of the yellow **Make local copies and delete…** button.

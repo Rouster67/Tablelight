@@ -42,6 +42,9 @@ if (!api) {
     avatar: async () => {
       throw new Error('Portrait upload is available in Tablelight.exe.');
     },
+    abilityIcon: async () => {
+      throw new Error('Ability image upload is available in Tablelight.exe.');
+    },
     exportParty: async () => false,
     importParty: async () => null,
     onState: () => {},
@@ -226,7 +229,7 @@ function renderAbilityList(c) {
     filteredItems(c)
       .map((it) => {
         const reason = TL.availability(c, it);
-        return `<div class="ability-row ${reason ? 'spent' : ''}"><span class="ability-symbol">${symbols[it.kind] || symbols[it.economy]}</span><div class="ability-main"><b>${HUD.abilityName(it)}</b><small>${esc(labels[it.economy])}${it.kind === 'spell' ? ' · ' + TL.levelLabel(it) : ''}${it.resourceId ? ' · ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small>${reason ? `<small>${esc(reason)}</small>` : ''}</div><div class="ability-controls character-ability-controls">${button('View', 'view-item', 'small', `data-id="${esc(it.id)}"`)}${button('Use', 'use-item', 'small primary', `data-id="${esc(it.id)}" ${reason ? 'disabled' : ''}`)}${button('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4"></path></svg>', 'duplicate-local-item', 'small subtle icon ability-duplicate', `data-id="${esc(it.id)}" data-character="${esc(c.id)}" title="Duplicate locally only" aria-label="Duplicate locally only"`)}${button('Edit', 'edit-item', 'small subtle', `data-id="${esc(it.id)}"`)}${button('Remove from character', 'delete-item', 'small subtle danger ability-remove', `data-id="${esc(it.id)}" aria-label="Remove ${esc(it.name)} from ${esc(c.name)}"`)}</div></div>`;
+        return `<div class="ability-row ${reason ? 'spent' : ''}">${HUD.abilityThumbnail(it)}<div class="ability-main"><b>${HUD.abilityName(it)}</b><small>${esc(labels[it.economy])}${it.kind === 'spell' ? ' · ' + TL.levelLabel(it) : ''}${it.resourceId ? ' · ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small>${reason ? `<small>${esc(reason)}</small>` : ''}</div><div class="ability-controls character-ability-controls">${button('View', 'view-item', 'small', `data-id="${esc(it.id)}"`)}${button('Use', 'use-item', 'small primary', `data-id="${esc(it.id)}" ${reason ? 'disabled' : ''}`)}${button('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4"></path></svg>', 'duplicate-local-item', 'small subtle icon ability-duplicate', `data-id="${esc(it.id)}" data-character="${esc(c.id)}" title="Duplicate locally only" aria-label="Duplicate locally only"`)}${button('Edit', 'edit-item', 'small subtle', `data-id="${esc(it.id)}"`)}${button('Remove from character', 'delete-item', 'small subtle danger ability-remove', `data-id="${esc(it.id)}" aria-label="Remove ${esc(it.name)} from ${esc(c.name)}"`)}</div></div>`;
       })
       .join('') ||
     `<div class="empty-inline">${search ? 'No matching abilities.' : 'Your rules, your choices.<br>Add your own ' + esc(labels[tab]?.toLowerCase() || 'abilities') + ' to this character.'}</div>`

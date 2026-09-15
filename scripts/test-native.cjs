@@ -9,6 +9,8 @@ const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
 const scenarios = [
+  'ability-icons-performance',
+  'ability-icons-ui',
   'ability-icons',
   'history',
   'approval-queue',

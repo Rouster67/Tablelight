@@ -277,3 +277,65 @@ test('a failed icon save leaves the authoritative approval state and Undo histor
   assert.deepEqual(service.snapshot(), before);
   assert.deepEqual(store.load().state, before.state);
 });
+
+test('image snapshots isolate editable containers and safely retain shared strings', () => {
+  const original = party(),
+    copy = TL.clone(original);
+  copy.library[0].icon = '';
+  copy.characters[0].resources[0].current = 0;
+  copy.characters[0].hud.rotation = 180;
+  assert.equal(original.library[0].icon, red);
+  assert.notDeepEqual(copy.characters[0].resources, original.characters[0].resources);
+  assert.notEqual(copy.characters[0].hud.rotation, original.characters[0].hud.rotation);
+  assert.ok(TL.same(TL.clone(original), original));
+  assert.equal(TL.same(copy, original), false);
+  assert.equal(TL.same([], [undefined]), false);
+  const unusual = JSON.parse('{"__proto__":{"polluted":true},"icon":""}');
+  const safe = TL.clone(unusual);
+  assert.ok(Object.hasOwn(safe, '__proto__'));
+  assert.equal({}.polluted, undefined);
+});
+
+test('Electron transport sends each distinct image once and expands to ordinary validated state', () => {
+  const { serialize, deserialize } = require('node:v8');
+  const { packImages, unpackImages } = require('../preload');
+  const large = dataUrl(png(256, 256, { level: 0 }));
+  const value = { state: party(), approvals: { pending: [{ ability: { icon: large } }] } };
+  value.state.library[0].icon = large;
+  for (const c of TL.allCharacters(value.state)) c.items[0].icon = large;
+  const direct = serialize(value),
+    packed = serialize(packImages(value));
+  assert.ok(packed.length < direct.length / 3);
+  const expanded = unpackImages(deserialize(packed));
+  assert.deepEqual(expanded, value);
+  assert.equal(typeof expanded.state.library[0].icon, 'string');
+  assert.doesNotThrow(() => TL.normalize(expanded.state));
+  const rotation = expanded.state.characters[1].hud.rotation;
+  expanded.state.characters[0].hud.rotation = 270;
+  assert.equal(expanded.state.characters[1].hud.rotation, rotation);
+  assert.deepEqual(unpackImages(packImages({ icon: 'diamond', noImage: '', unused: null })), {
+    icon: 'diamond',
+    noImage: '',
+    unused: null,
+  });
+});
+
+test('image replacement and Undo preserve request validation and safe replay', async () => {
+  const { Session } = require('../approval-session');
+  const state = party();
+  state.characters[0].items[0].disabled = false;
+  const session = new Session(state);
+  const command = (values) => ({ sessionId: session.id, commandId: TL.uid(), ...values });
+  const before = session.snapshot().state;
+  await session.change(command(), (draft) => {
+    draft.library[0].icon = '';
+  });
+  const saved = { state: before, kind: 'edit' },
+    undo = command();
+  await session.undoChange(undo, saved);
+  assert.equal(session.snapshot().state.library[0].icon, red);
+  assert.equal((await session.undoChange(undo, TL.clone(saved))).replayed, true);
+  const different = TL.clone(saved);
+  different.state.library[0].icon = '';
+  await assert.rejects(session.undoChange(undo, different), /different action/);
+});

@@ -92,7 +92,30 @@
     typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : Date.now().toString(36) + Math.random().toString(36).slice(2);
-  const clone = (value) => JSON.parse(JSON.stringify(value));
+  // State is plain JSON data. Copy containers while retaining immutable image/text strings;
+  // serializing each snapshot would duplicate the same shared images throughout Undo.
+  function clone(value) {
+    if (Array.isArray(value)) return Array.from(value, (v) => clone(v) ?? null);
+    if (value && typeof value === 'object')
+      return Object.fromEntries(
+        Object.entries(value)
+          .filter(([, v]) => v !== undefined)
+          .map(([key, v]) => [key, clone(v)])
+      );
+    return typeof value === 'number' && !Number.isFinite(value) ? null : value;
+  }
+  function same(a, b) {
+    if (a === b) return true;
+    if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    if (Array.isArray(a) && a.length !== b.length) return false;
+    const keys = Object.keys(a).filter((key) => a[key] !== undefined),
+      other = Object.keys(b).filter((key) => b[key] !== undefined);
+    return (
+      keys.length === other.length &&
+      keys.every((key) => Object.hasOwn(b, key) && same(a[key], b[key]))
+    );
+  }
   const num = (value, min, max, fallback = min) =>
     Number.isFinite(Number(value)) ? Math.min(max, Math.max(min, Number(value))) : fallback;
   const integer = (value, min, max, fallback = min) => Math.round(num(value, min, max, fallback));
@@ -999,8 +1022,7 @@
   }
   // Apply only fields changed in an editor, preserving live HUD changes while the form was open.
   function mergeChanges(before, edited, current) {
-    if (JSON.stringify(before) === JSON.stringify(edited))
-      return current === undefined ? undefined : clone(current);
+    if (same(before, edited)) return current === undefined ? undefined : clone(current);
     if (
       edited &&
       before &&
@@ -1226,6 +1248,8 @@
     mergeChanges,
     hudCommand,
     definitionFields,
+    abilityIcon: Icon.normalize,
+    same,
     textPages,
     abilityTextSections,
     abilityTextPages,

@@ -14,6 +14,7 @@ const {
 const path = require('node:path');
 const fs = require('node:fs');
 const TL = require('./core');
+const { packImages, unpackImages } = require('./preload');
 const { Service: ApprovalService } = require('./approval-service');
 let approvals;
 const { hudRegions } = require('./window-shape');
@@ -85,9 +86,9 @@ else {
         const mode = state.settings.overlayInteractive;
         state = snapshot.state;
         if (controller && !controller.isDestroyed())
-          controller.webContents.send('approval:state', { ...snapshot, change });
+          controller.webContents.send('approval:state', packImages({ ...snapshot, change }));
         if (overlay && !overlay.isDestroyed()) {
-          overlay.webContents.send('party:state', approvals.overlayState());
+          overlay.webContents.send('party:state', packImages(approvals.overlayState()));
           if (mode !== state.settings.overlayInteractive)
             overlay.setFocusable(state.settings.overlayInteractive);
         }
@@ -357,7 +358,7 @@ function registerIPC() {
     const dm = controller && event.sender.id === controller.webContents.id;
     if (!dm && (!overlay || event.sender.id !== overlay.webContents.id))
       throw new Error('Unknown Tablelight window.');
-    return {
+    return packImages({
       ...(dm ? approvals.snapshot() : { state: approvals.overlayState() }),
       warning: dm ? warning : '',
       native: true,
@@ -365,19 +366,19 @@ function registerIPC() {
       dataPath: dm ? store.directory : undefined,
       version: app.getVersion(),
       updates: dm ? updates.snapshot() : undefined,
-    };
+    });
   });
   ipcMain.handle('party:save', (event, raw) => {
     auth(event);
-    return approvals.change({ edited: raw });
+    return approvals.change({ edited: unpackImages(raw) }).then(packImages);
   });
   ipcMain.handle('party:change', (event, value) => {
     auth(event);
-    return approvals.change(value);
+    return approvals.change(unpackImages(value)).then(packImages);
   });
   ipcMain.handle('party:undo', (event) => {
     auth(event);
-    return approvals.undo();
+    return approvals.undo().then(packImages);
   });
   ipcMain.handle('party:flush', (event) => {
     auth(event);
@@ -385,7 +386,7 @@ function registerIPC() {
   });
   ipcMain.handle('approval:command', (event, value) => {
     auth(event);
-    return approvals.command(value);
+    return approvals.command(unpackImages(value)).then(packImages);
   });
   ipcMain.on('hud:regions', (event, frames) => {
     if (!overlay || event.sender.id !== overlay.webContents.id) return;
@@ -519,6 +520,6 @@ function registerIPC() {
     });
     if (result.canceled) return null;
     const file = result.filePaths[0];
-    return store.validate(JSON.parse(fs.readFileSync(file, 'utf8')));
+    return packImages(store.validate(JSON.parse(fs.readFileSync(file, 'utf8'))));
   });
 }

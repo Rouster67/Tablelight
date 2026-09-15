@@ -1,7 +1,7 @@
 # Ability icons, class themes, and player messages — proposed plan
 
 Status: implementation started at the user's request on September 14, 2026.
-Milestone 1 is implemented and tested locally. Milestones 2–7 remain planned.
+Milestones 1–2 are implemented and tested locally. Milestones 3–7 remain planned.
 Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
 `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
 in use; later theme and message choices remain proposals.
@@ -18,7 +18,8 @@ in use; later theme and message choices remain proposals.
    `D:\Repos\Tablelight-source` folder at that same commit. The name covers all three planned
    features. Work now appears in the repository already used by GitHub Desktop.
 4. Published the branch, fetched it back, and configured upstream tracking. The branch and
-   published starting commit matched before development. Changes remain uncommitted for review.
+   published starting commit matched before development. Milestone 1 was committed as
+   `efbeef2` (Add ability icon storage foundation); milestone 2 is ready for review and commit.
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
 The normal source folder is now the working location; the previous separate-folder instructions
@@ -26,7 +27,8 @@ are superseded. No installed program, real saved party, or application release w
 
 ## What the current project already provides
 
-- [Roadmap](ROADMAP.md): F09 has its storage foundation ready; F12 and F02 remain planned.
+- [Roadmap](ROADMAP.md): F09 storage, editing, and display are implemented on this branch;
+  F12 and F02 remain planned.
   These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
   focused issues with decisions and completion checklists when implementation is scheduled.
 - [Core state](../core.js): shared definitions supply each character's ability display fields.
@@ -111,6 +113,30 @@ Completion and tests:
   formats newer than 9. Coordinate with any newer format already shipped by the other branch.
 
 ### Milestone 2 — F09 editing and shared display
+
+Implemented September 14. Upload/Replace/Remove previews are draft-only until Save, handle
+failure/cancellation and late completion, and retain shared versus character-only ownership.
+All listed views now use the same fixed thumbnail/fallback. Desktop checks cover two linked
+active players plus an inactive player, then eight visible players and DM previews at four
+orientations and several scales. Existing geometry, map regions, and click-through controls remain.
+
+The stress fixture contains 5,000 definitions, 8,137,593 bytes of PNG data, eight active players
+each using all 31 large images, and 100 inactive players. Before optimizing snapshots, two
+service-only updates took about 1.6–1.7 seconds each and sampled up to 1.24 GiB of heap.
+After retaining immutable strings and using structural comparisons, 40 service-only updates
+averaged 267 ms with about 98 MiB retained after collection. The full disk-save/wire-codec
+benchmark averaged 490 ms per update, retained 102 MiB with 40 Undo entries, and restored the
+original state through all 40 undos. Packed messages were 12.09 MiB versus 94.86 MiB with repeated
+strings. These are local synthetic measurements, not a hardware-independent speed guarantee.
+The separate native stress scenario checks actual DM/TV rendering and live updates; observed
+update-to-render checks took 620–914 ms for this deliberately large fixture. Sampled peak heap
+in the full disk/wire benchmark was 764 MiB, distinct from the 102 MiB retained after collection.
+
+Validation: 168 unit tests, syntax/format checks, and all 24 desktop scenarios passed.
+One existing native mouse test timed out at a DM preview rotation click during the first run;
+the unchanged test passed on retry, and the remaining scenarios passed. Screenshots were checked
+for the editor, library, rotated TV details/list, and eight-player DM preview. Test data stayed in
+isolated folders; no installed program or real party was modified.
 
 Add Upload/Replace, Remove, image preview, and Cancel to the shared entry editor. Explain that
 the image changes for every character using the entry. Initially fit the whole picture inside
@@ -383,6 +409,7 @@ and transient messages outside gameplay saves. Extend validation, migration, ser
 changed-field merging together. Preserve existing user content, resource bindings, current HUD
 sizing rules, map input, escaped text, checked window communication, and save recovery.
 
-First milestone completed: **Milestone 1 — F09 image storage and compatibility**. The next
-milestone is **Milestone 2 — F09 editing and shared display**: connect Upload/Replace/Remove
-and matching thumbnails while preserving the tested storage and backup behavior.
+Completed: **Milestones 1–2 — F09 storage, editing, and shared display**. The next milestone is
+**Milestone 3 — F12 palettes and matching previews**: introduce scoped class colors while
+preserving Default, player identity colors, resource colors, and HUD geometry. Theme selection
+and saving follow in milestone 4. Release after all seven milestones are complete, as requested.

@@ -14,6 +14,24 @@ module.exports = async function ({
   updates,
   updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-icons-performance')
+    return require('./ability-icons-performance-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-icons-ui')
+    return require('./ability-icons-ui-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-icons')
     return require('./ability-icons-native')({
       app,

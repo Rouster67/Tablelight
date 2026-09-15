@@ -8,22 +8,21 @@
     HISTORY_LIMIT = 5;
   const BUSY_MESSAGE = 'Hold up—the DM is super busy!';
   const copy = TL.clone;
-  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const same = TL.same;
   const counterKey = (characterId, kind, key = '') => JSON.stringify([characterId, kind, key]);
   const concentration = (c) => ({
     active: c.concentrating,
     itemId: c.concentrationItemId,
     name: c.concentration,
   });
-  const definitionKey = (it) =>
-    JSON.stringify([
-      ...TL.definitionFields.map((key) => it[key]),
-      it.resourceId,
-      it.resourceCost,
-      it.disabled,
-      it.libraryId,
-      it.local === true,
-    ]);
+  const definitionKey = (it) => [
+    ...TL.definitionFields.map((key) => it[key]),
+    it.resourceId,
+    it.resourceCost,
+    it.disabled,
+    it.libraryId,
+    it.local === true,
+  ];
 
   function character(state, id) {
     const c = state.characters.find((c) => c.id === id);
@@ -203,7 +202,7 @@
       try {
         const c = character(this.#state, request.characterId),
           it = ability(c, request.itemId);
-        if (definitionKey(it) !== request.definitionKey)
+        if (!same(definitionKey(it), request.definitionKey))
           throw new Error('This ability has changed. Request it again.');
         costsFor(c, it, request.slotLevel);
         warning = TL.concentrationUseWarning(c, it);
@@ -336,7 +335,7 @@
       this.#validateCommand(command);
       const result = this.#completed.get(command.commandId);
       if (!result) return null;
-      if (result.signature !== signature)
+      if (!same(result.signature, signature))
         throw new Error('This command ID was already used for a different action.');
       return { ...copy(result.value), replayed: true, revision: this.#revision };
     }
@@ -550,7 +549,7 @@
       const command = copy(raw),
         saved = copy(entry);
       return this.#serial(async () => {
-        const signature = JSON.stringify({ type: 'undo-change', entry: saved });
+        const signature = { type: 'undo-change', entry: saved };
         const replay = this.#replay(command, signature);
         if (replay) return replay;
         const next = TL.normalize(saved.state);
@@ -590,7 +589,7 @@
             events.some((event) => event.type === 'restore') ||
             newTurns.has(request.characterId) ||
             !it ||
-            definitionKey(it) !== request.definitionKey ||
+            !same(definitionKey(it), request.definitionKey) ||
             request.costs.some((cost) =>
               keys.has(counterKey(request.characterId, cost.kind, cost.key))
             ) ||

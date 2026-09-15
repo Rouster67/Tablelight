@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Add the F09 icon-storage foundation: checked PNG/JPEG/WebP import, fitted 256-pixel PNG conversion, bounded image storage, and portable backups. Upload controls and visible ability thumbnails are still planned.
+- Add custom ability images: Upload, Replace, Remove, and preview controls for shared and character-only spells, actions, and features. PNG/JPEG/static WebP imports fit within 256 pixels without cropping and travel with party backups. Cancel and failed imports preserve the current image.
+- Show matching fixed-size thumbnails in the DM library, assignment picker/preview, character lists/details, and TV HUDs. Keep the usual ability symbol when artwork is absent or cannot load, alongside visible names and availability labels.
+- Keep shared image edits synchronized across active and inactive characters while preserving individual resource settings and live spending. Reuse immutable image data in Undo snapshots and send each distinct PNG once per window update to avoid repeated image copies in large parties.
 - Save format 10 preserves ability images with shared definitions and existing character-only copies, imports formats 1–9, and rejects damaged icon data before replacing valid saves.
 
 ## 1.11.0 — 2026-09-14

@@ -31,7 +31,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F06 | Concentration reminder when applying damage   | Released                |
 | F07 | Manual ability fields (revised scope)         | Merged; release pending |
 | F08 | Upcast and level-based upgrade text           | Merged; release pending |
-| F09 | Uploaded icons for abilities                  | Foundation ready        |
+| F09 | Uploaded icons for abilities                  | Implemented on branch   |
 | F10 | DM approval queue, History, and targeted undo | Merged; release pending |
 | F12 | Class overlay color themes                    | Planned candidate       |
 | F13 | Bundled illustrated PDF user guide            | Planned candidate       |
@@ -272,8 +272,18 @@ without enlarging small art or cropping. Limits are 5 MiB and 4,096 pixels per s
 300 KiB per stored PNG, and 8 MiB across shared and character-only definitions. Static images
 retain transparency and orientation; animation and damaged/oversized inputs are rejected.
 Format 10 imports formats 1–9 and preserves icons through copies and previous-save recovery.
-All 165 unit tests and 22 desktop scenarios passed. Upload/replace/remove controls and displayed
-thumbnails are not connected yet; those are milestone 2. The installed program is unchanged.
+The storage milestone passed 165 unit tests and 22 desktop scenarios.
+
+**Milestone 2 — editing and display implemented (September 14, 2026):** Upload/Replace/Remove
+and draft previews now work in shared and character-only editors. The DM library, picker,
+assignment preview, character lists/details, DM HUD preview, and TV lists/details use the same
+fixed thumbnail with a type-symbol fallback. Shared changes preserve live spending and each
+active/inactive character's bindings and HUD settings. Cancel, failed upload, late completion,
+Undo, broken artwork, all four orientations, hidden/collapsed overlays, and click-through are
+covered by desktop checks. Snapshots reuse immutable image strings and window messages deduplicate
+PNG data. The large-library stress check covers 5,000 definitions, eight active players,
+100 inactive players, and 40 Undo snapshots. This work remains on the feature branch for review;
+the installed program and release version remain 1.11.0.
 
 **Requested:** Let users upload a custom image for a spell, action, or feature.
 

@@ -246,7 +246,7 @@ detail view, Reconsider, and Undo this use. Buttons show current reasons when bl
 icons respect open editors and become inert behind dependency confirmations. Reconsider opens
 its new request only if the initiating History view is still open, preserving a later editor.
 
-## Ability image foundation
+## Ability images
 
 `ability-icon.js` loads before `core.js` in both windows. It validates bounded base64 PNGs,
 dimensions, chunk structure, CRCs, and the total image budget. New saves contain only static
@@ -269,8 +269,35 @@ retains transparency, does not enlarge small artwork, and exports PNG without so
 The main process validates the returned PNG, including bounded decompression and scanline
 filters, before accepting it. `Store.validate` applies the same pixel checks during load, save,
 and backup import, before any existing save is replaced. The previous-valid-save fallback
-also validates pixels. Editor controls and visible thumbnails are the next F09 milestone;
-current editors preserve icons while changing existing fields.
+also validates pixels.
+
+`library-ui.js` keeps uploads/removals in the current editor draft until Save. Upload failure
+retains the previous image; Cancel abandons the draft. Saving is blocked during conversion,
+and a completion from a closed editor cannot change a later editor. Shared image edits use
+the existing changed-field merge; character-only copies retain independent images and bindings.
+
+`HUD.abilityThumbnail` supplies the same fixed square and neutral backing in library/picker,
+character, detail, and TV views. Images use `object-fit: contain`; the type symbol remains
+visible until an image loads and returns if it fails. Document capture listeners handle
+load/error without inline handlers. Thumbnail dimensions do not depend on image dimensions.
+The existing HUD fitting, scroll areas, rotation, hit regions, and resource icons are unchanged.
+
+`TL.clone` copies plain JSON containers while retaining immutable strings. Structural equality
+avoids repeatedly serializing image data for comparisons and stale-editor merges. Approval
+definition snapshots and Undo replay signatures also retain strings instead of embedding PNGs
+inside generated JSON keys. Saves still serialize each shared definition only once in format 10.
+
+The shared codec in `preload.js` boxes each distinct PNG string once per outgoing message;
+Electron's structured-clone reference table then transmits repeated image references cheaply.
+It unboxes images to ordinary strings before either renderer or the authoritative state sees
+them. The codec is shared with main from the preload file because sandboxed preloads cannot
+require local helper modules. Sender checks, validation, privacy filtering, and backup format
+remain in their existing layers. This is a per-message table with no persistent asset IDs/cache.
+
+Run `node --expose-gc scripts/benchmark-ability-icons.cjs` for the synthetic 5,000-definition,
+8-player, 100-inactive-character, 40-Undo stress check. It records save, wire-codec, and memory
+measurements under ignored `test-results/`, then checks all 40 undos restore the original state.
+The `ability-icons-performance` native scenario additionally measures both real window updates.
 
 ## Tests
 
