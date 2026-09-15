@@ -1024,7 +1024,10 @@ document.addEventListener('keydown', (event) => {
       ],
       first = nodes[0],
       last = nodes[nodes.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
+    if (!document.querySelector('.modal').contains(document.activeElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first)?.focus();
+    } else if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
       last.focus();
     } else if (!event.shiftKey && document.activeElement === last) {

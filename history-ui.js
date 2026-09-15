@@ -44,9 +44,11 @@ function refreshHistoryList() {
       )
       .join('') || '<p class="hint">No resolved requests yet.</p>';
   if (focusId)
-    [...list.querySelectorAll('button')]
-      .find((b) => b.dataset.id === focusId)
-      ?.focus({ preventScroll: true });
+    (
+      [...list.querySelectorAll('button')].find((b) => b.dataset.id === focusId) ||
+      list.querySelector('button') ||
+      document.querySelector('.modal [data-action="close-modal"]')
+    )?.focus({ preventScroll: true });
   list.closest('.modal-body').scrollTop = scroll;
 }
 function showHistoryDetail(id) {
@@ -92,7 +94,18 @@ function refreshHistoryDetail() {
   const reason = action === 'history-undo' ? r.undoReason : r.reconsiderReason;
   const footer = `<div class="row wrap">${button('← History', 'dm-history', 'subtle')}${button('View character', 'history-character', 'subtle', TL.findCharacter(state, r.characterId) ? '' : 'disabled')}${action ? button(action === 'history-undo' ? 'Undo this use' : 'Reconsider', action, action === 'history-undo' ? 'subtle' : 'primary', `${reason || historyBusyId === r.id ? 'disabled' : ''} aria-describedby="history-action-reason"`) : ''}</div><p class="hint" id="history-action-reason">${action ? esc(reason || (action === 'history-undo' ? 'Refund only this use’s recorded costs and concentration change.' : 'Return this request to the front of the queue using its current ability details and costs.')) : 'This use has been undone and cannot be reconsidered or refunded again.'}</p>`;
   const actions = document.querySelector('[data-history-actions]');
-  if (actions.innerHTML !== footer) actions.innerHTML = footer;
+  if (actions.innerHTML !== footer) {
+    const focusedAction = actions.contains(document.activeElement)
+      ? document.activeElement.dataset.action
+      : '';
+    actions.innerHTML = footer;
+    if (focusedAction)
+      (
+        [...actions.querySelectorAll('button:not(:disabled)')].find(
+          (button) => button.dataset.action === focusedAction
+        ) || actions.querySelector('[data-action="dm-history"]')
+      )?.focus({ preventScroll: true });
+  }
   document.getElementById('modal-title').textContent = r.ability.name;
 }
 function handleHistoryAction(b) {

@@ -111,7 +111,10 @@ function guardChange(result) {
       pendingGuard = null;
       for (const id of ['app', 'modal-root', 'dm-queue-root', 'dm-history-root'])
         document.getElementById(id).inert = false;
-      if (focus?.isConnected) focus.focus({ preventScroll: true });
+      const dialog = document.querySelector('#modal-root .modal');
+      if (focus?.isConnected && !focus.disabled && (!dialog || dialog.contains(focus)))
+        focus.focus({ preventScroll: true });
+      else dialog?.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
       resolve(answer);
     };
     pendingGuard = finish;

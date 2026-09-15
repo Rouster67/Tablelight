@@ -2,12 +2,13 @@
 
 Branch: `codex/dm-approval-queue`, starting from `b8883db` (the merge of PR #10).
 Status: milestone 1 committed as `479ce68`; milestone 2 and the HUD layout amendment committed
-as `d6ae50e`. Milestone 3 is implemented locally for review, uncommitted.
+as `d6ae50e`; milestone 3 committed as `e38b6b1`. Milestone 4 automated review is complete;
+the final keyboard-focus fix is uncommitted, and the actual-table walkthrough remains.
 This document replaces the earlier F10 post-use notice proposal in ABILITY_DETAILS_PLAN.md.
 
 Work one approved milestone at a time. Leave changes uncommitted; the user handles staging,
-commits, publishing, and branch changes. The user approved milestone 3 after committing milestone 2.
-History, Reconsider, and targeted undo are now connected for review.
+commits, publishing, and branch changes. The user approved the final review after committing
+milestone 3. History, Reconsider, and targeted undo are connected and tested.
 
 ## Agreed product behavior
 
@@ -247,14 +248,36 @@ Completion checks:
 
 ### 4. Combined review and installed-program verification
 
+**Automated review complete:** All 155 unit tests, JavaScript syntax checks, and all 21 desktop
+scenarios pass after the final integration review. A reproduced keyboard-focus issue is fixed:
+History keeps focus inside its dialog after refreshing or resolving an action, and canceling
+a dependency warning returns focus to the underlying dialog. Native regression checks cover
+action replacement, recovery when focus leaves the dialog, and warning cancellation.
+
 Run the full appropriate unit and desktop suites after integration. Check migrations, backups,
 shared/local abilities, inactive roster handling, cost changes during edits, rapid requests,
 long details, keyboard focus, and 0/90/180/270-degree plus angled/scaled HUDs. Update documentation.
 Back up the installed review copy and verify saved-data preservation before installing for user
 review. Leave all source changes uncommitted; no branch changes or release publishing.
 
-## Next milestone recommendation
+## Actual-table walkthrough
 
-Review the installed milestone 3 controls and commit this batch after approval. The full unit
-and desktop regressions now cover the combined feature. A final user walkthrough should exercise
-History and queued requests on the actual table before merging or publishing a release.
+Use a test character and a backup for this walkthrough. Automated checks cover these behaviors;
+the user should still verify readability and interaction on the physical table display.
+
+1. Request an ability from the overlay. Check that the player sees reserved costs while the DM's
+   counters stay unchanged. Review every detail, then Allow use and check actual spending.
+2. Minimize a request, reopen it from the bottom-right queue, and use View character. Keep another
+   popup open while submitting a request; it should quietly queue. Check ordinary queue limits
+   and red Urgent reactions.
+3. Open History at the bottom left. Deny and Reconsider a request, confirming that the new request
+   uses current ability details. Review an allowed use's recorded details and costs.
+4. With a test pool of five charges, approve a two-charge use and then a one-charge use, both with
+   no turn cost. Change HP, then Undo this use on the first entry. Four charges should remain;
+   the HP edit and second use should remain intact. A relevant reset should block an older refund.
+5. Check that every left-column value and Smaller/Larger control is visible and pending requests
+   occupy their own right column. Try the table's usual rotations and sizes with long content.
+6. Close and reopen Tablelight. Pending requests and History should clear; approved costs remain.
+
+Commit the final review fix after inspecting it, then complete this walkthrough before merging
+or publishing a release. No additional feature milestone remains in this branch's agreed scope.

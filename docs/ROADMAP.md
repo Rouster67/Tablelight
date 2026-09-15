@@ -32,7 +32,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F07 | Manual ability fields (revised scope)         | Implemented locally |
 | F08 | Upcast and level-based upgrade text           | Implemented locally |
 | F09 | Uploaded icons for abilities                  | Planned candidate   |
-| F10 | DM approval queue, History, and targeted undo | In progress         |
+| F10 | DM approval queue, History, and targeted undo | Implemented locally |
 | F12 | Class overlay color themes                    | Planned candidate   |
 | F13 | Bundled illustrated PDF user guide            | Planned candidate   |
 
@@ -280,9 +280,11 @@ making saves or HUD updates slow. Users supply the images; no spell art is bundl
 The DM can review full details, approve, deny, minimize, and view the character. Conflicting edits
 and new turns require confirmation. Window reloads retain pending requests; app exit clears them.
 The request flow and growing HUD are committed as `d6ae50e`. The new bottom-left History list,
-current-definition Reconsider, and targeted undo are implemented locally for review. Refunds
+current-definition Reconsider, and targeted undo are committed as `e38b6b1`. Refunds
 preserve unrelated later work, block unsafe counter/concentration changes, and coordinate with
-ordinary Undo. All 155 unit tests and 21 desktop scenarios pass.
+ordinary Undo. All 155 unit tests and 21 desktop scenarios pass after the final combined review.
+The review also fixed focus leaving History after an action or canceled dependency warning.
+The final review fix is uncommitted; the actual-table walkthrough and release remain pending.
 
 **HUD layout amendment:** The player HUD grows taller to keep the entire character column and
 Smaller/Larger controls visible. Pending requests appear in a separate column to the right of
@@ -309,8 +311,8 @@ New turns use a small warning before expiring that character's requests. Targete
 unrelated changes and is disabled after conflicting resource, turn, or concentration changes.
 
 See [DM approval queue and History](DM_APPROVAL_QUEUE_PLAN.md) for the complete agreed behavior,
-implementation recommendations, and milestone checks. The design is agreed; feature coding
-awaits milestone approval on `codex/dm-approval-queue`.
+implementation recommendations, milestone checks, and final walkthrough on
+`codex/dm-approval-queue`. The agreed feature work is implemented; release is pending.
 
 ## F12 — Class overlay color themes
 

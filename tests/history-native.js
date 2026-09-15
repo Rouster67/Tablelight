@@ -106,8 +106,20 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     await run(`document.querySelector('.modal-body').scrollTop=99999;`);
     await shot('02-recorded-details');
+    await run(`document.querySelector('[data-action="history-undo"]').focus();`);
     await click('[data-action="history-undo"]');
     await settle();
+    assert.ok(
+      await run(`return document.querySelector('.modal').contains(document.activeElement);`),
+      'Resolving a History action must keep keyboard focus inside its dialog.'
+    );
+    assert.equal(await run(`return document.activeElement.dataset.action;`), 'dm-history');
+    await run(
+      `document.activeElement.blur();document.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}));`
+    );
+    assert.ok(
+      await run(`return document.querySelector('.modal').contains(document.activeElement);`)
+    );
     assert.equal(count(), 4);
     assert.equal(getState().characters[0].hp, 4);
     assert.equal(getState().characters[0].turn.movement, 15);
@@ -228,6 +240,9 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await shot('04-dependent-request-warning');
     await click('[data-guard-cancel]');
     await settle();
+    assert.ok(
+      await run(`return document.querySelector('.modal').contains(document.activeElement);`)
+    );
     assert.equal(count(), 4);
     assert.equal(await status(guarded), 'approved');
     await click('[data-action="history-undo"]');
