@@ -4,7 +4,9 @@ Branch: `codex/dm-approval-queue`, starting from `b8883db` (the merge of PR #10)
 Status: milestone 1 committed as `479ce68`; milestone 2 and the HUD layout amendment committed
 as `d6ae50e`; milestone 3 committed as `e38b6b1`; final keyboard-focus review committed as
 `0fcba9b`. Milestone 4 automated review and the installed-program walkthrough are complete.
-The History placement adjustment and its regression check remain uncommitted.
+The History placement adjustment and its regression check are committed as `3c0e1f3`.
+The branch was merged in PR #11 as `fa37247`; its features are prepared for release 1.11.0,
+pending publication.
 This document replaces the earlier F10 post-use notice proposal in ABILITY_DETAILS_PLAN.md.
 
 Work one approved milestone at a time. Leave changes uncommitted; the user handles staging,
@@ -303,5 +305,5 @@ entries while keeping an approved spell slot spent. After restoring the test slo
 the temporary copies and other test edits, the complete saved party data exactly matched the
 pre-test backup, including library entries, every character, HUD placement, scale, and rotation.
 
-No additional feature milestone remains in this branch's agreed scope. The user handles the
-remaining commit, branch publishing, and merge.
+No additional feature milestone remains in this branch's agreed scope. The user completed the
+commit, branch publishing, and merge in PR #11.
