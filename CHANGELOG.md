@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.12.0 — 2026-09-15
+
 - Add a combined desktop regression for icons, themes, player messages, pending approvals, and backup restores, using isolated one-, two-, and eight-player parties. Correct the guide to describe save format 10 and consolidate the release review checklist.
 
 - Add Messages to the DM sidebar, with independent player drafts, recipient portraits, explicit replacement, and sent/delivered/opened status. Players receive an envelope without a text preview and can open, page, scroll, and close the note; the DM can force open, page, scroll, close, or dismiss it while click-through remains enabled.
@@ -14,6 +16,7 @@
 - Show matching fixed-size thumbnails in the DM library, assignment picker/preview, character lists/details, and TV HUDs. Keep the usual ability symbol when artwork is absent or cannot load, alongside visible names and availability labels.
 - Keep shared image edits synchronized across active and inactive characters while preserving individual resource settings and live spending. Reuse immutable image data in Undo snapshots and send each distinct PNG once per window update to avoid repeated image copies in large parties.
 - Save format 10 preserves ability images with shared definitions and existing character-only copies, imports formats 1–9, and rejects damaged icon data before replacing valid saves.
+- Verify shared and local ability images, active and inactive character themes, and save preservation through the real installer/update/restart flow; session messages clear when the updated app reopens.
 
 ## 1.11.0 — 2026-09-14
 

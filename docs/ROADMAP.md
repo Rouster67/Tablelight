@@ -94,6 +94,7 @@ model. Native tests check actual Windows regions, rotation/edge placement, retry
 contrast, reduced motion, and closing during movement. Combined regression now covers messages
 alongside icons, themes, pending approvals and guarded backup restores. The physical TV walkthrough
 remains in [the review checklist](VISUAL_IMPROVEMENTS_REVIEW.md).
+Prepared for release 1.12.0; merge and publication are still pending.
 
 ## F03 — Visible application version on the DM screen
 
@@ -190,10 +191,9 @@ the player HUD. Library search includes references. Empty sources are hidden and
 wrap inside the fixed HUD. Source text does not change costs, personal bindings, or availability.
 Links remain outside this first milestone.
 
-**Status:** Merged in [PR #10](https://github.com/Rouster67/Tablelight/pull/10); included in the
-prepared 1.11.0 release, pending publication. Reference
-retains the original source data and stays below Description at the bottom right. Current saves
-use format 9 and accept formats 1–8. Regression checks cover migration,
+**Status:** Merged in [PR #10](https://github.com/Rouster67/Tablelight/pull/10) and released in
+1.11.0. Reference retains the original source data and stays below Description at the bottom
+right. Current saves use format 10 and accept formats 1–9. Regression checks cover migration,
 active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
 saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 
@@ -237,14 +237,14 @@ Area, Casting Time, Spell Level, Components, School, Attack, Save, On Save, Dama
 Upcast / Upgrades, Name, Type, standard-slot and Concentration checkboxes, Reference, Description,
 linked resource pool, charges per use, Requirements, and Special.
 
-**Merged in PR #10; prepared for 1.11.0:** Attack, Save, and On Save are plain text. Type keeps
+**Merged in PR #10; released in 1.11.0:** Attack, Save, and On Save are plain text. Type keeps
 its dropdown; Spell Level is available on all types. Casting Time is free text alongside the
 existing explicit Turn cost selector. Resource links and charge costs remain character-specific.
 Upcast / Upgrades stays below Damage / Healing, and Reference replaces the Source label below
 Description, at the bottom right. All fields can be left blank. Shared text appears consistently
 on DM details, assignment previews, and the expanding, rotatable player HUD.
 
-Save format 9 imports formats 1–8 and preserves existing text and character state. Fixed values
+The original format 9 implementation imports formats 1–8 and preserves existing text and character state. Fixed values
 entered in the earlier preview are retained as manual text; differing personal exceptions become
 separate library variants. No automatic ability calculation remains. F10 approval, History, and
 targeted undo are tracked separately below.
@@ -268,7 +268,7 @@ are removed. The operation supports ordinary Undo, and changed assignments requi
 **Requested:** Add a section for what changes when a spell is cast with a higher-level slot, or
 when a cantrip or feature improves as the character levels up.
 
-**Merged in PR #10; prepared for 1.11.0:** One shared multiline **Upcast / upgrades** field sits
+**Merged in PR #10; released in 1.11.0:** One shared multiline **Upcast / upgrades** field sits
 directly beneath Damage / healing in the editor. It accepts 40,000 characters for spells, cantrips,
 actions, and features. DM details, assignment previews, and HUD details show populated upgrades
 after the description, with Reference last at the bottom right. Library search includes the text.
@@ -297,8 +297,8 @@ active/inactive character's bindings and HUD settings. Cancel, failed upload, la
 Undo, broken artwork, all four orientations, hidden/collapsed overlays, and click-through are
 covered by desktop checks. Snapshots reuse immutable image strings and window messages deduplicate
 PNG data. The large-library stress check covers 5,000 definitions, eight active players,
-100 inactive players, and 40 Undo snapshots. This work remains on the feature branch for review;
-the installed program and release version remain 1.11.0.
+100 inactive players, and 40 Undo snapshots. Combined automated review is complete; the feature
+is prepared for 1.12.0, with the physical TV check, merge and publication still pending.
 
 **Requested:** Let users upload a custom image for a spell, action, or feature.
 
@@ -306,10 +306,10 @@ the installed program and release version remain 1.11.0.
 the ability on both screens. Provide replace/remove controls and a sensible fallback when no image
 is supplied. Keep icons in exported backups so entries remain portable between computers.
 
-**Remaining work:** Connect the shared editor controls and thumbnails on both screens, preserve
-the existing character-only ability behavior, and verify memory/save responsiveness with a full
-image budget and many assignments. Use the agreed static formats and fitted images without a
-crop editor initially. Users supply the images; no spell art is bundled.
+**Implemented scope:** Editor controls and thumbnails work on both screens and preserve
+character-only ability behavior. Stress tests cover the image budget and many assignments.
+Images use the agreed static formats and fit without a crop editor. Users supply the images;
+no spell art is bundled.
 
 ## F10 — DM approval queue, History, and targeted undo
 
@@ -324,8 +324,7 @@ The review also fixed focus leaving History after an action or canceled dependen
 The final review and History placement fixes are committed. The installed-program walkthrough
 passed on the separate DM and player monitors, including later spending, targeted undo, queue
 limits, rotation, and restart behavior; test edits were restored to the original saved data.
-Merged in [PR #11](https://github.com/Rouster67/Tablelight/pull/11); prepared for 1.11.0,
-pending publication.
+Merged in [PR #11](https://github.com/Rouster67/Tablelight/pull/11) and released in 1.11.0.
 
 **HUD layout amendment:** The player HUD grows taller to keep the entire character column and
 Smaller/Larger controls visible. Pending requests appear in a separate column to the right of
@@ -373,6 +372,9 @@ the choices. Theme edits preserve later HUD spending, pending requests, shared a
 colors and geometry. Validation includes all 14 options, eight same-class players, hidden/collapsed
 and click-through overlays, and the existing rendered contrast checks; all 175 unit tests and
 26 desktop scenarios pass.
+
+Combined automated review is complete and the themes are prepared for 1.12.0. Physical TV
+viewing-distance review, merge and publication remain pending.
 
 **Requested (September 13, 2026):** Add a Theme dropdown to the character creator that changes
 that character's overlay appearance through recoloring. Include one theme per class, including

@@ -72,7 +72,9 @@ test app. Each run has a fresh installer identity. The test removes only that ru
 installation-path value and verifies that updating still replaces the app in its custom folder,
 including a path with spaces. Its saved party contains active and saved players, assigned and
 unused abilities and conditions, portraits, resources, slots, concentration, notes, and settings.
-The party, previous save, and update preference must remain byte-for-byte identical across the
+It also includes shared and character-only ability images, independent active/inactive themes,
+and a session message sent before updating. The message must clear on relaunch and remain absent
+from both save files. The party, previous save, and update preference must remain byte-for-byte identical across the
 installer and test uninstall. Test feed and save-path configuration is embedded only in these
 specially named test packages; ordinary production packages cannot select a custom feed through
 environment variables or renderer messages. Review test results and installer logs under the

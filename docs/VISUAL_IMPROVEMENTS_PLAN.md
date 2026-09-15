@@ -7,7 +7,8 @@ implemented; the physical TV walkthrough remains before release. See the
 Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
 `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
 in use, and class themes include selection and persistence. Player-message delivery, the composer,
-mail indicators, and reading controls are implemented. Release preparation remains a separate step.
+mail indicators, and reading controls are implemented. Release 1.12.0 is now prepared for the
+user's commit, push, merge and publication; the physical TV check remains unconfirmed.
 
 ## Branch setup completed
 
@@ -28,6 +29,7 @@ mail indicators, and reading controls are implemented. Release preparation remai
    (Add character theme selection and persistence).
    Milestone 5 was committed as `9b3340b` (Implement session-only player messaging).
    Milestone 6 was committed as `49aa3f3` (Add player messages UI, overlay, and service).
+   Milestone 7's automated review was committed as `8c34da4` (Add combined native visual regression).
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
 The normal source folder is now the working location; the previous separate-folder instructions
@@ -57,10 +59,10 @@ After the relevant checks pass:
 4. Open `D:\Programs\Tablelight\Tablelight.exe` through the normal shortcut and verify the new
    controls. Report the installation update alongside the milestone's completion checks.
 
-The displayed release version remains the branch's baseline until release preparation. Verify
-the actual installed files and features to identify current development work; the version number
-alone does not identify a milestone. Keep a local installation record containing the branch,
-commit, uncommitted status, build time, and backup location.
+The displayed version remained 1.11.0 through the feature milestones and moves to 1.12.0 during
+release preparation. Verify the actual installed files and features to identify current work;
+the version number alone does not identify a build. Keep a local installation record containing
+the branch, commit, uncommitted status, build time, and backup location.
 
 ## What the current project already provides
 

@@ -20,6 +20,10 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
     controller.showInactive();
     if (app.getVersion() === '0.0.1') {
       await run('commit(()=>{selected().hp=22;});await saveQueue;');
+      await run(
+        `await messageClient.refresh();await messageClient.command('send',selected().id,{body:'SYNTHETIC_UPDATE_SESSION_MESSAGE'});`
+      );
+      assert.equal(await run('return (await api.messages()).messages.length;'), 1);
       await updates.check(true);
       assert.equal(updates.availableVersion, '0.0.2');
       await wait(() => run("return Boolean(document.getElementById('update-dialog'));"));
@@ -31,6 +35,13 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
             fs.copyFileSync(
               path.join(store.directory, name),
               path.join(root, 'before-install-data', name)
+            );
+          for (const name of ['party.json', 'party.previous.json'])
+            assert.equal(
+              fs
+                .readFileSync(path.join(store.directory, name), 'utf8')
+                .includes('SYNTHETIC_UPDATE_SESSION_MESSAGE'),
+              false
             );
         }
         if (value.message && !['checking', 'current'].includes(value.phase))
@@ -59,11 +70,20 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
       assert.equal(saved.roster[0].name, 'Synthetic saved player');
       assert.equal(saved.library.length, 4);
       assert.equal(saved.conditionLibrary.length, 3);
-      assert.equal(saved.characters[0].items.length, 2);
+      assert.equal(saved.characters[0].items.length, 3);
       assert.equal(saved.roster[0].items.length, 1);
       assert.equal(saved.characters[0].conditionIds.length, 1);
       assert.equal(saved.roster[0].conditionIds.length, 1);
       assert.ok(saved.characters[0].avatar.startsWith('data:image/png;base64,'));
+      assert.equal(saved.version, 10);
+      assert.equal(saved.characters[0].theme, 'artificer');
+      assert.equal(saved.roster[0].theme, 'wizard');
+      assert.ok(saved.library[0].icon.startsWith('data:image/png;base64,'));
+      assert.ok(saved.library[2].icon.startsWith('data:image/png;base64,'));
+      assert.ok(saved.library[3].icon.startsWith('data:image/png;base64,'));
+      assert.ok(saved.characters[0].items[2].icon.startsWith('data:image/png;base64,'));
+      assert.equal(saved.characters[0].items[0].icon, undefined);
+      assert.deepEqual(await run('return (await api.messages()).messages;'), []);
       assert.equal(updates.preferences.enabled, false);
       assert.equal(await run('return overlayStatus.visible;'), false);
       fs.writeFileSync(
@@ -78,6 +98,7 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
               'Active and saved players, assigned and unused abilities and conditions, portraits, resources, slots, concentration, notes, and settings match the expected saved party.',
               'The party, previous save, and update preference are byte-for-byte identical across installation.',
               'The automatic-check preference survives; the new title shows the installed version and the TV overlay starts hidden.',
+              'Format 10 shared/local artwork and active/inactive themes survive the actual installer update; the previous session message is absent from saves and clears on relaunch.',
             ],
           },
           null,

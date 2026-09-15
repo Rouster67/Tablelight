@@ -1,12 +1,12 @@
 # Ability icons, class themes, and player messages — final review
 
-Reviewed September 15, 2026 on `codex/ability-icons-class-themes-player-messages`, following
-milestone 6 commit `49aa3f3`. This is the seventh milestone from the
-[implementation plan](VISUAL_IMPROVEMENTS_PLAN.md).
+Reviewed September 15, 2026 on `codex/ability-icons-class-themes-player-messages`. The automated
+review was committed as `8c34da4`; release preparation follows that commit. This is the seventh
+milestone from the [implementation plan](VISUAL_IMPROVEMENTS_PLAN.md).
 
 **Status:** Feature implementation and combined automated coverage are complete. The actual
-laptop/TV walkthrough below remains open. Release preparation, version selection, merge and
-publication are separate steps. The user commits and pushes each milestone.
+laptop/TV walkthrough below remains open. Version 1.12.0 and its release documents are prepared;
+merge and publication remain with the user. The user commits and pushes each milestone.
 
 ## Automated review
 
@@ -17,17 +17,17 @@ whitespace checks. No application behavior changes were needed during this combi
 The combined native scenario uses entirely synthetic artwork, messages, names and saved data.
 It never loads the normal party. Existing focused scenarios provide the deeper checks listed below.
 
-| Area                    | Completion checks                                                                                                                                                                                                                                                                      |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Image handling          | PNG, JPEG and static WebP; source byte/dimension limits; no-crop resizing; malformed, animated and oversized input; transparent art; missing/broken-image fallback; failed and cancelled uploads leave prior art intact.                                                               |
-| Shared content          | Real editor replacement reaches active and inactive assignments; shared definitions export once; local artwork, independent costs and unused entries remain intact. Both ability and condition libraries survive export/import.                                                        |
-| Save compatibility      | Formats 1–9 migrate into format 10. Prior manual fields, local abilities, notes, resources, unknown theme IDs and roster state survive. Corrupt images cannot replace valid saves; previous-save recovery and restart tests preserve artwork/themes.                                   |
-| Theme readability       | Default plus all 13 class palettes, including Artificer; rendered text/control contrast at least 4.5:1 and control borders at least 3:1; light/dark/patterned maps, hover/focus and resource-color backings. Default keeps its existing appearance.                                    |
-| Live edits              | Simultaneous player HP changes and pending resource reservations survive an older theme editor being saved. Shared definition changes keep the existing approval warning; cancelling retains art, pending requests and messages.                                                       |
-| Message ownership       | One retained message per active character ID; duplicate names, independent drafts, replacement confirmation, delayed replies/retries, removal/rejoin, hidden/reloaded overlays, wrong-window requests and restart. No body in ordinary party/preview payloads, saves, backups or Undo. |
-| Reading and interaction | Notification-only badges; player open/close; DM force open/page/scroll/close/dismiss in click-through; retained read status; plain-text long/Unicode content; reduced motion; eight cards; real Windows hit regions, rotated gaps and drag cleanup.                                    |
-| Combined layout         | Empty, one-, two- and eight-player parties; shared/local art and themes with open messages; long manual details and ten resources; mixed hidden/collapsed/expanded HUDs; 40%, 100% and 250% scale; 0°, 90°, 180°, 270° and 35° rotation.                                               |
-| Restore with messages   | A cancelled guarded restore retains current messages and settings. A successful restore restores complete saved content and clears message bodies, indicators, drafts and receipts. Current, previous and exported saves exclude message text.                                         |
+| Area                    | Completion checks                                                                                                                                                                                                                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image handling          | PNG, JPEG and static WebP; source byte/dimension limits; no-crop resizing; malformed, animated and oversized input; transparent art; missing/broken-image fallback; failed and cancelled uploads leave prior art intact.                                                                              |
+| Shared content          | Real editor replacement reaches active and inactive assignments; shared definitions export once; local artwork, independent costs and unused entries remain intact. Both ability and condition libraries survive export/import.                                                                       |
+| Save compatibility      | Formats 1–9 migrate into format 10. Prior manual fields, local abilities, notes, resources, unknown theme IDs and roster state survive. Corrupt images cannot replace valid saves; previous-save recovery and restart tests preserve artwork/themes.                                                  |
+| Theme readability       | All 13 class palettes: rendered text/control contrast at least 4.5:1 and control borders at least 3:1 over light/dark/patterned maps, with hover/focus and resource backings. Default retains its original appearance and contrast limitations; message cards pass contrast checks in all 14 choices. |
+| Live edits              | Simultaneous player HP changes and pending resource reservations survive an older theme editor being saved. Shared definition changes keep the existing approval warning; cancelling retains art, pending requests and messages.                                                                      |
+| Message ownership       | One retained message per active character ID; duplicate names, independent drafts, replacement confirmation, delayed replies/retries, removal/rejoin, hidden/reloaded overlays, wrong-window requests and restart. No body in ordinary party/preview payloads, saves, backups or Undo.                |
+| Reading and interaction | Notification-only badges; player open/close; DM force open/page/scroll/close/dismiss in click-through; retained read status; plain-text long/Unicode content; reduced motion; eight cards; real Windows hit regions, rotated gaps and drag cleanup.                                                   |
+| Combined layout         | Empty, one-, two- and eight-player parties; shared/local art and themes with open messages; long manual details and ten resources; mixed hidden/collapsed/expanded HUDs; 40%, 100% and 250% scale; 0°, 90°, 180°, 270° and 35° rotation.                                                              |
+| Restore with messages   | A cancelled guarded restore retains current messages and settings. A successful restore restores complete saved content and clears message bodies, indicators, drafts and receipts. Current, previous and exported saves exclude message text.                                                        |
 
 The added scenario is `tests/visual-improvements-native.js`. Run it alone with
 `node scripts/test-native.cjs visual-improvements`; it also runs in the complete native suite.
@@ -104,7 +104,34 @@ made before updating if returning to 1.11.0 may be necessary.
 The changelog, architecture, roadmap and implementation plan describe the implemented features;
 outdated references to the message interface being a future milestone have been removed.
 
-After the physical walkthrough passes, follow [the release procedure](RELEASING.md): choose the
-release version, update versioned documentation and notes, complete checks against the merged
-source, build the matching installer assets, then publish deliberately. Do not reuse the local
-development installer labeled 1.11.0 as a new public release.
+## Release 1.12.0 preparation
+
+The package and lockfile now use 1.12.0. The README and bundled user guide describe format 10,
+the changelog has a dated release section, and [the release notes](releases/1.12.0.md) cover all
+three features, image limits, message lifetime and the shared-TV visibility boundary.
+The installer regression now includes shared/local artwork, independent active/inactive themes,
+and a pending session message that must disappear on relaunch while both save files remain intact.
+
+The expanded installer/update/restart test passed all five checks with its isolated 0.0.1/0.0.2
+packages. Its scripted uninstall checks also passed for missing/stale installation records,
+blocked deletion flags, linked directories, held-open files and missing caches. These are tests
+of the current updater and packaging with synthetic state; they do not replace testing a
+download from the published 1.12.0 release after publication.
+
+After the physical walkthrough passes:
+
+1. Commit and push these release-preparation changes, then merge into `main` once checks pass.
+2. Use the **Tablelight-Windows** artifact from the successful **Check and build** run for that
+   merged `main` commit, or rebuild exactly that commit. This avoids publishing an older local
+   build if the merge changed anything.
+3. Create release **v1.12.0** targeting the reviewed merged commit. Copy the prepared release notes
+   and attach these three files from the same build:
+   - `Tablelight-Setup-1.12.0-x64.exe`
+   - `Tablelight-Setup-1.12.0-x64.exe.blockmap`
+   - `latest.yml`
+4. Publish as the latest stable release only after all three assets are attached. Follow
+   [the release procedure](RELEASING.md) for metadata verification and the post-publication check.
+
+Do not upload the earlier 1.11.0 development installer, the isolated 0.0.1/0.0.2 installer-test
+packages, or files from different build runs. This preparation does not create a tag, merge,
+push changes or publish a release.
