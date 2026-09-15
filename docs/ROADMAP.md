@@ -21,20 +21,20 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                          | Status              |
-| --- | --------------------------------------------- | ------------------- |
-| F01 | Passive abilities section                     | Considering         |
-| F02 | Messages sent to individual player overlays   | Considering         |
-| F03 | Visible application version on the DM screen  | Released            |
-| F04 | Launch update prompt and Windows installer    | Released            |
-| F05 | Source reference on abilities                 | Implemented locally |
-| F06 | Concentration reminder when applying damage   | Released            |
-| F07 | Manual ability fields (revised scope)         | Implemented locally |
-| F08 | Upcast and level-based upgrade text           | Implemented locally |
-| F09 | Uploaded icons for abilities                  | Planned candidate   |
-| F10 | DM approval queue, History, and targeted undo | Implemented locally |
-| F12 | Class overlay color themes                    | Planned candidate   |
-| F13 | Bundled illustrated PDF user guide            | Planned candidate   |
+| ID  | Idea                                          | Status                  |
+| --- | --------------------------------------------- | ----------------------- |
+| F01 | Passive abilities section                     | Considering             |
+| F02 | Messages sent to individual player overlays   | Considering             |
+| F03 | Visible application version on the DM screen  | Released                |
+| F04 | Launch update prompt and Windows installer    | Released                |
+| F05 | Source reference on abilities                 | Merged; release pending |
+| F06 | Concentration reminder when applying damage   | Released                |
+| F07 | Manual ability fields (revised scope)         | Merged; release pending |
+| F08 | Upcast and level-based upgrade text           | Merged; release pending |
+| F09 | Uploaded icons for abilities                  | Planned candidate       |
+| F10 | DM approval queue, History, and targeted undo | Merged; release pending |
+| F12 | Class overlay color themes                    | Planned candidate       |
+| F13 | Bundled illustrated PDF user guide            | Planned candidate       |
 
 ## F01 — Passive abilities section
 
@@ -175,7 +175,8 @@ the player HUD. Library search includes references. Empty sources are hidden and
 wrap inside the fixed HUD. Source text does not change costs, personal bindings, or availability.
 Links remain outside this first milestone.
 
-**Status:** Implemented locally on `codex/ability-details-and-review`; release pending. Reference
+**Status:** Merged in [PR #10](https://github.com/Rouster67/Tablelight/pull/10); included in the
+prepared 1.11.0 release, pending publication. Reference
 retains the original source data and stays below Description at the bottom right. Current saves
 use format 9 and accept formats 1–8. Regression checks cover migration,
 active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
@@ -221,7 +222,7 @@ Area, Casting Time, Spell Level, Components, School, Attack, Save, On Save, Dama
 Upcast / Upgrades, Name, Type, standard-slot and Concentration checkboxes, Reference, Description,
 linked resource pool, charges per use, Requirements, and Special.
 
-**Implemented locally, awaiting review:** Attack, Save, and On Save are plain text. Type keeps
+**Merged in PR #10; prepared for 1.11.0:** Attack, Save, and On Save are plain text. Type keeps
 its dropdown; Spell Level is available on all types. Casting Time is free text alongside the
 existing explicit Turn cost selector. Resource links and charge costs remain character-specific.
 Upcast / Upgrades stays below Damage / Healing, and Reference replaces the Source label below
@@ -239,7 +240,7 @@ on that character without adding it to the library. This supports special-resour
 slot-based spells. Copies retain every manual field and cost setting; local copies survive saves,
 backups, inactive-party moves, and Undo. Local names have a person icon. The character Add dialog
 also offers smaller buttons to create a blank local ability or copy directly from the library
-without a shared link. Hover text explains each choice. Implemented locally for review before starting F10.
+without a shared link. Hover text explains each choice. Merged in PR #10 with the manual fields.
 
 **Approved library deletion follow-up:** Assigned abilities show a warning with all affected
 characters and choices to edit, remove every assignment and delete, or keep selected local copies
@@ -252,12 +253,12 @@ are removed. The operation supports ordinary Undo, and changed assignments requi
 **Requested:** Add a section for what changes when a spell is cast with a higher-level slot, or
 when a cantrip or feature improves as the character levels up.
 
-**Implemented locally, awaiting review:** One shared multiline **Upcast / upgrades** field sits
+**Merged in PR #10; prepared for 1.11.0:** One shared multiline **Upcast / upgrades** field sits
 directly beneath Damage / healing in the editor. It accepts 40,000 characters for spells, cantrips,
 actions, and features. DM details, assignment previews, and HUD details show populated upgrades
 after the description, with Reference last at the bottom right. Library search includes the text.
 Long sections page with repeated headings inside the fixed HUD frame; shorter edits clamp only
-invalid page selections. Current development saves retain upgrades in format 9 and import formats 1–8.
+invalid page selections. Version 1.11.0 saves retain upgrades in format 9 and import formats 1–8.
 
 This milestone uses user-authored text only. Per-level rows, matching-text highlights, automatic
 damage calculations, and applied effects remain outside this feature.
@@ -284,7 +285,11 @@ current-definition Reconsider, and targeted undo are committed as `e38b6b1`. Ref
 preserve unrelated later work, block unsafe counter/concentration changes, and coordinate with
 ordinary Undo. All 155 unit tests and 21 desktop scenarios pass after the final combined review.
 The review also fixed focus leaving History after an action or canceled dependency warning.
-The final review fix is uncommitted; the actual-table walkthrough and release remain pending.
+The final review and History placement fixes are committed. The installed-program walkthrough
+passed on the separate DM and player monitors, including later spending, targeted undo, queue
+limits, rotation, and restart behavior; test edits were restored to the original saved data.
+Merged in [PR #11](https://github.com/Rouster67/Tablelight/pull/11); prepared for 1.11.0,
+pending publication.
 
 **HUD layout amendment:** The player HUD grows taller to keep the entire character column and
 Smaller/Larger controls visible. Pending requests appear in a separate column to the right of
@@ -301,7 +306,7 @@ still applies. Future request types can share the queue without using the abilit
 Incoming requests never replace an open popup or interrupt a minimized review. Resolving a request
 does not automatically open another; the DM can review and approve in any order.
 
-A separate History icon at bottom left retains five resolved requests. Denied/canceled requests
+A separate History icon just to the right of the sidebar's bottom edge retains five resolved requests. Denied/canceled requests
 can be reconsidered using current ability data; approved uses support targeted undo. Undone uses
 cannot be reconsidered. Pending requests, History, and reservations clear on app exit, while
 approved spending remains saved.

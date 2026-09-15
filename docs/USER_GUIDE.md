@@ -1,4 +1,4 @@
-# Tablelight 1.10.2
+# Tablelight 1.11.0
 
 A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many players as you need and choose up to eight for the active party. All spells, actions, and features are entered by you; no rulebook content is bundled.
 
@@ -83,7 +83,7 @@ Each Ability library row has **Delete** beside **Edit**. For an assigned ability
 
 Existing local copies and spent resources remain unchanged. If assignments change while the warning is open, review the refreshed list before confirming. **Undo** restores a confirmed deletion and its assignments together during the current session.
 
-**Duplicate abilities (unreleased):** Click **Duplicate** on an Ability library row to make a
+**Duplicate abilities:** Click **Duplicate** on an Ability library row to make a
 separate library version. It gets a name such as **Guiding Bolt (1)**, then **Guiding Bolt (2)**
 if the first name is taken. The copy opens for editing and is not assigned to anyone automatically.
 
@@ -118,14 +118,14 @@ Every ability in the DM’s character lists has **Remove from character** alongs
 
 Existing abilities from older saves move into the library automatically. Exact matches share an entry; different homebrew versions remain separate. Positions, rotations, resources, and selected descriptions are preserved.
 
-**Source references (unreleased):** When creating or editing an ability, optionally enter a
+**References:** When creating or editing an ability, enter a
 reference such as **PHB pg. 284** or your homebrew notes in **Reference**. It is shared with every
 character using that entry and appears in DM details, the Add to character preview, and player
 HUD details. The Reference field is below the description, and references appear at the bottom right
 of the opened ability's details. Library search also matches sources. Leave it blank to hide it. References are
 plain text, up to 300 characters, and do not change any costs or character values.
 
-**Upcast / upgrades (unreleased):** Write improvements from higher spell slots or character levels
+**Upcast / upgrades:** Write improvements from higher spell slots or character levels
 in the multiline box directly below **Damage / healing**. This shared field works for spells,
 cantrips, actions, and features and accepts up to 40,000 characters. Leave it blank to hide the
 section. In an opened ability, upgrades follow the main description and Reference stays last at the
@@ -135,7 +135,7 @@ out-of-range page to the last available page without changing anyone's HUD size 
 Library search includes upgrade text. Choose the spell slot to spend as usual and apply any
 damage, healing, or other improvements yourself; the text does not calculate or apply effects.
 
-**Manual ability fields (unreleased):** Every ability type has Name, Type, Trigger, Duration,
+**Manual ability fields:** Every ability type has Name, Type, Trigger, Duration,
 Range, Area, Casting Time, Spell Level, Components, School, Attack, Save, On Save, Damage / Healing,
 Upcast / Upgrades, Requirements, Special, Description, and Reference. Enter the text you want to
 read at the table. For example, Save can say “DEX 15” and On Save can say “Half damage” or
@@ -151,14 +151,14 @@ All fields may be left blank. A blank Name saves as Unnamed ability. Linked reso
 Charges spent per use belong to each character; choose them when adding or editing that
 character’s ability. With no character selected, these controls explain where to link a pool.
 Shared edits preserve each character’s remaining resources and other independent settings.
-For different manual text, create a separate library variant.
+For different manual text, create a separate library variant or a local-only ability.
 
 Requirements and Special accept long text and appear as labeled sections in DM and HUD details.
 The HUD pages long descriptions, upgrades, requirements, and special notes within its ability
 column. Reference stays last at the bottom right. Empty detail fields are hidden, and library
 search includes all these text fields. Existing ability text remains intact.
 
-## DM approval queue (unreleased)
+## DM approval queue
 
 Using an ability from a player's overlay now requests DM approval. Choose the spell-slot level
 first if needed. The HUD reserves the action, bonus action, reaction, slots, and linked charges
@@ -186,7 +186,7 @@ that warning too; concentration switches only on approval.
 
 DM-console ability uses remain immediate. Damage, healing, and ability effects remain manual.
 Requests survive reloading a window but clear when Tablelight closes. Approved costs stay saved.
-Open the **History** icon at the bottom left of the DM screen to see the five most recent resolved
+Open the **History** icon at the bottom of the DM screen, just to the right of the sidebar, to see the five most recent resolved
 requests. Each entry shows its outcome; open it to read the ability details recorded with that
 request and the costs actually spent. Older entries drop off without changing any counters.
 
@@ -321,7 +321,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Ability-details development builds write save format 9 and import formats 1–8. All manual fields, existing players, libraries, resources, and HUD choices are retained. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Older builds cannot read format 9; keep a pre-update exported backup if you need to return to an older app.
+Tablelight 1.11.0 writes save format 9 and imports formats 1–8. All manual fields, existing players, libraries, resources, and HUD choices are retained. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Older app versions cannot read format 9; export a backup before updating if you may need to return to an older app. Pending approvals and History are session-only and are not included in saves or exported backups.
 
 ## Keyboard shortcuts
 
