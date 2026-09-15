@@ -37,6 +37,42 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     }
     throw error;
   };
+  const checkCharacterLayout = async () => {
+    const layout = await run(`
+      const rect = selector => {
+        const r = document.querySelector(selector).getBoundingClientRect();
+        return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};
+      };
+      const tiles = [...document.querySelectorAll('.combat-tile')];
+      return {
+        turn:rect('.character-turn-tools'), hero:rect('.character-hero'),
+        tools:rect('.hero-tools'), combat:rect('.combat-strip'),
+        scores:rect('.character-scores'), display:rect('.current-display'),
+        abilities:rect('.character-abilities'),
+        slots:rect('.character-resources > section:first-child'),
+        resources:rect('.character-resources > section:last-child'),
+        heading:document.querySelector('.character-scores h3').textContent,
+        counters:tiles.length,
+        controlsFit:tiles.every(tile => [...tile.querySelectorAll('button')].every(button => {
+          const r=button.getBoundingClientRect(), p=tile.getBoundingClientRect();
+          return r.left>=p.left && r.right<=p.right+1 && r.top>=p.top && r.bottom<=p.bottom+1;
+        })),
+        noHorizontalScroll:document.documentElement.scrollWidth<=innerWidth+1
+      };
+    `);
+    assert.equal(layout.heading, 'Abilities');
+    assert.equal(layout.counters, 5);
+    assert.ok(layout.turn.bottom <= layout.hero.top, 'Turn/rest controls sit above the portrait');
+    assert.ok(layout.display.top <= layout.hero.top, 'The display controls start at the top');
+    assert.ok(layout.display.left >= layout.tools.right, 'Character controls stay on the left');
+    assert.ok(layout.scores.top >= layout.combat.bottom, 'Ability scores follow the counters');
+    assert.ok(layout.abilities.top >= layout.scores.bottom, 'Ability tabs follow ability scores');
+    assert.ok(layout.slots.left >= layout.abilities.right, 'Spell slots stay beside ability tabs');
+    assert.ok(Math.abs(layout.slots.top - layout.abilities.top) <= 1);
+    assert.ok(layout.resources.top >= layout.slots.bottom, 'Custom resources follow spell slots');
+    assert.ok(layout.controlsFit, 'Counter controls stay inside their tiles');
+    assert.ok(layout.noHorizontalScroll, 'The character workspace fits the window');
+  };
   let overlay;
   try {
     await wait(() =>
@@ -239,6 +275,8 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       (await overlay.webContents.capturePage()).toPNG()
     );
     await click('.current-display [data-panel="bonus"]');
+    await run('window.scrollTo(0,0);');
+    await checkCharacterLayout();
     await shot('05-currently-displayed');
     controller.setBounds({ width: 1024, height: 768 });
     await run('render();');
@@ -251,6 +289,15 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       true
     );
     await shot('06-small-window');
+    await checkCharacterLayout();
+    controller.setBounds({ width: 940, height: 768 });
+    await run('render();window.scrollTo(0,0);');
+    await new Promise((r) => setTimeout(r, 250));
+    await checkCharacterLayout();
+    await shot('07-minimum-window');
+    results.push(
+      'At wide, laptop, and minimum widths, turn controls lead the character, the display controls sit upper right, Abilities follows all five counters, and spell slots/resources sit beside the ability tabs without clipping.'
+    );
     results.push('New controls fit the small laptop window and preserve overlay rotation.');
     const restored = store.load().state;
     assert.deepEqual(

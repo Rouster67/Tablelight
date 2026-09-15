@@ -1,4 +1,4 @@
-# Tablelight 1.12.0
+# Tablelight 1.12.1
 
 A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many players as you need and choose up to eight for the active party. All spells, actions, and features are entered by you; no rulebook content is bundled.
 
@@ -319,6 +319,16 @@ Change training in **Edit character**, directly in the DM’s **Sheet** tab, or 
 The party list on the left is the turn order. Drag players to new positions or use their **↑ / ↓** arrows. Choose **Initiative order** to enter each roll, then **Sort highest first**, or arrange the order with the dialog’s arrows. Click **Save order** when ready.
 
 **Next turn** advances through this visible order and wraps back to the top after the last character. Reordering keeps the active player’s turn, resources, and the TV’s separate positions and rotations. Use **Start turn** if you want to begin with a different player. Adding a party member puts them at the bottom; editing their name or initiative value does not automatically reorder the party.
+
+## DM character screen
+
+**Start turn**, **Next turn**, **Short rest**, and **Long rest** sit above the selected player's
+portrait and name. Character controls are on the left, with **Currently displayed** at the upper
+right. Hit points and the four turn counters fit beside the display panel.
+
+**Abilities** shows ability scores, modifiers, armor class, proficiency, and initiative directly
+below the counters. The ability and feature tabs are underneath it. Spell slots sit to their
+right, with custom resources stacked below the slots.
 
 ## Currently displayed
 

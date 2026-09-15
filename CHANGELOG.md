@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.1 — 2026-09-15
+
+- Reorganize the DM character workspace: put turn/rest controls above the portrait, character controls on the left, and Currently displayed at the upper right. Arrange the five combat counters to fit beside it, rename At a glance to Abilities beneath the counters, and put ability tabs below with spell slots and custom resources stacked on the right. Keep the layout usable at wide, laptop, and minimum window sizes.
+
 ## 1.12.0 — 2026-09-15
 
 - Add a combined desktop regression for icons, themes, player messages, pending approvals, and backup restores, using isolated one-, two-, and eight-player parties. Correct the guide to describe save format 10 and consolidate the release review checklist.
