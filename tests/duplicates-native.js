@@ -40,10 +40,12 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
   };
   let overlay;
   const tv = (code) => overlay.webContents.executeJavaScript(`(async()=>{${code}})()`);
-  const hudUse = (id) =>
-    tv(
+  const hudUse = async (id) => {
+    await tv(
       `const el=[...document.querySelectorAll('[data-hud-command]')].find(el=>{const command=JSON.parse(el.dataset.hudCommand);return command.type==='use'&&command.itemId===${JSON.stringify(id)};});if(!el||el.disabled)throw new Error('Missing use control');el.click();`
     );
+    await require('./approve-pending')(controller);
+  };
   controller.webContents.on('console-message', (_e, d) => {
     if (d?.level === 'error') errors.push(d.message);
   });
@@ -146,7 +148,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await tv(
-        `return [...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880&&el.offsetHeight===650) && !!document.querySelector('[data-hud-id="${a}"] h3 .ability-local-icon');`
+        `return [...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880&&el.offsetHeight>=650 && el.querySelector('.hud-summary').scrollHeight<=el.querySelector('.hud-summary').clientHeight+1) && !!document.querySelector('[data-hud-id="${a}"] h3 .ability-local-icon');`
       )
     );
     results.push(
@@ -178,7 +180,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await run(`commit(()=>TL.rest(state.characters[0],'long'));await saveQueue;`);
     await wait(() => getState().characters[0].resources[0].current === 2);
     results.push(
-      'Two HUD uses spend the special pool without slots; the original spends a slot, later editor saves preserve spending, and long rest restores the pool.'
+      'Two approved HUD uses spend the special pool without slots; the original spends a slot, later editor saves preserve spending, and long rest restores the pool.'
     );
     await click('[data-action="view-library"]');
     await click(`[data-action="edit-library-entry"][data-id="${source}"]`);

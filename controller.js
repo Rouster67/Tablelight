@@ -19,18 +19,20 @@ let previewGesture = null;
 let api = window.tablelight;
 if (!api) {
   // The ordinary browser is a development preview. Native overlay controls require the desktop app.
-  let previewState = TL.empty();
+  const previewService = new TLApprovalService.Service(TL.empty(), {
+    onChange: (value, change) => acceptApprovalState({ ...value, change }),
+  });
   api = {
     load: async () => ({
-      state: previewState,
+      ...previewService.snapshot(),
       native: false,
       status: { visible: false },
       warning: '',
     }),
-    save: async (raw) => {
-      previewState = TL.clone(raw);
-      return { ok: true };
-    },
+    save: (raw) => previewService.change({ edited: raw }),
+    changeParty: (value) => previewService.change(value),
+    approvalCommand: (value) => previewService.command(value),
+    undo: () => previewService.undo(),
     displays: async () => [
       { id: 'preview', name: 'Desktop preview', primary: true, width: 1920, height: 1080 },
     ],
@@ -72,54 +74,81 @@ function toast(message, error = false) {
 }
 function persist() {
   const snapshot = TL.clone(state);
-  saveQueue = saveQueue
-    .catch(() => {})
-    .then(() => api.save(snapshot))
-    .then(() => {
-      if (saveError) {
-        saveError = '';
-        render();
-      }
-      setSaveText('Saved on this laptop');
-    })
-    .catch((error) => {
-      saveError = 'Changes could not be saved. Keep the app open and retry. ' + error.message;
-      setSaveText('Save failed');
-      toast(saveError, true);
-      render();
-    });
-  setSaveText('Saving…');
-  return saveQueue;
+  return partyOperation(() =>
+    finishPartyChange(apiFailedChange ? api.changeParty(apiFailedChange) : api.save(snapshot))
+  );
 }
 function setSaveText(text) {
   const el = document.getElementById('save-status');
   if (el) el.textContent = text;
 }
-function commit(change, message, rerender = true) {
-  const before = TL.clone(state);
-  try {
-    change();
-    state = TL.normalize(state);
-    history.push(before);
-    if (history.length > 40) history.shift();
-    persist();
-    if (rerender) render();
-    if (message) toast(message);
-    return true;
-  } catch (error) {
-    state = before;
-    toast(error.message, true);
-    return false;
-  }
+let apiFailedChange = null;
+function partyOperation(work) {
+  const job = saveQueue
+    .catch(() => {})
+    .then(async () => {
+      try {
+        setSaveText('Saving…');
+        const result = await work();
+        saveError = '';
+        apiFailedChange = null;
+        setSaveText('Saved on this laptop');
+        return result;
+      } catch (error) {
+        saveError = error.message;
+        formError(error.message);
+        toast(error.message, true);
+        setSaveText('Change not applied');
+        return false;
+      }
+    });
+  saveQueue = job;
+  return job;
+}
+function commit(change, message, rerender = true, events = [], restore = false) {
+  return partyOperation(async () => {
+    const before = TL.clone(state),
+      previousSelection = selectedId,
+      previousView = view;
+    let edited, declaredEvents;
+    try {
+      change();
+      edited = TL.normalize(state);
+      declaredEvents = typeof events === 'function' ? events(before, edited) : events;
+    } finally {
+      state = before;
+    }
+    const input = {
+      base: before,
+      edited,
+      events: declaredEvents,
+      restore,
+      ...approvalCommand('change'),
+    };
+    let success = false;
+    try {
+      success = await finishPartyChange(await api.changeParty(input));
+    } catch (error) {
+      apiFailedChange = input;
+      throw error;
+    } finally {
+      if (!success) {
+        selectedId = previousSelection;
+        view = previousView;
+      }
+      if (rerender) render();
+    }
+    if (success && message) toast(message);
+    return success;
+  });
 }
 function undo() {
-  if (!history.length) return;
-  state = history.pop();
-  if (!state.characters.some((c) => c.id === selectedId))
-    selectedId = state.characters[0]?.id || '';
-  persist();
-  render();
-  toast('Last change undone');
+  return partyOperation(async () => {
+    if (!history.length) return false;
+    const success = await finishPartyChange(await api.undo());
+    if (success) toast('Last change undone');
+    return success;
+  });
 }
 function expand(c, panel = '', detailId = '') {
   if (state.settings.soloExpand) state.characters.forEach((x) => (x.hud.expanded = false));
@@ -144,6 +173,7 @@ function render() {
   refreshConcentrationPicker();
   refreshDamageReminder();
   refreshAbilityDetails();
+  renderApprovalQueue();
   maybeShowUpdateOffer();
 }
 function renderWelcome() {
@@ -238,15 +268,25 @@ function paintPreview() {
   p.style.width = width + 'px';
   p.style.height = (width * d.height) / d.width + 'px';
   p.style.margin = '0 auto';
+  const previewState = {
+    ...state,
+    characters: state.characters.map((c) => ({
+      ...c,
+      pendingRequests: approvalState.pending
+        .filter((r) => r.kind === 'ability' && r.characterId === c.id)
+        .map((r) => ({ id: r.id, name: r.ability.name, slotLevel: r.slotLevel, urgent: r.urgent })),
+    })),
+  };
   HUD.mount(
     stage,
-    state,
+    previewState,
     d.width,
     d.height,
     p.clientWidth / d.width,
     selectedId,
     state.settings.overlayInteractive ? 'overlay' : 'preview'
   );
+  stage.querySelectorAll('[data-cancel-request]').forEach((button) => (button.disabled = true));
   if (!stage.hudGesture) {
     stage.hudGesture = HUDControls.gestures(stage, {
       preview: true,
@@ -284,9 +324,11 @@ window.addEventListener('resize', () => {
   if (view === 'display') paintPreview();
 });
 function renderHelp() {
-  return `<div class="page-heading"><div class="eyebrow">Ready for game night</div><h1 class="space-top">A little setup. A lot of adventure.</h1><p>Your map stays in D&D Beyond. Tablelight supplies the character HUD.</p></div><div class="work-grid"><section class="card"><div class="card-body"><h2>From laptop to battle mat</h2><div class="note"><b>Free software · GPL-3.0-or-later</b><p class="hint">Copyright (C) 2026 Tablelight contributors. You may use, modify, and share Tablelight under the GPL. No warranty is provided.</p>${button('Read license', 'show-license', 'small space-top')}</div><div class="step-list"><div class="step"><div><b>Extend your display</b><p>Connect the TV over HDMI. Press Windows + P and choose Extend. Keep the DM browser and Tablelight on your laptop; move the player browser onto the TV.</p></div></div><div class="step"><div><b>Save players and choose your party</b><p>Open Players & party to create, search, edit, or delete saved players. Add up to eight to the active party. Remove from party keeps a player saved; Delete character removes them. Only active members appear in the session console and TV overlay. Enter stats, upload portraits, and set slot totals. Add your own full spells, actions, bonus actions, reactions, and features. Nothing is preloaded.</p></div></div><div class="step"><div><b>Build your shared library</b><p>Use + Add on a character to Create new or Choose existing. Search and edit entries in Ability library. Shared edits update every linked character; each keeps separate resource links and availability. Removing a character keeps the library.</p></div></div><div class="step"><div><b>Connect abilities to their costs</b><p>Create custom resources in Edit character, below spell slots. Choose a name, maximum, reset rule, shape icon, and color. When editing an ability, choose its action cost and any pool it spends. Spells can spend a selected slot level. To use a special spell pool, disable standard slot spending and link your custom resource.</p></div></div><div class="step"><div><b>Arrange the TV overlay</b><p>Open TV & layout. Select the TV, drag each portrait, and rotate it toward its player. Click Show TV overlay. With HUD controls on, drag any portrait to move that character, drag its ⟳ handle to rotate it, and click the portrait to expand or collapse it. Empty areas pass clicks to the map. Turn HUD controls off for full click-through.</p></div></div><div class="step"><div><b>Run turns from your laptop</b><p>Show options reveals an action list on the TV. View opens an ability’s text for the player; use the page arrows for longer descriptions. Use spends its linked costs. Spent choices turn gray. Start turn restores action, bonus action, reaction, movement, and resources set to Per turn for that character. Next turn follows the sidebar party order. Use Initiative order to sort rolls, or drag players and use the arrows to rearrange them.</p></div></div></div><div class="note">Tablelight is a manual tracker. You decide which rules apply, when reactions refresh, and what an ability does. It does not read or change D&D Beyond. A spell’s damage, healing, movement, and conditions are applied manually. Using an ability marked Concentration updates the concentration tracker.</div><div class="separator"></div><h3>Use the HUDs directly</h3><p class="hint space-top">Every player has an independent bubble. Multiple HUDs can stay expanded at different rotations. Each expanded HUD includes Move, Rotate, Collapse, and Hide controls, plus HP, movement, turn costs, options, slots, resources, and description pages. Click an option to read it and use its ability controls to spend costs. Changes also update your laptop and are saved automatically. Ctrl + Alt + I switches between interactive HUDs and click-through mode. Per-character Show / Hide buttons are also available on the laptop.</p><div class="separator"></div><h3>Concentration & conditions</h3><p class="hint space-top">Mark Concentration when editing any ability. Click Concentrating on an expanded HUD to choose from that character’s assigned, flagged abilities. Choosing one lights the icon; hover to read its name and click again to end concentration. The DM also has Choose ability / Change ability. Manual selection does not spend costs. Using a flagged ability starts concentration; if already concentrating, confirm the warning to switch to the used ability. Cancel and failed uses leave concentration and costs unchanged. Undo restores both together. Click Add beside Conditions on the DM page to search saved conditions or Create new. Save &amp; add saves a new definition to the library and applies it to this character. The TV also has Add beside Conditions, for choosing existing entries only. Already-applied entries show Added. Assigned conditions appear below the HUD icon; hover for descriptions and use × to remove one. Shared edits update every assigned character. Remove assignments before deleting a library entry.</p><div class="separator"></div><h3>Rests & corrections</h3><p class="hint space-top">Short rest restores pools configured for short rest; apply any healing manually. Long rest restores HP, standard spell slots, turn controls, and both short-rest and long-rest pools; it clears temporary HP and concentration. Manual pools, conditions, and unavailable ability flags stay as you set them. You choose one character or the full party before resting. Use Undo for mistakes, or the + and Restore controls for individual corrections.</p><div class="separator"></div><h3>Keep a backup</h3><p class="hint space-top">Changes, portraits, and the shared library save automatically on this laptop. Export a party backup before major edits or when moving to another computer. Restore replaces all saved players, the active party, and the library after confirmation and can be undone during this session.</p><div class="row space-top">${button('Export party backup', 'export', 'primary')}${button('Restore backup', 'import', 'subtle')}</div><p class="hint space-top">Saved party folder: ${esc(dataPath || 'Desktop app data folder')}</p></div></section><aside class="gap">${renderUpdates()}<section class="card"><div class="card-heading"><h3>Keyboard controls</h3></div><div class="card-body gap"><p class="hint"><span class="key">Ctrl + Alt + H</span><br>Hide TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + O</span><br>Toggle TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + I</span><br>Toggle direct HUD interaction.</p><p class="hint"><span class="key">Ctrl + Z</span><br>Undo the last Tablelight change when you are not typing in a field.</p><p class="hint"><span class="key">Esc</span><br>Close a dialog.</p></div></section><section class="card"><div class="card-heading"><h3>Display tips</h3></div><div class="card-body gap"><p class="hint">The TV overlay starts hidden each time you open Tablelight. Show it when you are ready.</p><p class="hint">If you unplug the selected TV, the overlay hides. Reconnect, select the TV again, then show it.</p><p class="hint">Use the HUD size slider to adjust readability for your TV. Different Windows scaling settings are handled in display coordinates.</p><p class="hint">If a fullscreen application covers the overlay, use a normal or borderless browser window.</p></div></section></aside></div>`;
+  return `<div class="page-heading"><div class="eyebrow">Ready for game night</div><h1 class="space-top">A little setup. A lot of adventure.</h1><p>Your map stays in D&D Beyond. Tablelight supplies the character HUD.</p></div><div class="work-grid"><section class="card"><div class="card-body"><h2>From laptop to battle mat</h2><div class="note"><b>Free software · GPL-3.0-or-later</b><p class="hint">Copyright (C) 2026 Tablelight contributors. You may use, modify, and share Tablelight under the GPL. No warranty is provided.</p>${button('Read license', 'show-license', 'small space-top')}</div><div class="step-list"><div class="step"><div><b>Extend your display</b><p>Connect the TV over HDMI. Press Windows + P and choose Extend. Keep the DM browser and Tablelight on your laptop; move the player browser onto the TV.</p></div></div><div class="step"><div><b>Save players and choose your party</b><p>Open Players & party to create, search, edit, or delete saved players. Add up to eight to the active party. Remove from party keeps a player saved; Delete character removes them. Only active members appear in the session console and TV overlay. Enter stats, upload portraits, and set slot totals. Add your own full spells, actions, bonus actions, reactions, and features. Nothing is preloaded.</p></div></div><div class="step"><div><b>Build your shared library</b><p>Use + Add on a character to Create new or Choose existing. Search and edit entries in Ability library. Shared edits update every linked character; each keeps separate resource links and availability. Removing a character keeps the library.</p></div></div><div class="step"><div><b>Connect abilities to their costs</b><p>Create custom resources in Edit character, below spell slots. Choose a name, maximum, reset rule, shape icon, and color. When editing an ability, choose its action cost and any pool it spends. Spells can spend a selected slot level. To use a special spell pool, disable standard slot spending and link your custom resource.</p></div></div><div class="step"><div><b>Arrange the TV overlay</b><p>Open TV & layout. Select the TV, drag each portrait, and rotate it toward its player. Click Show TV overlay. With HUD controls on, drag any portrait to move that character, drag its ⟳ handle to rotate it, and click the portrait to expand or collapse it. Empty areas pass clicks to the map. Turn HUD controls off for full click-through.</p></div></div><div class="step"><div><b>Run turns from your laptop</b><p>Show options reveals an action list on the TV. View opens an ability’s text for the player; use the page arrows for longer descriptions. DM Use spends its linked costs immediately. Player overlay Use requests approval in the bottom-right DM queue. Pending costs appear reserved on the player HUD until approved. Start turn restores action, bonus action, reaction, movement, and resources set to Per turn for that character. Next turn follows the sidebar party order. Use Initiative order to sort rolls, or drag players and use the arrows to rearrange them.</p></div></div></div><div class="note">Tablelight is a manual tracker. You decide which rules apply, when reactions refresh, and what an ability does. It does not read or change D&D Beyond. A spell’s damage, healing, movement, and conditions are applied manually. Using an ability marked Concentration updates the concentration tracker.</div><div class="separator"></div><h3>Use the HUDs directly</h3><p class="hint space-top">Every player has an independent bubble. Multiple HUDs can stay expanded at different rotations. Each expanded HUD includes Move, Rotate, Collapse, and Hide controls, plus HP, movement, turn costs, options, slots, resources, and description pages. Click an option to read it and request its use. Each pending use has Cancel. The DM reviews full details and costs, then chooses Allow use or Deny use. Other HUD changes update your laptop and save automatically. Ctrl + Alt + I switches between interactive HUDs and click-through mode. Per-character Show / Hide buttons are also available on the laptop.</p><div class="separator"></div><h3>Concentration & conditions</h3><p class="hint space-top">Mark Concentration when editing any ability. Click Concentrating on an expanded HUD to choose from that character’s assigned, flagged abilities. Choosing one lights the icon; hover to read its name and click again to end concentration. The DM also has Choose ability / Change ability. Manual selection does not spend costs. Using a flagged ability starts concentration; if already concentrating, confirm the warning to switch to the used ability. Cancel and failed uses leave concentration and costs unchanged. Undo restores both together. Click Add beside Conditions on the DM page to search saved conditions or Create new. Save &amp; add saves a new definition to the library and applies it to this character. The TV also has Add beside Conditions, for choosing existing entries only. Already-applied entries show Added. Assigned conditions appear below the HUD icon; hover for descriptions and use × to remove one. Shared edits update every assigned character. Remove assignments before deleting a library entry.</p><div class="separator"></div><h3>Rests & corrections</h3><p class="hint space-top">Short rest restores pools configured for short rest; apply any healing manually. Long rest restores HP, standard spell slots, turn controls, and both short-rest and long-rest pools; it clears temporary HP and concentration. Manual pools, conditions, and unavailable ability flags stay as you set them. You choose one character or the full party before resting. Use Undo for mistakes, or the + and Restore controls for individual corrections.</p><div class="separator"></div><h3>Keep a backup</h3><p class="hint space-top">Changes, portraits, and the shared library save automatically on this laptop. Export a party backup before major edits or when moving to another computer. Restore replaces all saved players, the active party, and the library after confirmation and can be undone during this session.</p><div class="row space-top">${button('Export party backup', 'export', 'primary')}${button('Restore backup', 'import', 'subtle')}</div><p class="hint space-top">Saved party folder: ${esc(dataPath || 'Desktop app data folder')}</p></div></section><aside class="gap">${renderUpdates()}<section class="card"><div class="card-heading"><h3>Keyboard controls</h3></div><div class="card-body gap"><p class="hint"><span class="key">Ctrl + Alt + H</span><br>Hide TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + O</span><br>Toggle TV overlay from any app.</p><p class="hint"><span class="key">Ctrl + Alt + I</span><br>Toggle direct HUD interaction.</p><p class="hint"><span class="key">Ctrl + Z</span><br>Undo the last Tablelight change when you are not typing in a field.</p><p class="hint"><span class="key">Esc</span><br>Close a dialog.</p></div></section><section class="card"><div class="card-heading"><h3>Display tips</h3></div><div class="card-body gap"><p class="hint">The TV overlay starts hidden each time you open Tablelight. Show it when you are ready.</p><p class="hint">If you unplug the selected TV, the overlay hides. Reconnect, select the TV again, then show it.</p><p class="hint">Use the HUD size slider to adjust readability for your TV. Different Windows scaling settings are handled in display coordinates.</p><p class="hint">If a fullscreen application covers the overlay, use a normal or borderless browser window.</p></div></section></aside></div>`;
 }
 function modal(title, body, footer = '', narrow = false) {
+  approvalOpenId = '';
+  approvalListOpen = false;
   lastFocus = document.activeElement;
   document.getElementById('modal-root').innerHTML =
     `<div class="modal-backdrop"><section class="modal ${narrow ? 'narrow' : ''}" role="dialog" aria-modal="true" aria-labelledby="modal-title"><header class="modal-header"><h2 id="modal-title">${title}</h2>${button('✕', 'close-modal', 'subtle', 'aria-label="Close dialog"')}</header><div class="modal-body">${body}<div id="form-error" class="form-error" role="alert"></div></div>${footer ? `<footer class="modal-footer">${footer}</footer>` : ''}</section></div>`;
@@ -296,6 +338,8 @@ function modal(title, body, footer = '', narrow = false) {
 }
 function closeModal() {
   if (updateBusy()) return;
+  approvalOpenId = '';
+  approvalListOpen = false;
   document.getElementById('modal-root').innerHTML = '';
   if (lastFocus?.isConnected) lastFocus.focus();
   maybeShowUpdateOffer();
@@ -349,7 +393,7 @@ function editCharacter(isNew = false, playerId = selectedId) {
     draft.avatar = '';
     document.getElementById('avatar-preview').innerHTML = portrait(draft);
   };
-  submitForm('character-form', (data) => {
+  submitForm('character-form', async (data) => {
     readResourceEditor(draft);
     for (const k of ['name', 'className', 'species', 'notes', 'accent', 'spellAbility'])
       draft[k] = data.get(k).trim();
@@ -376,7 +420,7 @@ function editCharacter(isNew = false, playerId = selectedId) {
       s.max = max;
     });
     if (isNew) draft.turn = TL.freshTurn(draft);
-    const success = commit(() => {
+    const success = await commit(() => {
       if (isNew) {
         state.roster.push(draft);
         if (data.has('addToParty')) TL.addToParty(state, draft.id);
@@ -428,9 +472,8 @@ function amountModal(title, initial, handler, damageCharacterId = '') {
     `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}${damageCharacterId ? `<span class="damage-controls" data-damage-character="${esc(damageCharacterId)}">${HUD.damageConcentrationReminder(state.characters.find((c) => c.id === damageCharacterId))}` : ''}<button type="submit" form="amount-form" class="primary">Apply</button>${damageCharacterId ? '</span>' : ''}</div>`,
     true
   );
-  submitForm('amount-form', (data) => {
-    handler(Number(data.get('amount')));
-    closeModal();
+  submitForm('amount-form', async (data) => {
+    if ((await handler(Number(data.get('amount')))) !== false) closeModal();
   });
 }
 function refreshDamageReminder() {
@@ -480,7 +523,7 @@ function useItem(id) {
     toast(reason, true);
     return;
   }
-  const apply = (level, confirmedConcentration = '') => {
+  const apply = async (level, confirmedConcentration = '') => {
     const target = state.characters.find((target) => target.id === c.id),
       ability = target?.items.find((i) => i.id === id);
     if (!ability) {
@@ -502,10 +545,19 @@ function useItem(id) {
       );
       return;
     }
-    const success = commit(() => {
-      TL.spend(target, ability, level, confirmedConcentration);
-      expand(target, ability.economy, ability.id);
-    }, ability.name + ' used');
+    const success = await partyOperation(() =>
+      finishPartyChange(
+        api.approvalCommand(
+          approvalCommand('direct-use', {
+            characterId: target.id,
+            itemId: ability.id,
+            slotLevel: level ?? null,
+            confirmedConcentration,
+            showDetails: true,
+          })
+        )
+      )
+    );
     if (success) closeModal();
   };
   if (it.level > 0 && it.usesSlot) {
@@ -537,13 +589,17 @@ function restDialog(type) {
     `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button type="submit" form="rest-form" class="primary">Apply rest</button></div>`,
     true
   );
-  submitForm('rest-form', (data) => {
-    commit(() => {
-      (data.get('scope') === 'party' ? state.characters : [selected()]).forEach((x) =>
-        TL.rest(x, type)
-      );
-    }, 'Rest applied');
-    closeModal();
+  submitForm('rest-form', async (data) => {
+    const ids = (data.get('scope') === 'party' ? state.characters : [selected()]).map((c) => c.id);
+    const success = await commit(
+      () => {
+        state.characters.filter((c) => ids.includes(c.id)).forEach((x) => TL.rest(x, type));
+      },
+      'Rest applied',
+      true,
+      ids.map((characterId) => ({ type: 'rest', characterId, restType: type }))
+    );
+    if (success) closeModal();
   });
 }
 function autoLayout() {
@@ -622,6 +678,7 @@ document.addEventListener('click', async (event) => {
       return;
     }
     if (
+      handleApprovalAction(b) ||
       handleRosterAction(b) ||
       handleSessionAction(b) ||
       handleLibraryAction(b) ||
@@ -726,17 +783,27 @@ document.addEventListener('click', async (event) => {
         );
         break;
       case 'start-turn':
-        commit(() => {
-          TL.startTurn(selected());
-          state.activeId = selectedId;
-        }, 'Turn refreshed');
+        commit(
+          () => {
+            TL.startTurn(selected());
+            state.activeId = selectedId;
+          },
+          'Turn refreshed',
+          true,
+          [{ type: 'new-turn', characterId: selectedId }]
+        );
         break;
       case 'next-turn':
-        commit(() => {
-          const next = TL.nextTurn(state);
-          selectedId = next.id;
-          expand(next);
-        }, 'Next turn');
+        commit(
+          () => {
+            const next = TL.nextTurn(state);
+            selectedId = next.id;
+            expand(next);
+          },
+          'Next turn',
+          true,
+          (_before, after) => [{ type: 'new-turn', characterId: after.activeId }]
+        );
         break;
       case 'short-rest':
         restDialog('short');
@@ -762,7 +829,7 @@ document.addEventListener('click', async (event) => {
         let copy;
         const characterId = b.dataset.character;
         if (
-          commit(
+          await commit(
             () => (copy = TL.duplicateLocalItem(state, characterId, id)),
             'Character-only copy created'
           )
@@ -793,7 +860,9 @@ document.addEventListener('click', async (event) => {
         });
         break;
       case 'resource-reset':
-        commit(() => TL.resetResource(selected(), id));
+        commit(() => TL.resetResource(selected(), id), '', true, [
+          { type: 'adjust', characterId: c.id, kind: 'resource', key: id },
+        ]);
         break;
       case 'delete-character':
         deleteSavedPlayer(id || c?.id);
@@ -844,10 +913,16 @@ document.addEventListener('click', async (event) => {
             'Replace your current party?',
             `The backup contains ${TL.allCharacters(imported).length} saved player(s), with ${imported.characters.length} in the active party. All current players, party membership, and the shared library will be replaced. Export a backup first if you want to keep both.`,
             () =>
-              commit(() => {
-                state = imported;
-                selectedId = state.characters[0]?.id || '';
-              }, 'Party restored'),
+              commit(
+                () => {
+                  state = imported;
+                  selectedId = state.characters[0]?.id || '';
+                },
+                'Party restored',
+                true,
+                [],
+                true
+              ),
             'Restore party'
           );
         break;
@@ -872,7 +947,7 @@ document.addEventListener('change', async (event) => {
       render();
     }
     if (id === 'display-select') {
-      commit(() => (state.settings.displayId = el.value));
+      await commit(() => (state.settings.displayId = el.value));
       await saveQueue;
       if (overlayStatus.visible) {
         overlayStatus = await api.overlay({ visible: true, displayId: el.value });
@@ -904,6 +979,23 @@ document.addEventListener('change', async (event) => {
   }
 });
 document.addEventListener('keydown', (event) => {
+  if (pendingGuard) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      pendingGuard(false);
+    }
+    if (event.key === 'Tab') {
+      const buttons = [...document.querySelectorAll('#queue-guard-root button')];
+      if (event.shiftKey && document.activeElement === buttons[0]) {
+        event.preventDefault();
+        buttons.at(-1).focus();
+      } else if (!event.shiftKey && document.activeElement === buttons.at(-1)) {
+        event.preventDefault();
+        buttons[0].focus();
+      }
+    }
+    return;
+  }
   if (updateBusy() && event.ctrlKey && event.key.toLowerCase() === 'z') {
     event.preventDefault();
     return;
@@ -939,11 +1031,12 @@ document.addEventListener('keydown', (event) => {
 });
 api.onHudCommand?.(async (command) => {
   if (command.type === 'prepare-update') {
-    await persist();
+    await saveQueue;
     if (saveError) throw new Error(saveError);
+    await api.flush();
     return;
   }
-  const success = commit(() => TL.hudCommand(state, command));
+  const success = await commit(() => TL.hudCommand(state, command));
   if (!success) throw new Error('That HUD action is not available.');
   await saveQueue;
   if (saveError) throw new Error(saveError);
@@ -960,6 +1053,9 @@ api.onOverlay((value) => {
   try {
     const loaded = await api.load();
     state = TL.normalize(loaded.state);
+    approvalState = loaded.approvals || approvalState;
+    history = Array(loaded.undoCount || 0);
+    api.onApprovals?.(acceptApprovalState);
     overlayStatus = loaded.status || { visible: false };
     dataPath = loaded.dataPath || '';
     appVersion = loaded.version || '';
@@ -970,7 +1066,7 @@ api.onOverlay((value) => {
       : 'Tablelight — Browser preview';
     displays = await api.displays();
     if (!displays.some((d) => d.id === state.settings.displayId))
-      state.settings.displayId = display().id;
+      await commit(() => (state.settings.displayId = display().id));
     selectedId = state.activeId || state.characters[0]?.id || '';
     render();
     if (loaded.warning) toast(loaded.warning, true);

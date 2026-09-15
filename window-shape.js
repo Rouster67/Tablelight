@@ -11,7 +11,7 @@ function hudRegions(frames, viewportWidth, viewportHeight) {
       f.width <= 0 ||
       f.height <= 0 ||
       f.width > 10000 ||
-      f.height > 10000 ||
+      f.height > 1000000 ||
       Math.abs(f.cx) > 100000 ||
       Math.abs(f.cy) > 100000
     )

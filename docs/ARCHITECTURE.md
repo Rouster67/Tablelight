@@ -36,13 +36,13 @@ application ID; the production build contains no such configuration. Builds neve
 
 The Electron main process creates a DM window and one transparent always-on-top TV window. Each player's independently positioned DOM HUD is rendered inside the TV window. Positions are percentages of the selected display, rotation is degrees around the HUD center, and scale is per character. Fitting expanded HUDs to the display does not overwrite their stored position or rotation.
 
-Expanded containers are fixed at 880×650 CSS pixels before scaling: 50px reserved for the toolbar and a 600px card. The card uses a 344px summary column and a flexible section browser on the right. Both columns have bounded scrolling; navigation stays above the section scroll area. The reserved toolbar space keeps dimensions stable when interaction is disabled. Collapsed portraits retain their existing dimensions.
+Expanded containers are 880 CSS pixels wide, with a 50px toolbar area and a card at least 600px tall. The 344px summary column determines the card’s natural height so portrait, vitals, conditions, slots, all resources, and size controls remain visible without summary scrolling. The browser uses size containment and internal scrolling so ability text does not stretch the frame. Pending requests add a separate 250px column plus a 20px gap on the far right, making the frame 1150px wide without reducing the browser width. Collapsed portraits retain their existing dimensions.
 
-`HUD.mount` applies the stored scale exactly and uses `fitHud` only to adjust position. Oversized axes are centered instead of silently shrinking. It restores per-character summary scroll on redraw and section scroll when panel/detail/page are unchanged. The DM preview shares the rendering path. Currently displayed resizing uses the same bounded placement command as other controls. Its scroll buttons wait for pending saves, then use DM-authenticated `hud:scroll` messages to scroll one active character's named column. These transient scroll messages do not write game state or create Undo entries.
+`HUD.mount` applies the stored scale exactly and uses `HUD.fit`/`fitHud` only to adjust position. Oversized axes are centered instead of silently shrinking. Section scroll survives redraws when panel/detail/page are unchanged; pending-column scroll is independent. After transient forms mount, the overlay refits the frame and observes later size changes, including asynchronous picker results, before publishing native hit regions. The DM preview shares the renderer and shows pending-column placement with disabled cancellation buttons; actual DM counters remain unreserved. Currently displayed resizing uses the same bounded placement command as other controls. Section details arrows use DM-authenticated `hud:scroll` messages without writing game state or creating Undo entries.
 
 Custom resource counters retain their IDs and bindings. Additive `icon` and `color` fields normalize to one of six CSS shapes and a six-digit hex color; legacy pools default to a circle in the character color. Reset values are short, long, turn, or manual. `startTurn` restores turn controls and per-turn counters; both next-turn traversal and the TV turn command use it. Rests preserve per-turn and manual counters; short-rest pools also recover on long rest. Manual reset is a bounded command. `resource-ui.js` renders inline resource drafts in the character editor; save uses the existing ID-aware merge so appearance edits preserve concurrent spending. All resources render as stacked rows under slots, with matching counters in the paged Resources section.
 
-The controller owns edits. UI changes run through `commit`, normalize the state, add an Undo snapshot, and enqueue saves in order. The main process validates and atomically saves to disk before broadcasting state to the overlay. Overlay controls send bounded commands through main to the controller. Pointer gestures use document capture listeners, including when a pointer leaves a transparent region.
+The controller builds editor drafts through `commit`; the main-process approval service owns authoritative mutations and ordinary Undo. It normalizes and atomically saves changes before broadcasting actual DM state and projected player state. Overlay commands go directly to this service through sender-checked IPC. Pointer gestures use document capture listeners, including when a pointer leaves a transparent region.
 
 On Windows, `window-shape.js` converts each rotated HUD into horizontal rectangles for Electron's native `BrowserWindow.setShape`. The renderer reports validated HUD frames through overlay-only `hud:regions` messages after painting. Windows routes input directly to those areas; gaps pass through to the map. During a gesture, `hud:dragging` temporarily restores the full window region so movement can continue across gaps, then reinstates the HUD regions on completion or cancellation. This avoids relying on forwarded hover events to switch mouse ignoring, which could leave a HUD unreachable. Full click-through mode still uses `setIgnoreMouseEvents(true)`. The renderer publishes regions only when HUD frames or viewport dimensions change. Ordinary stat saves do not rebuild native regions; interaction-mode switches still update immediately. New geometry is validated and calculated once before applying it. The TV window accepts keyboard focus only when HUD controls are on, allowing picker searches.
 
@@ -108,7 +108,7 @@ Special. The shared section renderer escapes all text. Reference follows all sec
 right-aligned footer; HUD use controls stay above it. Empty fields are hidden.
 `TL.abilityTextPages` splits long sections into 640-character chunks, packs short sections,
 and repeats section labels. Normalization clamps invalid detail pages after resolving shared
-definitions. Position, scale, rotation, fixed 880 × 650 frame, and internal scrolling stay intact.
+definitions. Stored position, scale, rotation, and independent ability-column scrolling stay intact.
 Library search and exact-content matching include every new text field.
 
 `normalize` resolves library definitions into character items in memory. `toBackup` removes
@@ -149,7 +149,7 @@ undo and notices remain a separate, unimplemented milestone.
 
 Condition definitions contain `id`, `name`, and `description`. Characters store unique `conditionIds`; normalization resolves `appliedConditions` for rendering. Backups strip these resolved copies and retain definitions once. The overlay receives only active characters' resolved conditions. Shared editing, assignment, removal, and protected deletion work across both player collections. Names and descriptions render as escaped text, with native title tooltips. There are bounds of 5,000 definitions, 500 assignments per character, 300 characters per name, and 40,000 characters per description.
 
-The DM Add dialog searches existing entries or creates and assigns a definition in a single undoable commit. The TV's Add menu uses an overlay-authenticated, read-only `hud:conditions` query while HUD controls are enabled. Queries return at most 100 alphabetical name/description matches, with a total count; they do not include character data. Its bounded `condition-add` command accepts only existing IDs and active party members, preventing creation from the TV. The menu preserves its search and internal scroll during state updates, ignores stale search responses, and closes when its HUD is hidden, collapsed, or made click-through. Summary scrolling is restored after transient forms mount so their added height remains available.
+The DM Add dialog searches existing entries or creates and assigns a definition in a single undoable commit. The TV's Add menu uses an overlay-authenticated, read-only `hud:conditions` query while HUD controls are enabled. Queries return at most 100 alphabetical name/description matches, with a total count; they do not include character data. Its bounded `condition-add` command accepts only existing IDs and active party members, preventing creation from the TV. The menu preserves its search and internal scroll during state updates, ignores stale search responses, and closes when its HUD is hidden, collapsed, or made click-through. The summary grows to contain transient forms, and frame positioning and native hit regions refresh after picker results change its height.
 
 Formats 1–3 migrate automatically. A legacy character condition note becomes one complete definition, retaining punctuation and qualifiers; identical notes share an entry. Formats 4–5 require a condition library array and reject missing references or duplicate definition IDs.
 
@@ -157,7 +157,7 @@ Ability definitions include a shared `requiresConcentration` boolean, defaulting
 
 Concentration uses `concentrating`, `concentrationItemId`, and a resolved `concentration` display name. These are additive fields in save format 4. Normalization resolves the selected binding after applying shared definitions, follows name edits, and ends concentration if the binding is removed or its flag is cleared. Ending concentration and long rest clear all three fields. Legacy active notes without an item ID remain visible until the user ends concentration or selects an ability; migration never guesses flags or matches abilities by name. Picker searches and scroll positions survive unrelated updates. Conditions are never removed automatically by rests or turns.
 
-The shared `spend` path validates availability, any required slot choice, and acknowledgement of the current concentration warning before changing concentration or costs. A flagged use calls `setConcentration` for the acting character's assigned ability; an invalid assignment fails before spending. Both DM and HUD uses run inside one controller `commit`, so the selected ability and its costs share a save and an Undo snapshot. Unflagged uses leave concentration unchanged. Manual concentration selection continues to spend no costs.
+The shared `spend` path validates availability, any required slot choice, and acknowledgement of the current concentration warning before changing concentration or costs. A flagged use calls `setConcentration` for the acting character's assigned ability; an invalid assignment fails before spending. DM uses spend immediately; HUD requests spend only when approved. The service saves each use's concentration and costs together. Unflagged uses leave concentration unchanged. Manual concentration selection continues to spend no costs.
 
 ## Roster and party
 
@@ -177,11 +177,11 @@ Saving throw expertise is an additive saveExpertise array alongside the legacy s
 
 characters array order is the displayed initiative order, persisted without changing HUD placements. Older saves migrate once to their previously calculated initiative order. settings.partyOrderVersion marks that migration; subsequent manual orders are authoritative. The shared panelChoices list supplies both TV and DM navigation. Currently displayed reads the selected character’s HUD panel, detail ID, and page so either screen can control the same content.
 
-## DM approval queue foundation
+## DM approval queue
 
-`approval-session.js` is the inactive foundation for the agreed DM approval queue. It is available
-as CommonJS or `TLApproval` beside `TL`, but no current renderer, preload, or main-process path loads
-it. Existing use behavior, ordinary Undo, and save format 9 remain unchanged until integration.
+`approval-session.js` implements request accounting; `approval-service.js` owns it in the main
+process and serializes edits, HUD commands, approvals, and ordinary Undo. It is also available
+beside `TL` for the browser preview. Save format 9 remains unchanged.
 
 The model owns a normalized party state plus separate session-only pending requests, five resolved
 History records, counter revision markers, and command receipts. Requests reserve costs in a copied
@@ -194,8 +194,10 @@ commands return their original result without spending twice; small command rece
 History eviction. Approval uses the existing spending rules and captures actual deductions plus
 concentration before/after. A supplied save adapter receives only authoritative party data and must
 resolve after the write succeeds. A rejected write leaves the session, reservations, and counters
-unchanged for retry. Production save acknowledgements, window reload handling, sender authentication,
-and the single controller mutation path still need to be connected in milestone 2.
+unchanged for retry. The main process validates the sender on DM and overlay IPC endpoints. HUD
+responses expose only command results, and broadcasts omit private notes, unused library entries,
+and other characters' pending-use records within each character's view. A pre-update flush writes
+the authoritative state even if unchanged, and failure prevents installation.
 
 Trusted synchronous `change` callbacks edit a normalized draft. Dependent changes produce a preview
 that must be confirmed against the same session revision before saving and resolving affected
@@ -204,7 +206,24 @@ Callers must assign a fresh command ID to each distinct edit; a retry must ident
 Explicit new-turn, rest, and adjustment events record resets even when counters end up equal.
 Tracked spending updates counter ownership while external corrections advance an invalidation
 marker. Those markers and exact use receipts support future targeted undo; reversal, Reconsider,
-and ordinary Undo coordination are not implemented in this milestone.
+and coordination of targeted reversal with ordinary Undo remain a later milestone.
+
+The service merges only changed editor fields into current state, including assignment ownership
+and explicit party ordering. Dependency previews belong to their originating screen and become
+stale after another session mutation. `approval-ui.js` overlays confirmations without replacing
+the editor DOM; cancel preserves values and focus. Requests quietly queue behind any open popup
+or minimized request. The bottom-right list marks reactions Urgent and preserves focused rows
+on refresh. Resolution closes the current review without advancing to another.
+
+`hud.js` renders each character's pending uses and cancellation controls in a separate far-right HUD column. `overlay.js` handles player cancellation and in-HUD prompts.
+Turn Restore controls carry their displayed intended value so restoring a reserved action does
+not accidentally spend the still-available actual action. Pending reservations never change
+concentration. The request popup and existing View share `HUD.renderAbilityDetails`.
+
+Window reloads reattach to the main-process session and its ordinary Undo stack. App exit clears
+requests and internal History; saved costs remain. Explicit backup restore confirms any affected
+requests before replacing the state, then starts a fresh request session. The restore itself can
+still be reversed with ordinary Undo. History, Reconsider, and targeted-undo UI are not enabled yet.
 
 ## Tests
 

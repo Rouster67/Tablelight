@@ -14,6 +14,8 @@ const {
 const path = require('node:path');
 const fs = require('node:fs');
 const TL = require('./core');
+const { Service: ApprovalService } = require('./approval-service');
+let approvals;
 const { hudRegions } = require('./window-shape');
 let overlayFrames = [],
   overlayDragging = false;
@@ -76,6 +78,25 @@ else {
         return;
       }
     }
+    approvals = new ApprovalService(state, {
+      save: (next) => store.save(next),
+      onChange: (snapshot, change) => {
+        const mode = state.settings.overlayInteractive;
+        state = snapshot.state;
+        if (controller && !controller.isDestroyed())
+          controller.webContents.send('approval:state', { ...snapshot, change });
+        if (overlay && !overlay.isDestroyed()) {
+          overlay.webContents.send('party:state', approvals.overlayState());
+          if (mode !== state.settings.overlayInteractive)
+            overlay.setFocusable(state.settings.overlayInteractive);
+        }
+        if (!state.settings.overlayInteractive) overlayDragging = false;
+        if (mode !== state.settings.overlayInteractive) {
+          updateOverlayShape();
+          sendStatus();
+        }
+      },
+    });
     const installed =
       process.platform === 'win32' &&
       app.isPackaged &&
@@ -331,31 +352,39 @@ function registerIPC() {
     auth(event);
     return fs.readFileSync(path.join(__dirname, 'LICENSE'), 'utf8');
   });
-  ipcMain.handle('party:load', (event) => ({
-    state:
-      controller && event.sender.id === controller.webContents.id ? state : TL.overlayState(state),
-    warning: controller && event.sender.id === controller.webContents.id ? warning : '',
-    native: true,
-    status: status(),
-    dataPath: store.directory,
-    version: app.getVersion(),
-    updates:
-      controller && event.sender.id === controller.webContents.id ? updates.snapshot() : undefined,
-  }));
+  ipcMain.handle('party:load', (event) => {
+    const dm = controller && event.sender.id === controller.webContents.id;
+    if (!dm && (!overlay || event.sender.id !== overlay.webContents.id))
+      throw new Error('Unknown Tablelight window.');
+    return {
+      ...(dm ? approvals.snapshot() : { state: approvals.overlayState() }),
+      warning: dm ? warning : '',
+      native: true,
+      status: status(),
+      dataPath: dm ? store.directory : undefined,
+      version: app.getVersion(),
+      updates: dm ? updates.snapshot() : undefined,
+    };
+  });
   ipcMain.handle('party:save', (event, raw) => {
     auth(event);
-    const mode = state.settings.overlayInteractive;
-    state = store.save(raw);
-    if (overlay && mode !== state.settings.overlayInteractive)
-      overlay.setFocusable(state.settings.overlayInteractive);
-    if (!state.settings.overlayInteractive) overlayDragging = false;
-    if (overlay) overlay.webContents.send('party:state', TL.overlayState(state));
-    // Painted geometry updates the native region; ordinary stat saves leave it alone.
-    if (mode !== state.settings.overlayInteractive) {
-      updateOverlayShape();
-      sendStatus();
-    }
-    return { ok: true };
+    return approvals.change({ edited: raw });
+  });
+  ipcMain.handle('party:change', (event, value) => {
+    auth(event);
+    return approvals.change(value);
+  });
+  ipcMain.handle('party:undo', (event) => {
+    auth(event);
+    return approvals.undo();
+  });
+  ipcMain.handle('party:flush', (event) => {
+    auth(event);
+    return approvals.flush();
+  });
+  ipcMain.handle('approval:command', (event, value) => {
+    auth(event);
+    return approvals.command(value);
   });
   ipcMain.on('hud:regions', (event, frames) => {
     if (!overlay || event.sender.id !== overlay.webContents.id) return;
@@ -395,7 +424,12 @@ function registerIPC() {
       throw new Error('This control is only available in the overlay.');
     if (!state.settings.overlayInteractive)
       throw new Error('The overlay is in click-through mode.');
-    return requestHudCommand(command);
+    if (updateLock)
+      throw new Error('Tablelight is saving before an update. Try again after it restarts.');
+    if (!command || typeof command !== 'object') throw new Error('Invalid HUD control.');
+    return approvals
+      .hud({ sessionId: approvals.snapshot().approvals.id, commandId: TL.uid(), ...command })
+      .then((value) => ({ result: value.result }));
   });
   ipcMain.handle('hud:conditions', (event, query) => {
     if (
@@ -416,14 +450,17 @@ function registerIPC() {
     else request.resolve({ ok: true });
   });
   ipcMain.handle('display:list', () => displays());
-  ipcMain.handle('display:overlay', (event, options) => {
+  ipcMain.handle('display:overlay', async (event, options) => {
     auth(event);
     if (options.displayId != null) {
       const id = String(options.displayId);
       if (!displays().some((d) => d.id === id))
         throw new Error('That display is no longer connected.');
-      state.settings.displayId = id;
-      store.save(state);
+      if (state.settings.displayId !== id) {
+        const edited = TL.clone(state);
+        edited.settings.displayId = id;
+        await approvals.change({ base: state, edited });
+      }
     }
     return setOverlay(options.visible);
   });

@@ -10,6 +10,7 @@ progress; entries do not assign a release version or authorize implementation.
 - **Additional suggestion:** An optional idea proposed during planning, not an accepted requirement.
 - **Agreed design:** The behavior is agreed and awaits implementation and testing.
 - **Foundation ready:** The supporting logic is tested locally; the visible feature is not connected.
+- **In progress:** An approved part is implemented; remaining milestones still need approval.
 - **Implemented locally:** The agreed change is in the source and awaits testing and release.
 - **Merged; release pending:** The change is in `main`; a public app release is still pending.
 - **Released:** The change is available in a public stable app release.
@@ -31,7 +32,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F07 | Manual ability fields (revised scope)         | Implemented locally |
 | F08 | Upcast and level-based upgrade text           | Implemented locally |
 | F09 | Uploaded icons for abilities                  | Planned candidate   |
-| F10 | DM approval queue, History, and targeted undo | Foundation ready    |
+| F10 | DM approval queue, History, and targeted undo | In progress         |
 | F12 | Class overlay color themes                    | Planned candidate   |
 | F13 | Bundled illustrated PDF user guide            | Planned candidate   |
 
@@ -275,10 +276,15 @@ making saves or HUD updates slow. Users supply the images; no spell art is bundl
 
 ## F10 — DM approval queue, History, and targeted undo
 
-**Milestone 1 complete locally:** The inactive session model implements request limits, reserved
-costs, approval/cancellation, exact spending receipts, dependency confirmations, and reset markers.
-Its 21 new tests pass alongside the existing 105. The app still uses its existing direct-use flow;
-player requests, DM queue/popups, and later History/undo controls require the next approved milestones.
+**Milestones 1–2 implemented:** Player requests now reserve costs on the HUD and enter the DM queue.
+The DM can review full details, approve, deny, minimize, and view the character. Conflicting edits
+and new turns require confirmation. Window reloads retain pending requests; app exit clears them.
+The accounting foundation is committed; the visible integration is ready for review. History,
+Reconsider, and targeted undo remain the next milestone. All 137 unit tests and 20 desktop scenarios pass.
+
+**HUD layout amendment:** The player HUD grows taller to keep the entire character column and
+Smaller/Larger controls visible. Pending requests appear in a separate column to the right of
+the ability browser, preserving its width and each character’s chosen scale and rotation.
 
 **Agreed design:** Overlay uses request approval before spending actual costs. Pending requests
 reserve costs only on the player's display. The DM sees full ability details and can Allow,
@@ -421,5 +427,6 @@ was released in 1.10.2.
    with its link as one complete change.
 
 For future implementation, preserve existing saves and user-authored content, keep calculations
-and resources specific to each character, and retain fixed HUD sizing and rotation. Each feature
+and resources specific to each character, and preserve chosen HUD scale and rotation while
+allowing its frame to grow for the full character summary. Each feature
 should have its own agreed completion checklist and appropriate verification before release.

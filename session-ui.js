@@ -95,12 +95,9 @@ function renderCurrentSize(c) {
     .map(([amount, label]) =>
       button(label, 'current-size', 'small', `data-id="${esc(c.id)}" data-amount="${amount}"`)
     )
-    .join('')}</div><p class="hint">The size stays fixed across all sections.</p>${
+    .join('')}</div><p class="hint">The frame grows taller to keep character details visible.</p>${
     c.hud.expanded
-      ? `<div class="current-scroll">${[
-          ['summary', 'Vitals & resources'],
-          ['section', 'Section details'],
-        ]
+      ? `<div class="current-scroll">${[['section', 'Section details']]
           .map(
             ([area, label]) =>
               `<div><span>${label}</span>${[
@@ -183,10 +180,10 @@ function showInitiativeOrder() {
     order.splice(to, 0, c);
     document.getElementById('initiative-rows').innerHTML = rows();
   };
-  submitForm('initiative-form', () => {
+  submitForm('initiative-form', async () => {
     if (!read()) return;
     if (
-      commit(() => {
+      await commit(() => {
         TL.reorderParty(
           state,
           order.map((c) => c.id)

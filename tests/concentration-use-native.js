@@ -221,6 +221,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await tv(
       `const button=document.querySelector('[data-hud-use-confirm]');button.click();button.click();`
     );
+    await require('./approve-pending')(controller);
     await wait(() => character().slots[1].current === 2);
     assert.equal(character().resources[0].current, 2);
     await expectConcentration(spellId, 'New ward');
@@ -279,12 +280,14 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       tv(`return !state.characters[0].concentrating&&state.characters[0].turn.action;`)
     );
     await hudUse(1);
+    await require('./approve-pending')(controller);
     await wait(() => character().slots[0].current === 2);
     assert.equal(await tv(`return !!document.querySelector('.hud-use-warning');`), false);
     await expectConcentration(spellId, 'New ward');
     await run(`commit(()=>selected().hud.detailId=${JSON.stringify(plainId)});await saveQueue;`);
     await wait(() => tv(`return state.characters[0].hud.detailId===${JSON.stringify(plainId)};`));
     await hudUse();
+    await require('./approve-pending')(controller);
     await wait(() => tv(`return pendingUses.size===0;`));
     await expectConcentration(spellId, 'New ward');
     assert.equal(JSON.stringify(getState().characters[1]), otherBefore);

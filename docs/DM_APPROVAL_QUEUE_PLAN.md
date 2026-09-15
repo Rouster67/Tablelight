@@ -1,12 +1,12 @@
 # DM approval queue and History
 
 Branch: `codex/dm-approval-queue`, starting from `b8883db` (the merge of PR #10).
-Status: milestone 1 approved and complete in source; milestone 2 awaits approval.
+Status: milestone 1 committed as `479ce68`; milestone 2 implemented for review, uncommitted.
 This document replaces the earlier F10 post-use notice proposal in ABILITY_DETAILS_PLAN.md.
 
 Work one approved milestone at a time. Leave changes uncommitted; the user handles staging,
-commits, publishing, and branch changes. The session foundation is tested but is not connected
-to the running app yet; the visible approval flow belongs to milestone 2.
+commits, publishing, and branch changes. The visible approval flow is now connected. History,
+Reconsider, and targeted undo still await their own approved milestone.
 
 ## Agreed product behavior
 
@@ -144,9 +144,19 @@ These are implementation choices proposed to deliver the agreed behavior, not ad
   A missing assignment or invalid slot must be explained and cannot silently authorize a
   different character, ability, or slot. A full normal queue prevents another normal request.
 - Preserve drafts and focus across warnings and minimized requests. New session UI must fit the
-  current DM layouts and the player's fixed 880 × 650 HUD at every supported rotation and scale.
+  current DM layouts and the player's growing HUD at every supported rotation and chosen scale.
 - Use accessible labels on icon buttons and an Urgent label alongside red styling. Honor reduced
   motion for the queue pulse. Do not reveal another character's requests on a player's HUD.
+
+## HUD layout amendment — approved September 14, 2026
+
+The user replaced the original fixed-height requirement: the expanded HUD must grow taller to
+show its entire left column, including the portrait/name, HP, stats, conditions, spell slots,
+custom resources, and Smaller/Larger controls. Pending approvals belong in their own far-right
+column after the ability browser. The browser retains its width and independent scrolling;
+the pending column appears only while that character has requests. Saved scale and rotation
+remain unchanged. Native checks cover long content, picker resizing, preview agreement,
+request cancellation, and rotated frames; native input regions also support tall frames.
 
 ## Small milestones and completion checks
 
@@ -155,7 +165,8 @@ These are implementation choices proposed to deliver the agreed behavior, not ad
 **Complete locally:** `approval-session.js` implements the separate session model. Its 21 tests
 cover the checks below, dependency confirmation/cancellation, same-value resets, private player
 views, character-specific bindings and shared-to-local conversion, and save/restart separation.
-All 126 unit tests and JavaScript syntax checks pass. No renderer or IPC path loads the module yet.
+At that milestone, all 126 unit tests and JavaScript syntax checks passed. The foundation was
+left inactive until the milestone 2 integration.
 
 Add the session request model, admission limits, reservation projection, approval/cancel/deny
 transitions, use receipts, and dependency/revision tracking behind the existing behavior. Keep
@@ -175,6 +186,17 @@ Completion checks:
 
 ### 2. Player requests, DM popup, and pending queue
 
+**Implemented locally:** `approval-service.js` owns the session in the main process, serializes
+all changes, and preserves pending requests across window reloads. Authenticated IPC exposes
+player projections and bounded request/cancel commands. `approval-ui.js` supplies the DM queue,
+review popup, and draft-preserving dependency warnings; the overlay includes per-use cancellation,
+concentration warnings, and the full-queue popup. Direct DM uses remain immediate. Backup restore
+clears incompatible session records; ordinary Undo now lives with the main-process state owner.
+
+The 10 service tests and tall-frame input check join the 126 existing tests. All 20 desktop scenarios pass, including the
+new approval flow and regression coverage of saves, updates, shared/local abilities, party order,
+and HUD layout. The new desktop checks also exercise failed approval saves and retry.
+
 Connect overlay Use to request submission, slot choice, concentration warnings, pending-use
 display and individual cancellation. Add the bottom-right queue icon/list and full DM approval
 popup, including navigation/minimization, non-interruption rules, caps, and red Urgent entries.
@@ -191,7 +213,7 @@ Completion checks:
 - Warnings apply only to dependent changes. Cancel preserves drafts/state/requests; Continue
   applies the edit and denies the affected requests. A canceled new-turn prompt changes nothing.
 - Use isolated native tests and screenshots for multiple players, many reactions, long names,
-  the full-queue popup, disabled approvals, fixed HUD dimensions, and rotated controls.
+  the full-queue popup, disabled approvals, fully visible character summaries, and rotated controls.
 
 ### 3. History, Reconsider, and targeted undo
 
@@ -222,8 +244,7 @@ review. Leave all source changes uncommitted; no branch changes or release publi
 
 ## Next milestone recommendation
 
-Review milestone 1, then approve milestone 2: connect the player request flow and DM queue/popup.
-The tested accounting foundation is ready for that integration. History controls, Reconsider,
-targeted undo, and coordination with ordinary Undo remain milestone 3; receipts and counter
-markers alone do not implement reversal. Desktop UI checks and installed-program updates wait
-until the visible flow is connected.
+Review and commit milestone 2 before starting milestone 3: History controls, Reconsider, targeted
+undo, and coordination of those reversals with ordinary Undo. Receipts and counter markers alone
+do not implement reversal. The final combined milestone will repeat relevant desktop checks
+after those controls are connected.

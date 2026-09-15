@@ -97,6 +97,10 @@
     const keys = new Set(),
       newTurns = new Set();
     for (const event of events) {
+      if (event.type === 'restore') {
+        for (const key of counters(state).keys()) keys.add(key);
+        continue;
+      }
       const c = TL.findCharacter(state, event.characterId);
       if (!c) throw new Error('Choose a character for this change.');
       const turn = () =>
@@ -126,7 +130,7 @@
   }
 
   // Session-only domain model. The caller supplies a save adapter and authenticates UI commands.
-  // It is deliberately not connected to the running app until the complete approval UI is ready.
+  // approval-service owns this model in main; renderer commands arrive through authenticated IPC.
   class Session {
     #state;
     #id;
@@ -297,6 +301,7 @@
           slotLevel = null,
           confirmedConcentration = '',
           confirmationId,
+          showDetails = false,
         } = command;
         const signature = JSON.stringify({
           type,
@@ -306,6 +311,7 @@
           slotLevel,
           confirmedConcentration,
           confirmationId,
+          showDetails,
         });
         const replay = this.#replay(command, signature);
         if (replay) return replay;
@@ -388,6 +394,10 @@
           const next = copy(this.#state),
             revisions = copy(this.#revisions);
           this.#applyUse(next, request, confirmedConcentration, revisions);
+          if (showDetails) {
+            TL.hudCommand(next, { type: 'panel', characterId, panel: it.economy });
+            TL.hudCommand(next, { type: 'detail', characterId, itemId });
+          }
           result = await this.#prepareChange(next, [], revisions);
         } else throw new Error('Unknown approval command.');
         return this.#remember(command, signature, result);
@@ -420,6 +430,7 @@
           const c = next.characters.find((c) => c.id === request.characterId),
             it = c?.items.find((it) => it.id === request.itemId);
           return (
+            events.some((event) => event.type === 'restore') ||
             newTurns.has(request.characterId) ||
             !it ||
             definitionKey(it) !== request.definitionKey ||

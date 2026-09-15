@@ -1113,7 +1113,8 @@
       case 'economy':
         if (!['action', 'bonus', 'reaction'].includes(command.key))
           throw new Error('Unknown turn cost.');
-        c.turn[command.key] = !c.turn[command.key];
+        c.turn[command.key] =
+          typeof command.ready === 'boolean' ? command.ready : !c.turn[command.key];
         break;
       case 'move':
         c.turn.movement = integer(c.turn.movement + amount(), 0, 9999);

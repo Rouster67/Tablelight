@@ -11,6 +11,48 @@ let concentrationPicker = null;
 let conditionPicker = null;
 let useWarning = null;
 const pendingUses = new Set();
+const requestPrompts = new Map();
+// Picker results can change the summary height after the initial paint.
+const hudSizeObserver = new ResizeObserver(() => {
+  if (!state || gesture?.isDragging) return;
+  HUD.fit(stage, state, innerWidth, innerHeight);
+  updateHit();
+  publishRegions();
+});
+function requestPrompt(characterId, title, message, confirmation = null) {
+  if (requestPrompts.has(characterId)) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    requestPrompts.set(characterId, { title, message, confirmation, resolve });
+    paint();
+    const root = [...stage.children].find((el) => el.dataset.hudId === characterId);
+    root?.querySelector('[data-request-prompt-close]')?.focus({ preventScroll: true });
+  });
+}
+function closeRequestPrompt(id, answer) {
+  const prompt = requestPrompts.get(id);
+  if (!prompt) return;
+  requestPrompts.delete(id);
+  prompt.resolve(answer);
+  paint();
+}
+function paintRequestPrompts() {
+  for (const [id, prompt] of requestPrompts) {
+    const c = state.characters.find((c) => c.id === id);
+    const root = [...stage.children].find((el) => el.dataset.hudId === id);
+    if (!root || !c.hud.expanded || !state.settings.overlayInteractive) {
+      requestPrompts.delete(id);
+      prompt.resolve(false);
+      continue;
+    }
+    root.querySelector('.hud-card').inert = true;
+    const toolbar = root.querySelector('.hud-toolstrip');
+    if (toolbar) toolbar.inert = true;
+    root.insertAdjacentHTML(
+      'beforeend',
+      `<div class="hud-use-warning-backdrop"><section class="hud-use-warning hud-request-prompt" role="alertdialog" aria-modal="true" aria-label="${HUD.esc(prompt.title)}" data-request-prompt="${HUD.esc(id)}"><h3>${HUD.esc(prompt.title)}</h3><p>${HUD.esc(prompt.message)}</p>${prompt.confirmation ? `<ul>${prompt.confirmation.affected.map((r) => `<li>${HUD.esc(r.abilityName)}</li>`).join('')}</ul>` : ''}<div class="row"><button type="button" data-request-prompt-close>${prompt.confirmation ? 'Cancel' : 'Got it'}</button>${prompt.confirmation ? '<button type="button" data-request-prompt-continue class="primary">Continue</button>' : ''}</div></section></div>`
+    );
+  }
+}
 function focusUseControl(value) {
   const button = [...stage.querySelectorAll('[data-hud-command]')].find((el) => {
     const command = JSON.parse(el.dataset.hudCommand);
@@ -110,7 +152,6 @@ function renderConditionResults() {
           .join('') || '<p>No matching conditions. Create conditions on the DM screen.</p>';
   list.scrollTop = scroll;
   if (conditionPicker.reveal && conditionPicker.entries) {
-    list.closest('.hud-condition-menu').scrollIntoView({ block: 'nearest' });
     conditionPicker.reveal = false;
   }
   stage.querySelector('[data-hud-condition-count]').textContent =
@@ -183,7 +224,7 @@ function publishRegions() {
       rotation: 0,
     });
   }
-  // HP, resources, and section text do not change the fixed HUD frame.
+  // Rebuild native hit regions only when the measured frame changes.
   const regionKey = JSON.stringify([innerWidth, innerHeight, frames]);
   if (regionKey !== publishedRegions) {
     window.tablelight.hudRegions(frames);
@@ -198,17 +239,14 @@ function paint() {
     return;
   }
   const currentField = stage.querySelector('[data-concentration-search]');
+  const promptFocus =
+    document.activeElement?.closest('[data-request-prompt]')?.dataset.requestPrompt;
+  const promptContinue = document.activeElement?.hasAttribute('data-request-prompt-continue');
   const restoreFocus = currentField && document.activeElement === currentField;
   const selection = currentField
     ? [currentField.selectionStart, currentField.selectionEnd]
     : [0, 0];
   const concentrationScroll = stage.querySelector('[data-concentration-results]')?.scrollTop || 0;
-  const summaryScroll = new Map(
-    [...stage.children].map((el) => [
-      el.dataset.hudId,
-      el.querySelector('.hud-summary')?.scrollTop || 0,
-    ])
-  );
   const conditionField = stage.querySelector('[data-hud-condition-search]');
   const useFocus = document.activeElement?.hasAttribute('data-hud-use-confirm')
     ? 'confirm'
@@ -221,6 +259,7 @@ function paint() {
     end: conditionField.selectionEnd,
     scroll: stage.querySelector('[data-hud-condition-results]').scrollTop,
   };
+  hudSizeObserver.disconnect();
   HUD.mount(
     stage,
     state,
@@ -248,11 +287,17 @@ function paint() {
   }
   paintConditionPicker(conditionFocus);
   paintUseWarning(useFocus);
-  // Restore after transient forms are mounted, so their extra height does not get clamped away.
-  for (const el of stage.children) {
-    const summary = el.querySelector('.hud-summary');
-    if (summary) summary.scrollTop = summaryScroll.get(el.dataset.hudId) || 0;
+  paintRequestPrompts();
+  if (promptFocus) {
+    const root = [...stage.children].find((el) => el.dataset.hudId === promptFocus);
+    root
+      ?.querySelector(
+        promptContinue ? '[data-request-prompt-continue]' : '[data-request-prompt-close]'
+      )
+      ?.focus({ preventScroll: true });
   }
+  HUD.fit(stage, state, innerWidth, innerHeight);
+  for (const el of stage.children) hudSizeObserver.observe(el);
   updateHit();
   publishRegions();
 }
@@ -268,14 +313,43 @@ function notice(message) {
   }, 4500);
 }
 async function command(value) {
+  const submitted = { sessionId: state.approvalSessionId, commandId: TL.uid(), ...value };
   try {
-    await window.tablelight.hudCommand(value);
+    const response = await window.tablelight.hudCommand(submitted);
+    if (response.result?.status === 'confirmation-required') {
+      const expires = response.result.affected.every((r) => r.status === 'expired');
+      const answer = await requestPrompt(
+        value.characterId,
+        expires ? 'Start a new turn?' : 'Pending requests depend on this change',
+        expires
+          ? 'Continuing will expire these requests and release their reserved costs.'
+          : 'Continuing will automatically deny these requests. Do you wish to continue?',
+        response.result
+      );
+      try {
+        await window.tablelight.hudCommand({
+          type: answer ? 'confirm-change' : 'cancel-change',
+          sessionId: submitted.sessionId,
+          commandId: TL.uid(),
+          confirmationId: response.result.confirmationId,
+        });
+      } catch (error) {
+        if (answer) throw error;
+      }
+      return answer;
+    }
     return true;
   } catch (error) {
-    notice(error.message);
     const latest = await window.tablelight.load();
     state = latest.state;
     paint();
+    if (error.message.includes('DM is super busy'))
+      await requestPrompt(
+        value.characterId,
+        'Hold up—the DM is super busy!',
+        'Three ability requests are already waiting. Try again after the DM handles one.'
+      );
+    else notice(error.message);
     return false;
   }
 }
@@ -307,6 +381,27 @@ gesture = HUDControls.gestures(stage, {
 });
 stage.addEventListener('click', async (event) => {
   if (!state?.settings.overlayInteractive) return;
+  const promptControl = event.target.closest(
+    '[data-request-prompt-close],[data-request-prompt-continue]'
+  );
+  if (promptControl) {
+    closeRequestPrompt(
+      promptControl.closest('[data-request-prompt]').dataset.requestPrompt,
+      promptControl.hasAttribute('data-request-prompt-continue')
+    );
+    return;
+  }
+  const cancelRequest = event.target.closest('[data-cancel-request]');
+  if (cancelRequest && !cancelRequest.disabled) {
+    cancelRequest.disabled = true;
+    await command({
+      type: 'cancel-request',
+      characterId: cancelRequest.dataset.character,
+      requestId: cancelRequest.dataset.cancelRequest,
+    });
+    if (cancelRequest.isConnected) cancelRequest.disabled = false;
+    return;
+  }
   if (event.target.closest('[data-hud-use-cancel]')) {
     cancelUseWarning();
     return;
@@ -395,13 +490,21 @@ stage.addEventListener('input', (event) => {
   searchHudConditions();
 });
 stage.addEventListener('keydown', (event) => {
+  const prompt = event.target.closest('[data-request-prompt]');
+  if (prompt && event.key === 'Escape') {
+    event.preventDefault();
+    closeRequestPrompt(prompt.dataset.requestPrompt, false);
+    return;
+  }
   if (useWarning && event.key === 'Escape') {
     event.preventDefault();
     cancelUseWarning();
     return;
   }
   if (event.key === 'Tab' && event.target.closest('.hud-use-warning')) {
-    const buttons = [...stage.querySelectorAll('.hud-use-warning button:not(:disabled)')];
+    const buttons = [
+      ...event.target.closest('.hud-use-warning').querySelectorAll('button:not(:disabled)'),
+    ];
     if (event.shiftKey && document.activeElement === buttons[0]) {
       event.preventDefault();
       buttons.at(-1)?.focus();

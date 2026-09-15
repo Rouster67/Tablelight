@@ -1107,8 +1107,10 @@ p {
 }
 .hud-position.is-expanded {
   width: var(--hud-expanded-width);
-  height: 650px;
   padding-top: 50px;
+}
+.hud-position.has-pending-requests {
+  --hud-expanded-width: 1150px;
 }
 .hud-collapsed {
   width: 78px;
@@ -1120,13 +1122,13 @@ p {
   height: 68px;
 }
 .hud-card {
-  height: 600px;
+  min-height: 600px;
   width: var(--hud-expanded-width, 880px);
   display: grid;
   grid-template-columns: 344px minmax(0, 1fr);
   gap: 20px;
   align-items: stretch;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto;
   background: rgba(13, 23, 25, var(--panel-opacity, 0.94));
   border: 1px solid #9b8e64;
   border-top: 2px solid var(--accent);
@@ -1137,13 +1139,15 @@ p {
   font-family: 'Segoe UI', sans-serif;
   overflow: hidden;
 }
+.has-pending-requests .hud-card {
+  grid-template-columns: 344px minmax(0, 1fr) 250px;
+}
 .hud-summary,
 .hud-browser,
 .hud-section-content {
   min-height: 0;
   min-width: 0;
 }
-.hud-summary,
 .hud-section-content {
   overflow-y: auto;
   overflow-x: hidden;
@@ -1154,8 +1158,11 @@ p {
 }
 .hud-summary {
   padding-right: 5px;
+  overflow: visible;
 }
 .hud-browser {
+  /* The character summary sets the height; ability text scrolls within it. */
+  contain: size;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   border-left: 1px solid #435044;

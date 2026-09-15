@@ -171,7 +171,11 @@
       })
       .join('');
   }
-  function render(c, opacity = 0.94) {
+  function pendingRequests(c, interactive) {
+    if (!c.pendingRequests?.length) return '';
+    return `<section class="hud-pending-requests" aria-label="Pending ability requests"><b>Awaiting DM approval</b>${c.pendingRequests.map((r) => `<div class="hud-pending-use ${r.urgent ? 'urgent' : ''}"><span>${r.urgent ? '<small>Urgent · Reaction</small>' : ''}${esc(r.name)}${r.slotLevel ? `<small>Level ${r.slotLevel} slot reserved</small>` : ''}</span><button type="button" data-cancel-request="${esc(r.id)}" data-character="${esc(c.id)}" ${interactive ? '' : 'disabled'} aria-label="Cancel request for ${esc(r.name)}">Cancel</button></div>`).join('')}<small>Costs are reserved until the DM decides.</small></section>`;
+  }
+  function render(c, opacity = 0.94, interactive = false) {
     if (!c.hud.expanded)
       return `<div class="hud-collapsed" title="${esc(c.name)}">${portrait(c)}</div>`;
     const detail = c.items.find((i) => i.id === c.hud.detailId),
@@ -213,7 +217,7 @@
       c.resources.length
         ? `<div class="hud-charges">${c.resources.map(resource).join('')}</div>`
         : ''
-    }</div><div class="hud-browser"><nav class="hud-nav" aria-label="Character sections">${panelChoices.map(([key, name]) => `<span class="hud-nav-label ${c.hud.panel === key && !c.hud.detailId ? 'chosen' : ''}">${esc(name)}</span>`).join('')}</nav><div class="hud-section-content">${panel}</div></div></div>`;
+    }</div><div class="hud-browser"><nav class="hud-nav" aria-label="Character sections">${panelChoices.map(([key, name]) => `<span class="hud-nav-label ${c.hud.panel === key && !c.hud.detailId ? 'chosen' : ''}">${esc(name)}</span>`).join('')}</nav><div class="hud-section-content">${panel}</div></div>${pendingRequests(c, interactive)}</div>`;
   }
   function mount(
     stage,
@@ -229,8 +233,8 @@
         el.dataset.hudId,
         {
           key: el.dataset.contentKey,
-          summary: el.querySelector('.hud-summary')?.scrollTop || 0,
           section: el.querySelector('.hud-section-content')?.scrollTop || 0,
+          pending: el.querySelector('.hud-pending-requests')?.scrollTop || 0,
         },
       ])
     );
@@ -238,26 +242,37 @@
       .filter((c) => c.hud.visible)
       .map(
         (c) =>
-          `<div class="hud-position ${c.hud.expanded ? 'is-expanded' : ''} ${c.id === selectedId ? 'selected-hud' : ''}" data-hud-id="${esc(c.id)}" style="--accent:${c.accent};z-index:${c.hud.expanded ? 2 : 1}">${render(c, state.settings.opacity)}</div>`
+          `<div class="hud-position ${c.hud.expanded ? 'is-expanded' : ''} ${c.hud.expanded && c.pendingRequests?.length ? 'has-pending-requests' : ''} ${c.id === selectedId ? 'selected-hud' : ''}" data-hud-id="${esc(c.id)}" style="--accent:${c.accent};z-index:${c.hud.expanded ? 2 : 1}">${render(c, state.settings.opacity, state.settings.overlayInteractive)}</div>`
       )
       .join('');
     for (const el of stage.children) {
       const c = state.characters.find((c) => c.id === el.dataset.hudId);
       if (controls) HUDControls.decorate(el, c, controls);
-      const w = el.offsetWidth,
-        h = el.offsetHeight;
-      const scale = c.hud.scale;
-      const position = TL.fitHud(c.hud, w, h, viewportWidth, viewportHeight);
       el.dataset.contentKey = JSON.stringify([c.hud.panel, c.hud.detailId, c.hud.page]);
       const old = previous.get(c.id);
       if (old && c.hud.expanded) {
-        el.querySelector('.hud-summary').scrollTop = old.summary;
         if (old.key === el.dataset.contentKey)
           el.querySelector('.hud-section-content').scrollTop = old.section;
+        const pending = el.querySelector('.hud-pending-requests');
+        if (pending) pending.scrollTop = old.pending;
       }
+    }
+    fit(stage, state, viewportWidth, viewportHeight, previewScale);
+  }
+  function fit(stage, state, viewportWidth, viewportHeight, previewScale = 1) {
+    for (const el of stage.children) {
+      const c = state.characters.find((c) => c.id === el.dataset.hudId);
+      if (!c) continue;
+      const position = TL.fitHud(
+        c.hud,
+        el.offsetWidth,
+        el.offsetHeight,
+        viewportWidth,
+        viewportHeight
+      );
       el.style.left = position.x * previewScale + 'px';
       el.style.top = position.y * previewScale + 'px';
-      el.style.transform = `translate(-50%, -50%) rotate(${c.hud.rotation}deg) scale(${scale * previewScale})`;
+      el.style.transform = `translate(-50%, -50%) rotate(${c.hud.rotation}deg) scale(${c.hud.scale * previewScale})`;
     }
   }
   function scroll(stage, command) {
@@ -287,6 +302,7 @@
     renderAbilityDetails,
     render,
     mount,
+    fit,
     panelChoices,
   };
 })();

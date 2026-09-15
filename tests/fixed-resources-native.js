@@ -11,7 +11,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
   const wait = async (fn) => {
     const start = Date.now();
     while (!(await fn())) {
-      if (Date.now() - start > 10000) throw Error('Fixed HUD/resource check timed out');
+      if (Date.now() - start > 10000) throw Error('Adaptive HUD/resource check timed out');
       await new Promise((r) => setTimeout(r, 40));
     }
   };
@@ -75,9 +75,9 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(() =>
       tv(`return document.querySelectorAll('.hud-summary .hud-resource').length===4;`)
     );
-    const base = await geometry();
+    let base = await geometry();
     assert.equal(base.width, 880);
-    assert.equal(base.height, 650);
+    assert.ok(base.height >= 650);
     const stacks = await tv(
       `const rows=[...document.querySelectorAll('.hud-summary .hud-resource')].map(el=>el.getBoundingClientRect());const slots=document.querySelector('.hud-slots').getBoundingClientRect();return rows.every((r,i)=>r.top>=(i?rows[i-1].bottom:slots.bottom)) && document.querySelectorAll('.hud-summary .resource-icon').length===4;`
     );
@@ -175,6 +175,18 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await run(
       `commit(()=>{const c=selected();for(let i=0;i<8;i++)c.items.push(TL.item({name:'User action '+i,kind:'spell',economy:i%2?'bonus':'action',description:('A line of user text.\\n').repeat(150),range:'Long user metadata '.repeat(14),duration:'User duration '.repeat(20)}));for(let i=4;i<25;i++)c.resources.push({id:'extra-'+i,name:'A long custom resource name for testing wrapping '.repeat(2),max:999,current:i,reset:'manual',icon:'diamond',color:'#bed479'});});await saveQueue;`
     );
+    await wait(() => tv('return state.characters[0].resources.length===25;'));
+    const shortHeight = base.height;
+    base = await geometry();
+    assert.ok(base.height > shortHeight);
+    assert.ok(
+      await tv(
+        "const summary=document.querySelector('.hud-summary');return summary.scrollHeight<=summary.clientHeight+1 && summary.scrollTop===0 && summary.contains(document.querySelector('.hud-size-controls'));"
+      )
+    );
+    results.push(
+      'The frame grows for all 25 resources; the left column and size buttons need no scrolling.'
+    );
     for (const panel of [
       '',
       'sheet',
@@ -203,9 +215,15 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     results.push(
       'Opening long ability text and changing description pages keeps the HUD dimensions unchanged.'
     );
-    await run(`commit(()=>state.settings.overlayInteractive=false);await saveQueue;`);
-    await wait(() => tv(`return !state.settings.overlayInteractive;`));
-    assert.deepEqual(await geometry(), base);
+    await run(
+      `commit(()=>{state.settings.overlayInteractive=false;window.tallResourceFixture=TL.clone(selected().resources);selected().resources=selected().resources.slice(0,4);});await saveQueue;`
+    );
+    await wait(() =>
+      tv(`return !state.settings.overlayInteractive && state.characters[0].resources.length===4;`)
+    );
+    const tallHeight = base.height;
+    base = await geometry();
+    assert.ok(base.height < tallHeight);
     const historyBefore = await run('return history.length;');
     await click(
       '.current-display [data-action="current-scroll"][data-area="section"][data-direction="1"]'
@@ -214,10 +232,15 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     const scrollBefore = await tv(
       `return document.querySelector('.hud-section-content').scrollTop;`
     );
-    await click(
-      '.current-display [data-action="current-scroll"][data-area="summary"][data-direction="1"]'
+    assert.equal(
+      await run(`return !!document.querySelector('.current-display [data-area="summary"]');`),
+      false
     );
-    await wait(() => tv(`return document.querySelector('.hud-summary').scrollTop>0;`));
+    assert.ok(
+      await tv(
+        "const summary=document.querySelector('.hud-summary');return summary.scrollTop===0 && summary.scrollHeight<=summary.clientHeight+1;"
+      )
+    );
     assert.equal(await run('return history.length;'), historyBefore);
     await run(`commit(()=>selected().hp=5);await saveQueue;`);
     await wait(() => tv(`return state.characters[0].hp===5;`));
@@ -228,7 +251,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     assert.deepEqual(await geometry(), base);
     await shot('01-fixed-click-through', overlay);
     results.push(
-      'DM scroll buttons work in click-through mode without Undo entries; HP updates preserve reading position and fixed size.'
+      'DM scroll buttons work in click-through mode without Undo entries; HP updates preserve reading position and frame height.'
     );
     await click('.current-display [data-panel="sheet"]');
     await wait(() => tv(`return state.characters[0].hud.panel==='sheet';`));
@@ -267,8 +290,14 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     results.push(
       'Currently displayed offers an exact size slider, Smaller, Larger, and 100%; it syncs with TV & layout and changes only that player.'
     );
+    await run(
+      `commit(()=>{selected().resources=window.tallResourceFixture;state.settings.overlayInteractive=true;});await saveQueue;`
+    );
+    await wait(() =>
+      tv(`return state.characters[0].resources.length===25 && state.settings.overlayInteractive;`)
+    );
     const exact = await tv(
-      `const fixture=document.createElement('div');document.body.append(fixture);const sample=TL.clone(state);sample.characters=sample.characters.slice(0,1);const reports=[];for(const scale of [0.4,0.75,1.5,2.5])for(const angle of [0,45,90,180,270]){sample.characters[0].hud={...sample.characters[0].hud,scale,rotation:angle};HUD.mount(fixture,sample,640,480,1,'','overlay');const el=fixture.firstElementChild;reports.push(el.style.transform.endsWith('scale('+scale+')')&&el.offsetWidth===880&&el.offsetHeight===650);}fixture.remove();return reports.every(Boolean);`
+      `const fixture=document.createElement('div');document.body.append(fixture);const sample=TL.clone(state);sample.characters=sample.characters.slice(0,1);const reports=[];for(const scale of [0.4,0.75,1.5,2.5])for(const angle of [0,45,90,180,270]){sample.characters[0].hud={...sample.characters[0].hud,scale,rotation:angle};HUD.mount(fixture,sample,640,480,1,'','overlay');const el=fixture.firstElementChild;reports.push(el.style.transform.endsWith('scale('+scale+')')&&el.offsetWidth===880&&el.offsetHeight>650&&el.querySelector('.hud-summary').scrollHeight<=el.querySelector('.hud-summary').clientHeight+1);}fixture.remove();return reports.every(Boolean);`
     );
     assert.ok(exact);
     results.push('Small displays and rotations never silently reduce the chosen 40–250% scale.');
@@ -288,7 +317,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     await run(`commit(()=>{selected().hud.rotation=0;selected().hud.scale=1;});await saveQueue;`);
     await wait(() => tv(`return state.characters[0].hud.rotation===0;`));
-    await tv(`document.querySelector('.hud-summary').scrollTop=0;`);
+
     await shot('02-fixed-resources', overlay);
     controller.setBounds({ width: 1100, height: 800 });
     await run(

@@ -111,6 +111,23 @@ test('Windows HUD regions include rotated controls and leave empty map corners o
   assert.throws(() => hudRegions([{ width: NaN }], 1000, 800));
 });
 
+test('tall resource and condition frames keep native input bounded to the screen', () => {
+  for (const rotation of [0, 45, 90, 180, 270]) {
+    const rects = hudRegions(
+      [{ cx: 500, cy: 400, width: 2875, height: 100000, rotation }],
+      1000,
+      800
+    );
+    assert.ok(
+      rects.some((r) => r.x <= 500 && r.x + r.width > 500 && r.y <= 400 && r.y + r.height > 400)
+    );
+    assert.ok(rects.length <= 400);
+    assert.ok(
+      rects.every((r) => r.x >= 0 && r.y >= 0 && r.x + r.width <= 1000 && r.y + r.height <= 800)
+    );
+  }
+});
+
 test('condition search is bounded, alphabetical, and exposes only saved definitions', () => {
   const s = TL.empty();
   s.conditionLibrary = Array.from({ length: 120 }, (_, i) =>

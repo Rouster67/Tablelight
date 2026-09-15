@@ -16,6 +16,15 @@ contextBridge.exposeInMainWorld('tablelight', {
   },
   load: () => ipcRenderer.invoke('party:load'),
   save: (state) => ipcRenderer.invoke('party:save', state),
+  changeParty: (value) => ipcRenderer.invoke('party:change', value),
+  undo: () => ipcRenderer.invoke('party:undo'),
+  flush: () => ipcRenderer.invoke('party:flush'),
+  approvalCommand: (value) => ipcRenderer.invoke('approval:command', value),
+  onApprovals: (callback) => {
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('approval:state', listener);
+    return () => ipcRenderer.removeListener('approval:state', listener);
+  },
   displays: () => ipcRenderer.invoke('display:list'),
   overlay: (options) => ipcRenderer.invoke('display:overlay', options),
   hudCommand: (command) => ipcRenderer.invoke('hud:command', command),

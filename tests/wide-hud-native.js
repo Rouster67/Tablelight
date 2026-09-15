@@ -45,7 +45,8 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     const geometry = await tv(
       `const card=document.querySelector('.hud-card'),left=document.querySelector('.hud-summary').getBoundingClientRect(),right=document.querySelector('.hud-browser').getBoundingClientRect(),nav=document.querySelector('.hud-nav').getBoundingClientRect(),panel=document.querySelector('.hud-panel').getBoundingClientRect();return {width:card.offsetWidth,height:card.offsetHeight,leftRight:left.right,rightLeft:right.left,navTop:nav.top,navBottom:nav.bottom,panelTop:panel.top,skills:document.querySelectorAll('.hud-skills>span').length,saves:document.querySelectorAll('.hud-saves>span').length};`
     );
-    assert.ok(geometry.width > geometry.height * 1.25, JSON.stringify(geometry));
+    assert.equal(geometry.width, 880);
+    assert.ok(geometry.height >= 600, JSON.stringify(geometry));
     assert.ok(geometry.rightLeft >= geometry.leftRight);
     assert.ok(geometry.panelTop >= geometry.navBottom);
     assert.equal(geometry.skills, 18);
@@ -87,13 +88,14 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await tv(
-        `const source=document.querySelector('.ability-source'),panel=document.querySelector('.hud-panel'),description=document.querySelector('.hud-description');return source.textContent.includes('x'.repeat(288)) && source.scrollWidth<=source.clientWidth && panel.lastElementChild===source && source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right' && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===650;`
+        `const source=document.querySelector('.ability-source'),panel=document.querySelector('.hud-panel'),description=document.querySelector('.hud-description');return source.textContent.includes('x'.repeat(288)) && source.scrollWidth<=source.clientWidth && panel.lastElementChild===source && source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right' && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===${geometry.height + 50};`
       )
     );
     await command('.hud-pagination', { type: 'page', amount: 1 });
     await wait(() => getState().characters[0].hud.page === 1);
     await shot('02-wide-spell');
     await command('.hud-use-controls', { type: 'use', level: 1 });
+    await require('./approve-pending')(controller);
     await wait(() => getState().characters[0].slots[0].current === 2);
     assert.equal(getState().characters[0].turn.bonus, false);
     results.push(
@@ -127,7 +129,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await tv(
-        `const section=document.querySelector('.hud-section-content'),upgrade=document.querySelector('.ability-upgrades'),panel=document.querySelector('.hud-panel');section.scrollTop=section.scrollHeight;return upgrade.scrollWidth<=upgrade.clientWidth && panel.lastElementChild.classList.contains('ability-source') && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===650;`
+        `const section=document.querySelector('.hud-section-content'),upgrade=document.querySelector('.ability-upgrades'),panel=document.querySelector('.hud-panel');section.scrollTop=section.scrollHeight;return upgrade.scrollWidth<=upgrade.clientWidth && panel.lastElementChild.classList.contains('ability-source') && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===${geometry.height + 50};`
       )
     );
     await shot('04-long-upgrades');
@@ -136,6 +138,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     expectedUse.slots[2].current -= 1;
     expectedUse.turn.bonus = false;
     await command('.hud-use-controls', { type: 'use', level: 3 });
+    await require('./approve-pending')(controller);
     await wait(() => getState().characters[0].slots[2].current === 0);
     assert.deepEqual(getState().characters[0], expectedUse);
     await run(`commit(()=>selected().hud.page=999);await saveQueue;`);

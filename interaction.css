@@ -197,6 +197,48 @@
   flex-wrap: wrap;
   margin-top: 12px;
 }
+.hud-pending-requests {
+  contain: size;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b2a17466 transparent;
+  padding: 12px;
+  border: 1px solid #b2a17466;
+  border-radius: 9px;
+  background: #353a26;
+  font-size: 11px;
+}
+.hud-pending-use {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  padding: 12px 0;
+  border-bottom: 1px solid #b2a17444;
+}
+.hud-pending-use span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.hud-pending-use small {
+  display: block;
+  color: #d0b887;
+}
+.hud-pending-use.urgent small {
+  color: #ff9292;
+}
+.hud-pending-use button {
+  flex-shrink: 0;
+}
+.hud-request-prompt ul {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-left: 20px;
+}
 .hud-use-controls small {
   color: #d5ac9c;
   width: 100%;

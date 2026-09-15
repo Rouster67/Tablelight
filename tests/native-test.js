@@ -14,6 +14,16 @@ module.exports = async function ({
   updates,
   updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'approval-queue')
+    return require('./approval-queue-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'updates-transport')
     return require('./updates-transport-native')({ app, store });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'library-deletion')
