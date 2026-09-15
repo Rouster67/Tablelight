@@ -14,12 +14,17 @@ const {
 const path = require('node:path');
 const fs = require('node:fs');
 const TL = require('./core');
+const { packImages, unpackImages } = require('./preload');
 const { Service: ApprovalService } = require('./approval-service');
-let approvals;
+const { MessageService } = require('./message-service');
+let approvals,
+  messages,
+  overlayMessageReady = false;
 const { hudRegions } = require('./window-shape');
 let overlayFrames = [],
   overlayDragging = false;
 const { Store } = require('./storage');
+const { readIcon, decodeInWindow } = require('./image-import');
 const { UpdatePreferences, UpdateService } = require('./update-service');
 const packageInfo = require('./package.json');
 const updateFixture = packageInfo.name === 'tablelight-update-test' ? packageInfo.updateTest : null;
@@ -78,15 +83,17 @@ else {
         return;
       }
     }
+    messages = new MessageService(state, { onChange: broadcastMessages });
     approvals = new ApprovalService(state, {
       save: (next) => store.save(next),
       onChange: (snapshot, change) => {
         const mode = state.settings.overlayInteractive;
         state = snapshot.state;
+        messages.reconcile(state, { reset: change.restored === true });
         if (controller && !controller.isDestroyed())
-          controller.webContents.send('approval:state', { ...snapshot, change });
+          controller.webContents.send('approval:state', packImages({ ...snapshot, change }));
         if (overlay && !overlay.isDestroyed()) {
-          overlay.webContents.send('party:state', approvals.overlayState());
+          overlay.webContents.send('party:state', packImages(approvals.overlayState()));
           if (mode !== state.settings.overlayInteractive)
             overlay.setFocusable(state.settings.overlayInteractive);
         }
@@ -234,6 +241,34 @@ function sendStatus() {
   for (const win of [controller, overlay])
     if (win && !win.isDestroyed()) win.webContents.send('display:status', status());
 }
+function broadcastMessages(snapshot) {
+  // This separate channel contains notification metadata only, never message text.
+  for (const win of [controller, overlay])
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
+      try {
+        win.webContents.send('messages:state', snapshot);
+      } catch {
+        /* A reloading window will request the current snapshot when ready. */
+      }
+    }
+}
+function syncMessageOverlay(invalidate = false) {
+  const exists = overlay && !overlay.isDestroyed();
+  messages?.setOverlay(
+    {
+      connected: Boolean(exists && overlayMessageReady && !overlay.webContents.isDestroyed()),
+      visible: Boolean(exists && overlayVisible && overlay.isVisible() && !overlay.isMinimized()),
+    },
+    { invalidate }
+  );
+}
+function messageActor(event) {
+  if (!event.senderFrame || event.senderFrame !== event.sender.mainFrame)
+    throw Error('Message controls require the main Tablelight window frame.');
+  if (controller && event.sender.id === controller.webContents.id) return 'dm';
+  if (overlay && event.sender.id === overlay.webContents.id) return 'player';
+  throw Error('Unknown Tablelight message window.');
+}
 function setOverlayHit(hit) {
   overlayHit = Boolean(hit) && state.settings.overlayInteractive;
   if (overlay && !overlay.isDestroyed())
@@ -270,6 +305,7 @@ function requestHudCommand(command) {
   });
 }
 function createOverlay() {
+  overlayMessageReady = false;
   overlayFrames = [];
   overlayDragging = false;
   overlay = safeWindow({
@@ -289,16 +325,33 @@ function createOverlay() {
   setOverlayHit(false);
   overlay.setFocusable(state.settings.overlayInteractive);
   overlay.setAlwaysOnTop(true, 'screen-saver');
+  overlay.webContents.on('did-start-loading', () => {
+    overlayMessageReady = false;
+    syncMessageOverlay(true);
+  });
+  overlay.webContents.on('did-finish-load', () => {
+    overlayMessageReady = true;
+    syncMessageOverlay();
+  });
+  overlay.webContents.on('render-process-gone', () => {
+    overlayMessageReady = false;
+    syncMessageOverlay(true);
+  });
+  for (const event of ['show', 'hide', 'minimize', 'restore'])
+    overlay.on(event, () => syncMessageOverlay());
   overlay.loadFile(path.join(__dirname, 'overlay.html'));
   overlay.once('ready-to-show', () => {
     if (overlayVisible) {
       overlay.showInactive();
       overlay.setBounds(chosenDisplay().bounds);
+      syncMessageOverlay();
     }
   });
   overlay.on('closed', () => {
     overlay = null;
     overlayVisible = false;
+    overlayMessageReady = false;
+    syncMessageOverlay();
     sendStatus();
   });
 }
@@ -315,6 +368,7 @@ function setOverlay(visible) {
     setOverlayHit(false);
   }
   updateOverlayShape();
+  syncMessageOverlay();
   sendStatus();
   return status();
 }
@@ -325,6 +379,7 @@ function displaysChanged() {
   )
     setOverlay(false);
   if (overlayVisible && overlay) overlay.setBounds(chosenDisplay().bounds);
+  syncMessageOverlay(true);
   if (controller) controller.webContents.send('display:changed', displays());
 }
 function auth(event) {
@@ -332,6 +387,22 @@ function auth(event) {
     throw new Error('This control is only available in the DM window.');
 }
 function registerIPC() {
+  ipcMain.handle('messages:snapshot', (event) => {
+    messageActor(event);
+    syncMessageOverlay();
+    return messages.snapshot();
+  });
+  ipcMain.handle('messages:command', (event, request) => {
+    const actor = messageActor(event);
+    if (updateLock) throw Error('Tablelight is preparing to restart. Try again after the update.');
+    syncMessageOverlay();
+    return messages.command(request, actor);
+  });
+  ipcMain.handle('messages:body', (event, request) => {
+    const actor = messageActor(event);
+    syncMessageOverlay();
+    return messages.body(request, actor);
+  });
   for (const [channel, handler] of [
     ['updates:status', () => updates.snapshot()],
     ['updates:enabled', (enabled) => updates.setEnabled(enabled)],
@@ -356,7 +427,7 @@ function registerIPC() {
     const dm = controller && event.sender.id === controller.webContents.id;
     if (!dm && (!overlay || event.sender.id !== overlay.webContents.id))
       throw new Error('Unknown Tablelight window.');
-    return {
+    return packImages({
       ...(dm ? approvals.snapshot() : { state: approvals.overlayState() }),
       warning: dm ? warning : '',
       native: true,
@@ -364,19 +435,19 @@ function registerIPC() {
       dataPath: dm ? store.directory : undefined,
       version: app.getVersion(),
       updates: dm ? updates.snapshot() : undefined,
-    };
+    });
   });
   ipcMain.handle('party:save', (event, raw) => {
     auth(event);
-    return approvals.change({ edited: raw });
+    return approvals.change({ edited: unpackImages(raw) }).then(packImages);
   });
   ipcMain.handle('party:change', (event, value) => {
     auth(event);
-    return approvals.change(value);
+    return approvals.change(unpackImages(value)).then(packImages);
   });
   ipcMain.handle('party:undo', (event) => {
     auth(event);
-    return approvals.undo();
+    return approvals.undo().then(packImages);
   });
   ipcMain.handle('party:flush', (event) => {
     auth(event);
@@ -384,7 +455,7 @@ function registerIPC() {
   });
   ipcMain.handle('approval:command', (event, value) => {
     auth(event);
-    return approvals.command(value);
+    return approvals.command(unpackImages(value)).then(packImages);
   });
   ipcMain.on('hud:regions', (event, frames) => {
     if (!overlay || event.sender.id !== overlay.webContents.id) return;
@@ -464,6 +535,23 @@ function registerIPC() {
     }
     return setOverlay(options.visible);
   });
+  let iconImportBusy = false;
+  ipcMain.handle('file:ability-icon', async (event) => {
+    auth(event);
+    if (iconImportBusy) throw new Error('An ability image is already being opened.');
+    iconImportBusy = true;
+    try {
+      const result = await dialog.showOpenDialog(controller, {
+        title: 'Choose an ability icon',
+        properties: ['openFile'],
+        filters: [{ name: 'Ability images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+      });
+      if (result.canceled) return null;
+      return await readIcon(result.filePaths[0], (data) => decodeInWindow(data, BrowserWindow));
+    } finally {
+      iconImportBusy = false;
+    }
+  });
   ipcMain.handle('file:avatar', async (event) => {
     auth(event);
     const result = await dialog.showOpenDialog(controller, {
@@ -501,6 +589,6 @@ function registerIPC() {
     });
     if (result.canceled) return null;
     const file = result.filePaths[0];
-    return TL.normalize(JSON.parse(fs.readFileSync(file, 'utf8')));
+    return packImages(store.validate(JSON.parse(fs.readFileSync(file, 'utf8'))));
   });
 }

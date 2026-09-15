@@ -64,7 +64,7 @@ function libraryRows(query, filter, characterId = '', localCopy = false) {
       .map((entry) => {
         const users = libraryUsers(entry.id),
           attached = c?.items.some((it) => it.libraryId === entry.id);
-        return `<div class="ability-row library-row"><span class="ability-symbol">${symbols[entry.kind]}</span><div class="ability-main"><b>${esc(entry.name)}</b><small>${esc(entry.kind)} · ${esc(labels[entry.economy])}${entry.kind === 'spell' ? ' · ' + TL.levelLabel(entry) : ''}</small><p class="library-excerpt">${esc(entry.description || 'No description yet.')}</p><small>${users.length ? 'Used by ' + users.map((c) => esc(c.name)).join(', ') : 'Ready to add to a character'}</small></div><div class="ability-controls">${c && localCopy ? button('Copy locally', 'copy-library-locally', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}"`) : c ? button(attached ? 'Already added' : 'Choose', 'attach-library-entry', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}" ${attached ? 'disabled' : ''}`) : button('Add to character', 'assign-library-entry', 'small', `data-id="${esc(entry.id)}" ${TL.allCharacters(state).length ? '' : 'disabled'}`)}${!c ? button('Duplicate', 'duplicate-library-entry', 'small subtle', `data-id="${esc(entry.id)}" aria-label="Duplicate ${esc(entry.name)} in library"`) : ''}<span class="library-edit-controls">${!localCopy ? button('Edit', 'edit-library-entry', 'small subtle', `data-id="${esc(entry.id)}"`) : ''}${!c ? button('Delete', 'delete-library-entry', 'small subtle danger', `data-id="${esc(entry.id)}" aria-label="Delete ${esc(entry.name)} from library"`) : ''}</span></div></div>`;
+        return `<div class="ability-row library-row">${HUD.abilityThumbnail(entry)}<div class="ability-main"><b>${esc(entry.name)}</b><small>${esc(entry.kind)} · ${esc(labels[entry.economy])}${entry.kind === 'spell' ? ' · ' + TL.levelLabel(entry) : ''}</small><p class="library-excerpt">${esc(entry.description || 'No description yet.')}</p><small>${users.length ? 'Used by ' + users.map((c) => esc(c.name)).join(', ') : 'Ready to add to a character'}</small></div><div class="ability-controls">${c && localCopy ? button('Copy locally', 'copy-library-locally', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}"`) : c ? button(attached ? 'Already added' : 'Choose', 'attach-library-entry', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}" ${attached ? 'disabled' : ''}`) : button('Add to character', 'assign-library-entry', 'small', `data-id="${esc(entry.id)}" ${TL.allCharacters(state).length ? '' : 'disabled'}`)}${!c ? button('Duplicate', 'duplicate-library-entry', 'small subtle', `data-id="${esc(entry.id)}" aria-label="Duplicate ${esc(entry.name)} in library"`) : ''}<span class="library-edit-controls">${!localCopy ? button('Edit', 'edit-library-entry', 'small subtle', `data-id="${esc(entry.id)}"`) : ''}${!c ? button('Delete', 'delete-library-entry', 'small subtle danger', `data-id="${esc(entry.id)}" aria-label="Delete ${esc(entry.name)} from library"`) : ''}</span></div></div>`;
       })
       .join('') +
     (entries.length > 100
@@ -152,6 +152,70 @@ function assignLibraryEntry(libraryId) {
   submitForm('assign-form', (data) => attachLibraryEntry(libraryId, data.get('characterId')));
 }
 
+function abilityIconEditor(local) {
+  return `<div class="ability-icon-editor"><div data-icon-preview></div><div><b>Ability image</b><div class="row wrap space-top"><button type="button" data-icon-upload>Upload image</button><button type="button" class="subtle" data-icon-remove>Remove image</button></div><p class="hint">PNG, JPEG, or static WebP · up to 5 MiB and 4096 × 4096 pixels. Fits the whole image within 256 × 256, without cropping. Party image limit: 8 MiB after resizing.</p><p class="hint">${local ? 'This image belongs only to this character’s ability.' : 'This image is shared by every character linked to this library entry.'} Changes apply when you save.</p><p class="hint" data-icon-status role="status"></p><p class="hint ability-icon-error" data-icon-error role="alert"></p></div></div>`;
+}
+
+function bindAbilityIconEditor(form, draft) {
+  const upload = form.querySelector('[data-icon-upload]'),
+    remove = form.querySelector('[data-icon-remove]'),
+    save = document.querySelector('[form="item-form"]'),
+    preview = form.querySelector('[data-icon-preview]'),
+    status = form.querySelector('[data-icon-status]'),
+    error = form.querySelector('[data-icon-error]');
+  let busy = false;
+  function refresh() {
+    preview.innerHTML = HUD.abilityThumbnail({ ...draft, kind: form.elements.kind.value }, 'large');
+    upload.textContent = draft.icon ? 'Replace image' : 'Upload image';
+    upload.disabled = busy;
+    remove.disabled = busy || !draft.icon;
+    status.textContent = busy
+      ? 'Preparing image…'
+      : draft.icon
+        ? 'Image ready. Save to apply.'
+        : 'No image. The ability’s usual symbol will appear.';
+  }
+  // Enter must not save a half-finished upload; Cancel remains available throughout.
+  form.addEventListener(
+    'submit',
+    (event) => {
+      if (busy) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },
+    true
+  );
+  upload.onclick = async () => {
+    if (busy || save.disabled) return;
+    busy = true;
+    save.disabled = true;
+    error.textContent = '';
+    refresh();
+    try {
+      const icon = await api.abilityIcon();
+      if (!form.isConnected) return;
+      if (icon !== null) draft.icon = TL.abilityIcon(icon);
+    } catch (err) {
+      if (form.isConnected) error.textContent = err.message;
+    } finally {
+      busy = false;
+      if (form.isConnected) {
+        save.disabled = false;
+        refresh();
+      }
+    }
+  };
+  remove.onclick = () => {
+    if (busy || save.disabled) return;
+    draft.icon = '';
+    error.textContent = '';
+    refresh();
+  };
+  form.elements.kind.addEventListener('change', refresh);
+  refresh();
+}
+
 function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false) {
   const entry = state.library.find((e) => e.id === id),
     c = TL.findCharacter(state, characterId);
@@ -211,10 +275,13 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
     </div></form>`,
     `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${local ? (binding ? 'Save character ability' : 'Save to character') : entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
   );
-  const initialFields = new FormData(document.getElementById('item-form'));
+  const form = document.getElementById('item-form');
+  form.querySelector('.note').insertAdjacentHTML('afterend', abilityIconEditor(local));
+  bindAbilityIconEditor(form, draft);
+  const initialFields = new FormData(form);
   submitForm('item-form', async (data) => {
     for (const key of TL.definitionFields) {
-      if (['level', 'usesSlot', 'requiresConcentration'].includes(key)) continue;
+      if (['level', 'usesSlot', 'requiresConcentration', 'icon'].includes(key)) continue;
       draft[key] = data.get(key) === initialFields.get(key) ? original[key] : data.get(key);
     }
     draft.level = data.get('level') === '' ? null : Number(data.get('level'));

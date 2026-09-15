@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
 (function (root, factory) {
-  const api = factory();
+  const api = factory(
+    typeof module === 'object' && module.exports ? require('./ability-icon') : root.TLIcon
+  );
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.TL = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Icon) {
   'use strict';
   const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   const skills = {
@@ -90,7 +92,30 @@
     typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : Date.now().toString(36) + Math.random().toString(36).slice(2);
-  const clone = (value) => JSON.parse(JSON.stringify(value));
+  // State is plain JSON data. Copy containers while retaining immutable image/text strings;
+  // serializing each snapshot would duplicate the same shared images throughout Undo.
+  function clone(value) {
+    if (Array.isArray(value)) return Array.from(value, (v) => clone(v) ?? null);
+    if (value && typeof value === 'object')
+      return Object.fromEntries(
+        Object.entries(value)
+          .filter(([, v]) => v !== undefined)
+          .map(([key, v]) => [key, clone(v)])
+      );
+    return typeof value === 'number' && !Number.isFinite(value) ? null : value;
+  }
+  function same(a, b) {
+    if (a === b) return true;
+    if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    if (Array.isArray(a) && a.length !== b.length) return false;
+    const keys = Object.keys(a).filter((key) => a[key] !== undefined),
+      other = Object.keys(b).filter((key) => b[key] !== undefined);
+    return (
+      keys.length === other.length &&
+      keys.every((key) => Object.hasOwn(b, key) && same(a[key], b[key]))
+    );
+  }
   const num = (value, min, max, fallback = min) =>
     Number.isFinite(Number(value)) ? Math.min(max, Math.max(min, Number(value))) : fallback;
   const integer = (value, min, max, fallback = min) => Math.round(num(value, min, max, fallback));
@@ -227,6 +252,7 @@
       upgrades: '',
       save: '',
       description: '',
+      icon: '',
       disabled: false,
       ...data,
     };
@@ -255,6 +281,7 @@
     'upgrades',
     'save',
     'description',
+    'icon',
   ];
   function libraryEntry(raw = {}) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw))
@@ -262,7 +289,10 @@
     const defaults = item(),
       entry = { id: str(raw.id, 300) || uid() };
     for (const key of definitionFields)
-      entry[key] = str(raw[key] ?? defaults[key], abilityTextLimit(key));
+      entry[key] =
+        key === 'icon'
+          ? Icon.normalize(raw[key])
+          : str(raw[key] ?? defaults[key], abilityTextLimit(key));
     entry.name = entry.name.trim() || 'Unnamed ability';
     entry.kind = ['action', 'spell', 'feature'].includes(raw.kind) ? raw.kind : 'action';
     entry.economy = ['action', 'bonus', 'reaction', 'free'].includes(raw.economy)
@@ -531,6 +561,7 @@
       id: uid(),
       name: 'New adventurer',
       className: '',
+      theme: 'default',
       species: '',
       level: 1,
       avatar: '',
@@ -605,6 +636,8 @@
     }
     if (!c.id) c.id = uid();
     if (!c.name.trim()) c.name = 'Adventurer';
+    // Retain unknown identifiers for future palettes; rendering falls back to Default.
+    c.theme = typeof raw.theme === 'string' && raw.theme.trim() ? str(raw.theme, 300) : 'default';
     if (/^#[\da-f]{6}$/i.test(raw.accent || '')) c.accent = raw.accent;
     if (
       /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(raw.avatar || '') &&
@@ -685,6 +718,7 @@
         it[k] = str(r[k] ?? it[k], abilityTextLimit(k));
       if (!it.id) it.id = uid();
       it.libraryId = str(r.libraryId, 300);
+      it.icon = it.libraryId ? '' : Icon.normalize(r.icon);
       if (r.local !== undefined && typeof r.local !== 'boolean')
         throw new Error('An ability’s character-only setting must be true or false.');
       if (r.local === true) {
@@ -738,7 +772,7 @@
   function normalize(raw) {
     if (
       !raw ||
-      ![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(raw.version) ||
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(raw.version) ||
       !Array.isArray(raw.characters)
     )
       throw new Error('This is not a supported Tablelight party backup.');
@@ -799,6 +833,7 @@
       }
     }
     if (library.length > 5000) throw new Error('The library can contain up to 5,000 entries.');
+    Icon.checkBudget({ library, characters: chars, roster });
     if (
       (raw.version >= 4 || raw.conditionLibrary !== undefined) &&
       !Array.isArray(raw.conditionLibrary)
@@ -831,7 +866,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 9,
+      version: 10,
       conditionLibrary,
       libraryVersion: 1,
       library,
@@ -990,8 +1025,7 @@
   }
   // Apply only fields changed in an editor, preserving live HUD changes while the form was open.
   function mergeChanges(before, edited, current) {
-    if (JSON.stringify(before) === JSON.stringify(edited))
-      return current === undefined ? undefined : clone(current);
+    if (same(before, edited)) return current === undefined ? undefined : clone(current);
     if (
       edited &&
       before &&
@@ -1217,6 +1251,8 @@
     mergeChanges,
     hudCommand,
     definitionFields,
+    abilityIcon: Icon.normalize,
+    same,
     textPages,
     abilityTextSections,
     abilityTextPages,

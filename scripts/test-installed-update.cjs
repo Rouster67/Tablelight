@@ -127,9 +127,13 @@ async function buildVersion(version, feed) {
   const first = await buildVersion('0.0.1', feed);
   releaseDir = await buildVersion('0.0.2', feed);
   const TL = require('../core');
+  const { png, dataUrl } = require('../tests/icon-fixtures');
+  const sharedIcon = dataUrl(png(32, 16, { pixel: [60, 170, 245, 180] }));
+  const localIcon = dataUrl(png(16, 32, { pixel: [235, 95, 70, 255] }));
   const state = TL.empty();
   const c = TL.character(0);
   c.name = 'Synthetic update player';
+  c.theme = 'artificer';
   c.maxHp = 42;
   c.hp = 23;
   c.notes = 'Private synthetic note survives the update.';
@@ -150,7 +154,9 @@ async function buildVersion(version, feed) {
   ];
   state.characters = [c];
   state.activeId = c.id;
-  state.roster = [{ ...TL.character(1), name: 'Synthetic saved player', avatar: c.avatar }];
+  state.roster = [
+    { ...TL.character(1), name: 'Synthetic saved player', avatar: c.avatar, theme: 'wizard' },
+  ];
   state.library = [
     TL.libraryEntry({
       name: 'Synthetic spell',
@@ -158,6 +164,7 @@ async function buildVersion(version, feed) {
       level: 1,
       requiresConcentration: true,
       description: 'Synthetic spell text.',
+      icon: sharedIcon,
     }),
     TL.libraryEntry({
       name: 'Synthetic action',
@@ -168,10 +175,12 @@ async function buildVersion(version, feed) {
       name: 'Synthetic feature',
       kind: 'feature',
       description: 'Synthetic feature text.',
+      icon: sharedIcon,
     }),
     TL.libraryEntry({
       name: 'Unassigned ability',
       description: 'Retain unused library entries too.',
+      icon: localIcon,
     }),
   ];
   const concentration = TL.attachItem(state, c.id, state.library[0].id, {
@@ -180,6 +189,11 @@ async function buildVersion(version, feed) {
   });
   TL.attachItem(state, c.id, state.library[1].id);
   TL.attachItem(state, state.roster[0].id, state.library[2].id, { disabled: true });
+  TL.createLocalItem(state, c.id, {
+    name: 'Synthetic local ability',
+    icon: localIcon,
+    economy: 'free',
+  });
   TL.setConcentration(c, true, concentration.id);
   state.conditionLibrary = [
     TL.conditionEntry({

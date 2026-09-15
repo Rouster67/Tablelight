@@ -12,6 +12,8 @@ progress; entries do not assign a release version or authorize implementation.
 - **Foundation ready:** The supporting logic is tested locally; the visible feature is not connected.
 - **In progress:** An approved part is implemented; remaining milestones still need approval.
 - **Implemented locally:** The agreed change is in the source and awaits testing and release.
+- **Implemented on branch:** The agreed feature is implemented and has automated coverage; merge,
+  physical setup review where applicable, and release remain separate steps.
 - **Merged; release pending:** The change is in `main`; a public app release is still pending.
 - **Released:** The change is available in a public stable app release.
 
@@ -21,20 +23,20 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 ## Ideas at a glance
 
-| ID  | Idea                                          | Status                  |
-| --- | --------------------------------------------- | ----------------------- |
-| F01 | Passive abilities section                     | Considering             |
-| F02 | Messages sent to individual player overlays   | Considering             |
-| F03 | Visible application version on the DM screen  | Released                |
-| F04 | Launch update prompt and Windows installer    | Released                |
-| F05 | Source reference on abilities                 | Merged; release pending |
-| F06 | Concentration reminder when applying damage   | Released                |
-| F07 | Manual ability fields (revised scope)         | Merged; release pending |
-| F08 | Upcast and level-based upgrade text           | Merged; release pending |
-| F09 | Uploaded icons for abilities                  | Planned candidate       |
-| F10 | DM approval queue, History, and targeted undo | Merged; release pending |
-| F12 | Class overlay color themes                    | Planned candidate       |
-| F13 | Bundled illustrated PDF user guide            | Planned candidate       |
+| ID  | Idea                                          | Status                |
+| --- | --------------------------------------------- | --------------------- |
+| F01 | Passive abilities section                     | Considering           |
+| F02 | Messages sent to individual player overlays   | Implemented on branch |
+| F03 | Visible application version on the DM screen  | Released              |
+| F04 | Launch update prompt and Windows installer    | Released              |
+| F05 | Source reference on abilities                 | Released              |
+| F06 | Concentration reminder when applying damage   | Released              |
+| F07 | Manual ability fields (revised scope)         | Released              |
+| F08 | Upcast and level-based upgrade text           | Released              |
+| F09 | Uploaded icons for abilities                  | Implemented on branch |
+| F10 | DM approval queue, History, and targeted undo | Released              |
+| F12 | Class overlay color themes                    | Implemented on branch |
+| F13 | Bundled illustrated PDF user guide            | Planned candidate     |
 
 ## F01 — Passive abilities section
 
@@ -75,10 +77,24 @@ design delays its exposure and makes casual glances less likely. Per-player priv
 be a separate idea if actual private viewing is needed. Message text should not appear in other
 characters' HUDs or ordinary ability descriptions.
 
-**Open decisions:** One pending message or an inbox? Should messages expire after reading? Should
-they survive app restarts or be included in backups? What happens when the recipient leaves the
-party or their overlay is hidden? Should the DM see sent/opened status? If a popup changes which
-screen area is interactive, how should it preserve map interaction outside that area?
+**Delivery foundation implemented:** One retained plain-text message per active character, with
+a 2,000 Unicode-code-point limit and explicit replacement. Message text is session-only and stays
+out of saves, backups, and gameplay Undo. Removal clears that recipient; restart and successful
+backup restore clear the session. Hiding or reloading closes exposed text while retaining the
+message. Metadata-only updates distinguish sent, indicator-delivered, and visibly-opened receipts;
+the latter records whether the DM or player requested opening. Stale requests cannot alter a
+replacement or another player. DM commands remain usable with click-through enabled.
+
+**Interface implemented:** Messages in the sidebar provides recipient selection, per-player drafts,
+explicit replacement, and DM reading/dismissal controls. Envelopes contain no text preview; text
+opens in the recipient's theme and orientation. DM page/scroll/close controls work in click-through.
+The preview remains notification-only, and the composer states the shared-TV visibility boundary.
+Eight HUDs, eight collapsed-message cards, and the notice fit within the validated 17-frame input
+model. Native tests check actual Windows regions, rotation/edge placement, retry races, palette
+contrast, reduced motion, and closing during movement. Combined regression now covers messages
+alongside icons, themes, pending approvals and guarded backup restores. The physical TV walkthrough
+remains in [the review checklist](VISUAL_IMPROVEMENTS_REVIEW.md).
+Prepared for release 1.12.0; merge and publication are still pending.
 
 ## F03 — Visible application version on the DM screen
 
@@ -175,10 +191,9 @@ the player HUD. Library search includes references. Empty sources are hidden and
 wrap inside the fixed HUD. Source text does not change costs, personal bindings, or availability.
 Links remain outside this first milestone.
 
-**Status:** Merged in [PR #10](https://github.com/Rouster67/Tablelight/pull/10); included in the
-prepared 1.11.0 release, pending publication. Reference
-retains the original source data and stays below Description at the bottom right. Current saves
-use format 9 and accept formats 1–8. Regression checks cover migration,
+**Status:** Merged in [PR #10](https://github.com/Rouster67/Tablelight/pull/10) and released in
+1.11.0. Reference retains the original source data and stays below Description at the bottom
+right. Current saves use format 10 and accept formats 1–9. Regression checks cover migration,
 active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
 saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 
@@ -222,14 +237,14 @@ Area, Casting Time, Spell Level, Components, School, Attack, Save, On Save, Dama
 Upcast / Upgrades, Name, Type, standard-slot and Concentration checkboxes, Reference, Description,
 linked resource pool, charges per use, Requirements, and Special.
 
-**Merged in PR #10; prepared for 1.11.0:** Attack, Save, and On Save are plain text. Type keeps
+**Merged in PR #10; released in 1.11.0:** Attack, Save, and On Save are plain text. Type keeps
 its dropdown; Spell Level is available on all types. Casting Time is free text alongside the
 existing explicit Turn cost selector. Resource links and charge costs remain character-specific.
 Upcast / Upgrades stays below Damage / Healing, and Reference replaces the Source label below
 Description, at the bottom right. All fields can be left blank. Shared text appears consistently
 on DM details, assignment previews, and the expanding, rotatable player HUD.
 
-Save format 9 imports formats 1–8 and preserves existing text and character state. Fixed values
+The original format 9 implementation imports formats 1–8 and preserves existing text and character state. Fixed values
 entered in the earlier preview are retained as manual text; differing personal exceptions become
 separate library variants. No automatic ability calculation remains. F10 approval, History, and
 targeted undo are tracked separately below.
@@ -253,7 +268,7 @@ are removed. The operation supports ordinary Undo, and changed assignments requi
 **Requested:** Add a section for what changes when a spell is cast with a higher-level slot, or
 when a cantrip or feature improves as the character levels up.
 
-**Merged in PR #10; prepared for 1.11.0:** One shared multiline **Upcast / upgrades** field sits
+**Merged in PR #10; released in 1.11.0:** One shared multiline **Upcast / upgrades** field sits
 directly beneath Damage / healing in the editor. It accepts 40,000 characters for spells, cantrips,
 actions, and features. DM details, assignment previews, and HUD details show populated upgrades
 after the description, with Reference last at the bottom right. Library search includes the text.
@@ -265,15 +280,36 @@ damage calculations, and applied effects remain outside this feature.
 
 ## F09 — Uploaded icons for abilities
 
+**Milestone 1 — foundation ready (September 14, 2026):** Added the DM-only image-import bridge,
+source validation, sandboxed PNG/JPEG/WebP conversion, and save/backup support on
+`codex/ability-icons-class-themes-player-messages`. Icons fit within a 256-pixel longest edge
+without enlarging small art or cropping. Limits are 5 MiB and 4,096 pixels per source edge,
+300 KiB per stored PNG, and 8 MiB across shared and character-only definitions. Static images
+retain transparency and orientation; animation and damaged/oversized inputs are rejected.
+Format 10 imports formats 1–9 and preserves icons through copies and previous-save recovery.
+The storage milestone passed 165 unit tests and 22 desktop scenarios.
+
+**Milestone 2 — editing and display implemented (September 14, 2026):** Upload/Replace/Remove
+and draft previews now work in shared and character-only editors. The DM library, picker,
+assignment preview, character lists/details, DM HUD preview, and TV lists/details use the same
+fixed thumbnail with a type-symbol fallback. Shared changes preserve live spending and each
+active/inactive character's bindings and HUD settings. Cancel, failed upload, late completion,
+Undo, broken artwork, all four orientations, hidden/collapsed overlays, and click-through are
+covered by desktop checks. Snapshots reuse immutable image strings and window messages deduplicate
+PNG data. The large-library stress check covers 5,000 definitions, eight active players,
+100 inactive players, and 40 Undo snapshots. Combined automated review is complete; the feature
+is prepared for 1.12.0, with the physical TV check, merge and publication still pending.
+
 **Requested:** Let users upload a custom image for a spell, action, or feature.
 
 **Suggested approach:** Keep the icon with the shared library entry and show a thumbnail alongside
 the ability on both screens. Provide replace/remove controls and a sensible fallback when no image
 is supplied. Keep icons in exported backups so entries remain portable between computers.
 
-**Open decisions:** Which image formats, size limits, and cropping controls should be offered?
-Reuse the portrait upload approach where practical and resize images to avoid large libraries
-making saves or HUD updates slow. Users supply the images; no spell art is bundled.
+**Implemented scope:** Editor controls and thumbnails work on both screens and preserve
+character-only ability behavior. Stress tests cover the image budget and many assignments.
+Images use the agreed static formats and fit without a crop editor. Users supply the images;
+no spell art is bundled.
 
 ## F10 — DM approval queue, History, and targeted undo
 
@@ -288,8 +324,7 @@ The review also fixed focus leaving History after an action or canceled dependen
 The final review and History placement fixes are committed. The installed-program walkthrough
 passed on the separate DM and player monitors, including later spending, targeted undo, queue
 limits, rotation, and restart behavior; test edits were restored to the original saved data.
-Merged in [PR #11](https://github.com/Rouster67/Tablelight/pull/11); prepared for 1.11.0,
-pending publication.
+Merged in [PR #11](https://github.com/Rouster67/Tablelight/pull/11) and released in 1.11.0.
 
 **HUD layout amendment:** The player HUD grows taller to keep the entire character column and
 Smaller/Larger controls visible. Pending requests appear in a separate column to the right of
@@ -321,6 +356,26 @@ implementation recommendations, milestone checks, and final walkthrough on
 
 ## F12 — Class overlay color themes
 
+**Milestone 3 — palettes and previews implemented (September 14, 2026):** All 13 class palettes
+and Default are available in the renderer. Each HUD owns its theme variables; class surfaces,
+controls, borders, text, selection and focus colors change together. Player identity rings,
+uploaded artwork, resource colors/shapes, and saved gameplay data stay independent. Class themes
+use solid reading surfaces with adjustable surrounding frame opacity. Returning to Default
+restores the original appearance, including its existing low-opacity and dimmed-spent-text
+limitations. The [local palette preview](theme-preview.html) uses synthetic characters only.
+
+**Milestone 4 — selection and persistence implemented (September 15, 2026):** Create and Edit
+now include Theme, with independent choices saved for active and inactive characters. Older saves
+use Default. Unknown theme identifiers display Default but remain saved until explicitly replaced.
+Cancel, Undo, remove/rejoin, native backup export/import, and a fresh application restart preserve
+the choices. Theme edits preserve later HUD spending, pending requests, shared artwork, resource
+colors and geometry. Validation includes all 14 options, eight same-class players, hidden/collapsed
+and click-through overlays, and the existing rendered contrast checks; all 175 unit tests and
+26 desktop scenarios pass.
+
+Combined automated review is complete and the themes are prepared for 1.12.0. Physical TV
+viewing-distance review, merge and publication remain pending.
+
 **Requested (September 13, 2026):** Add a Theme dropdown to the character creator that changes
 that character's overlay appearance through recoloring. Include one theme per class, including
 Artificer, built into the program.
@@ -343,8 +398,9 @@ Ranger, Rogue, Sorcerer, Warlock, and Wizard.
 - Keep text readable at TV viewing distances and retain clear warning, concentration, unavailable,
   and resource states across every palette.
 
-**Open decisions:** Choose the colors for each class and decide how class themes interact with
-the existing Player color setting and custom resource colors. This feature is scoped to recoloring;
+**Color policy implemented:** Use the class colors in [the visual improvements plan](VISUAL_IMPROVEMENTS_PLAN.md),
+retain Player color for identity rings, and put custom resource shapes on a contrasting backing
+without rewriting their colors. Physical TV viewing-distance review is still needed. This feature is scoped to recoloring;
 custom theme editors, class artwork, and layout changes would be separate ideas.
 
 **Completion checks:** Verify all 13 class choices and Default, creation and editing, independent
@@ -424,14 +480,13 @@ The version display, installer/updater, and concentration reminder (F03, F04, F0
 in 1.10.0. The update-folder fix was released in 1.10.1, and the uninstaller data-choice follow-up
 was released in 1.10.2.
 
-1. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
-2. Choose and preview the class color palettes and their interaction with existing character and
-   resource colors before implementing the Theme dropdown (F12).
-3. Design passive abilities and character-based calculations together where they affect the shared
-   library and character assignments (F01, F07).
-4. Prototype messages and player-use review with the actual TV setup (F02, F10). Agree on privacy
-   expectations, undo behavior, and popup placement before coding.
-5. Outline the illustrated guide (F13), then finish screenshots and walkthroughs against the
+1. F05 references, F08 upgrades, manual F07 fields, and F10 approval/History behavior were released
+   in 1.11.0. Their older proposal text remains historical context.
+2. F09 icons, F12 class themes, and F02 messages are implemented on the visual-improvements branch.
+   Finish the [physical TV review](VISUAL_IMPROVEMENTS_REVIEW.md), then prepare their release.
+3. Continue the separately agreed planning for passives (F01). Preserve the manual F07 scope;
+   automatic character calculations would require a new decision.
+4. Outline the illustrated guide (F13), then finish screenshots and walkthroughs against the
    features included in its release. Bundle the PDF and replace the three named help sections
    with its link as one complete change.
 

@@ -8,6 +8,7 @@ function renderSidebar() {
   return `<aside class="sidebar"><div class="brand"><div class="brand-mark">T</div><div><div class="brand-name">Tablelight</div><small>THE TABLE, ALIVE.</small></div></div><nav class="sidebar-navigation" aria-label="App sections">${[
     ['character', '⚔', 'DM console'],
     ['display', '▱', 'TV & layout'],
+    ['messages', '✉', 'Messages'],
     ['library', '▤', 'Ability library'],
     ['condition-library', '◇', 'Condition library'],
     ['roster', '♙', 'Players & party'],

@@ -50,12 +50,13 @@ Only the main process accesses the file system. `storage.js` writes a temporary 
 
 ## Shared library
 
-Save format version 9 keeps `library` and `conditionLibrary` alongside `characters` (active
+Save format version 10 keeps `library` and `conditionLibrary` alongside `characters` (active
 party), `roster` (inactive saved players), `settings`, and `activeId`. Library entries own
 `name`, `kind`, `economy`, `level`, `usesSlot`, `requiresConcentration`, and the manual text
 fields: `trigger`, `duration`, `range`, `area`, `castingTime`, `components`, `school`,
 `attack`, `save`, `onSave`, `damage`, `upgrades`, `requirements`, `special`, `description`,
 and `source`. The visible Reference label retains the existing `source` storage key.
+The optional `icon` contains a validated, embedded PNG, defaulting to an empty string.
 Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
 Slots, resources, HP, turn state, and HUD settings belong to each character.
 
@@ -117,11 +118,11 @@ changed-field merging preserves concurrent HUD spending. Untouched inputs retain
 text, including legacy whitespace or line breaks that a single-line input cannot display.
 DM details refresh when shared text changes.
 
-Formats 1–8 import into format 9. Older missing fields become blank; legacy unlinked items match
+Formats 1–9 import into format 10. Older missing fields become blank; legacy unlinked items match
 by their full normalized definition content. Different same-name definitions remain separate.
 Missing references and duplicate definition IDs remain errors. IDs, selections, resources, and
-all character state are preserved. Older readers reject format 9 rather than promote local copies
-into the shared library. Inactive roster, overlay rendering, resource spending, concentration,
+all character state are preserved. Older readers reject format 10 rather than silently discard
+ability icons; format 9 originally introduced character-only copies. Inactive roster, overlay rendering, resource spending, concentration,
 backup recovery, and session Undo all retain local items by their own stable IDs.
 
 The uncommitted calculation preview wrote format 7. Its migration preserves explicitly entered
@@ -181,7 +182,7 @@ characters array order is the displayed initiative order, persisted without chan
 
 `approval-session.js` implements request accounting; `approval-service.js` owns it in the main
 process and serializes edits, HUD commands, approvals, and ordinary Undo. It is also available
-beside `TL` for the browser preview. Save format 9 remains unchanged.
+beside `TL` for the browser preview. Approval session data stays outside the party save format.
 
 The model owns a normalized party state plus separate session-only pending requests, five resolved
 History records, counter revision markers, and command receipts. Requests reserve costs in a copied
@@ -245,6 +246,191 @@ detail view, Reconsider, and Undo this use. Buttons show current reasons when bl
 icons respect open editors and become inert behind dependency confirmations. Reconsider opens
 its new request only if the initiating History view is still open, preserving a later editor.
 
+## Ability images
+
+`ability-icon.js` loads before `core.js` in both windows. It validates bounded base64 PNGs,
+dimensions, chunk structure, CRCs, and the total image budget. New saves contain only static
+8-bit RGBA PNG icons up to 256 pixels per edge and 300 KiB each. The 8 MiB aggregate counts
+each shared definition once, plus each independent character-only definition. Linked display
+copies do not consume the budget again. Icons participate in exact-definition migration and
+copying; resource shape icons remain separate. Small bounded caches avoid repeating checks
+for every shared assignment or stat update.
+
+`image-import.js` checks source signatures, container boundaries, animation markers, and edges
+before decoding PNG, JPEG, or WebP files, with a bounded 5 MiB read and 4,096-pixel source edges.
+The authenticated, DM-only `file:ability-icon` bridge opens the file chooser and serializes imports.
+It converts pixels in a temporary hidden, sandboxed browser window: nativeImage cannot decode
+WebP in the current runtime. This window has no Node access or preload, uses a nonpersistent
+session, blocks navigation/new windows, and permits only local script and image data through
+its CSP. It times out and is destroyed after conversion or failure. No dependency was added.
+
+The renderer honors image orientation, fits the entire image to a 256-pixel longest edge,
+retains transparency, does not enlarge small artwork, and exports PNG without source metadata.
+The main process validates the returned PNG, including bounded decompression and scanline
+filters, before accepting it. `Store.validate` applies the same pixel checks during load, save,
+and backup import, before any existing save is replaced. The previous-valid-save fallback
+also validates pixels.
+
+`library-ui.js` keeps uploads/removals in the current editor draft until Save. Upload failure
+retains the previous image; Cancel abandons the draft. Saving is blocked during conversion,
+and a completion from a closed editor cannot change a later editor. Shared image edits use
+the existing changed-field merge; character-only copies retain independent images and bindings.
+
+`HUD.abilityThumbnail` supplies the same fixed square and neutral backing in library/picker,
+character, detail, and TV views. Images use `object-fit: contain`; the type symbol remains
+visible until an image loads and returns if it fails. Document capture listeners handle
+load/error without inline handlers. Thumbnail dimensions do not depend on image dimensions.
+The existing HUD fitting, scroll areas, rotation, hit regions, and resource icons are unchanged.
+
+`TL.clone` copies plain JSON containers while retaining immutable strings. Structural equality
+avoids repeatedly serializing image data for comparisons and stale-editor merges. Approval
+definition snapshots and Undo replay signatures also retain strings instead of embedding PNGs
+inside generated JSON keys. Saves still serialize each shared definition only once in format 10.
+
+The shared codec in `preload.js` boxes each distinct PNG string once per outgoing message;
+Electron's structured-clone reference table then transmits repeated image references cheaply.
+It unboxes images to ordinary strings before either renderer or the authoritative state sees
+them. The codec is shared with main from the preload file because sandboxed preloads cannot
+require local helper modules. Sender checks, validation, privacy filtering, and backup format
+remain in their existing layers. This is a per-message table with no persistent asset IDs/cache.
+
+Run `node --expose-gc scripts/benchmark-ability-icons.cjs` for the synthetic 5,000-definition,
+8-player, 100-inactive-character, 40-Undo stress check. It records save, wire-codec, and memory
+measurements under ignored `test-results/`, then checks all 40 undos restore the original state.
+The `ability-icons-performance` native scenario additionally measures both real window updates.
+
+## Class overlay palettes
+
+`hud-themes.js` contains the immutable palette registry, stable identifiers, safe Default
+fallback, and DOM application helper. `hud-themes.css` loads after the existing HUD styles in
+both windows; every rule is scoped to `.hud-position[data-hud-theme]`. `HUD.mount` applies the
+character's theme after decorating controls. Missing/unknown themes add no styling, and
+returning to Default removes only the module's variables, attribute, and resource-icon frames.
+`TL.character` defaults `theme` to `default`. Character normalization preserves nonblank string
+identifiers (up to 300 characters), including unknown choices; missing, blank, or malformed
+values use Default. The optional field travels in both character collections and the existing
+unreleased format 10 backups. There is no new format bump within this unreleased feature branch.
+
+Create and Edit use the same palette registry for the Theme dropdown. An unknown identifier
+gets an escaped selected option labeled "Default (saved theme unavailable)" so saving unrelated
+fields does not erase it. Explicitly selecting Default replaces it. Theme and free-form class
+name are separate fields. The existing changed-field merge includes `theme`, preserving later
+HUD spending and other characters' settings; theme edits do not invalidate pending requests.
+Only Save commits the choice. Existing Undo, roster membership, and backup paths retain it.
+
+Each class uses the planned dark surface/highlight pair, derived panel/control/hover/border
+colors, and common readable text/semantic colors. The outer frame uses the existing background
+opacity setting; reading areas and controls stay opaque. Spent and disabled states retain text
+contrast using dashed borders and the existing labels, rather than fading the whole subtree.
+The class-theme damage/concentration reminder stays fully visible instead of pulsing dimmer.
+Default continues using the original styles, including the original animation and opacity.
+
+Player accent values and portrait rings are untouched; themed initials use readable text.
+Ability images keep their pixels and neutral backing. Resource shapes retain their stored
+color/clip path inside the same 16-pixel footprint, with a 14-pixel shape on a one-pixel black or
+white backing chosen for contrast. Default removes that frame. Borders, backings and focus
+outlines do not change HUD sizing, scrolling, position, scale, rotation, or hit regions.
+
+`docs/theme-preview.html` renders synthetic expanded/collapsed examples of all 14 choices,
+using the real HUD renderer and styles, with map/opacity/view controls and no app bridge or
+saved state. Native theme checks inspect computed/composited text and control colors in both
+windows, compare Default with the theme sheet disabled, and check independent themes, geometry,
+artwork, resource colors, hover/focus, warnings, and click-through. Physical TV viewing distance
+is outside automated coverage. Message UI tests also check text/control contrast in all 14 palettes.
+
+## Player-message delivery
+
+`message-service.js` owns a separate main-process session, instantiated beside the approval service.
+It retains at most one message per active character ID, independent of name, initiative, theme,
+resource values, and placement. Bodies are plain text, nonblank, limited to 2,000 Unicode code
+points, and preserved verbatim. Sending into an occupied slot requires the exact previous message
+ID. Closing retains the message and opened history; dismissal deletes it. There is no inbox or expiry.
+
+`messages:snapshot` and `messages:state` contain metadata only: session/global revision, transport
+availability, character/message IDs, command revision, presentation ID, sent/delivered/opened times,
+requesting actor, unread, open, current indicator/body visibility, page/count, scroll sequence/direction,
+and stacking order. These are separate from party,
+approval, backup, and HUD payloads. No message body enters gameplay Undo or the save format.
+
+`messages:command` validates the actual top-level sender frame and window. The DM may send, force
+open, close, and dismiss; the overlay may open, close, and acknowledge indicator/body display.
+Both roles have page/scroll commands, with player reading commands rejected in click-through.
+Each command carries a session ID, unique request ID, and character ID. Existing-message operations
+also require the exact message ID, revision, and presentation ID. Same-request retries return a
+receipt without repeating effects. Session-long replay records store a digest and result metadata,
+never the command text, so delayed retries after dismissal or removal cannot resurrect messages.
+Unknown windows, wrong-role operations, stale sessions/views, and inactive recipients are rejected.
+
+The DM may explicitly retrieve a selected body through `messages:body`. The overlay can retrieve
+only a current, open message for a visible character in a connected, visible TV window. Responses
+carry all view identifiers; renderer code must discard a response whose identifiers no longer match
+the current metadata. A player body response also carries a per-presentation body token. Neither
+an open request nor fetching its body marks it read. An `ack-opened` must return that token for the
+same current visible presentation. First indicator acknowledgement records delivery; each new
+acknowledged opening records the latest opened time and whether the player or DM requested it.
+Unread becomes false after an acknowledged opening and stays false until replacement.
+
+The service reconciles active membership after successful approval-service state changes. Removal
+deletes the recipient's message; Undo/rejoining cannot recover it. Successful backup restore emits
+`change.restored`, including confirmed restores, and starts a new message session. Cancelled or failed
+restores do not. Ordinary saves, theme changes, spending, and gameplay Undo retain other messages.
+App restart creates an empty service. No message bodies or command text are written to logs.
+
+Hiding a character or the TV, changing collapsed/expanded state, changing displays, and renderer
+reload/loss close exposed text and invalidate presentation tokens, retaining historical read status.
+Metadata resync never automatically reopens a body. Force open rejects unavailable recipients rather
+than queuing future exposure. Click-through keeps its existing native mode: player open/close are
+rejected, while DM operations, body fetches, and renderer acknowledgements remain available.
+
+`message-client.js` supplies lossless bounded text pages and an ordered metadata subscriber in both
+renderers. A late initial snapshot cannot overwrite a newer session event; retired sessions cannot
+be resurrected by delayed responses. Page changes invalidate the presentation/body token while
+retaining read history; new page acknowledgements record the latest display. Scroll commands are
+deduplicated within the current presentation. Reopening retains the selected page; changing
+interaction mode retains both page and scroll. Repeated open requests raise only that card.
+
+`message-dm.js` implements the Messages sidebar page. Drafts, confirmation targets, retry request
+IDs, and explicit laptop-review text are separate from party state. Recipient changes retain the
+corresponding draft; removal never selects a different recipient silently. Replacements bind to
+the reviewed message ID. Errors retain draft text; successful session reset clears drafts. Only
+the selected note's explicit laptop-review request retrieves its body, without a TV read receipt.
+
+`message-overlay.js` adds a fixed-size envelope within existing bubble/HUD bounds and renders text
+through `textContent`. It discards stale body responses and acknowledges the current presentation
+after two animation frames and a visible, connected, on-screen DOM check. Unread badges have a
+five-second pulse with a reduced-motion override. Metadata and party updates do not remount the
+reading area, preserving scroll and keyboard focus. Failed loads remain unread and offer retry.
+
+Reading cards use the character palette with an opaque surface, including Default, and inherit the
+character's rotation and scale. They are at most 480 × 320 CSS pixels before scale, reducing their
+own dimensions for small viewports without rewriting HUD settings. Expanded messages sit visually
+inside the existing HUD frame; collapsed cards fit independently around the saved center. No
+full-screen backdrop or saved section/detail/page change is needed. `messages.css` enables pointer
+input on the card only when HUD controls are enabled; DM controls remain usable in click-through.
+
+The separate message layer publishes additional native regions only for collapsed cards. The
+validated maximum is 17 frames (eight HUDs, eight cards, one notice); Windows receives every rotated
+frame. Expanded cards stay within their existing HUD region. Mail controls cannot initiate a HUD
+gesture. Starting a TV HUD drag closes that character's message before the gesture completes,
+and the existing gesture cleanup restores normal map-input regions. A dismissed/hidden/closed card
+is removed immediately and publishes updated regions. DM layout previews add disabled badges only.
+
+All players share one renderer and TV: recipient targeting is not a private-device security boundary.
+An opened message is visible to nearby people; the composer states this next to Force open.
+
 ## Tests
 
 Unit tests cover cost spending, migration, linked definitions, independent bindings, save recovery, geometry, command validation, and stale-editor merging. Native scenarios exercise the real renderer and Electron windows using synthetic state, capture screenshots, and verify persistence. Run them with `npm run test:native` in a Windows desktop session. The native harness creates a unique user-data directory per scenario and never reads the normal party file.
+
+`visual-improvements-native.js` combines artwork, independent themes, message cards and pending
+approvals in one session. It exercises real editor upload, simultaneous player HP commands,
+an older theme editor, definition-change and restore guards, and native backup export/import.
+Shared definition edits, including icon edits, retain the existing pending-use review; theme
+changes do not invalidate ability reservations. Cancelling either guard leaves messages intact;
+only a successful restore resets their session.
+
+The combined scenario records connected display bounds and scale factors, plus separate simulated
+1280 × 720, 1920 × 1080 and 2560 × 1440 viewports. It preserves saved HUD settings for mixed
+40–250% scales and five rotations. Interaction-mode changes keep the existing addition/removal
+of HUD editing controls; the inner collapsed bubble remains 78 × 78. Automated results and the
+remaining physical TV checklist are recorded in [the visual review](VISUAL_IMPROVEMENTS_REVIEW.md).

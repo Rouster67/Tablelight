@@ -9,6 +9,14 @@ const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
 const scenarios = [
+  'visual-improvements',
+  'player-messages-ui',
+  'player-messages',
+  'character-themes',
+  'hud-themes',
+  'ability-icons-performance',
+  'ability-icons-ui',
+  'ability-icons',
   'history',
   'approval-queue',
   'standard',
@@ -50,6 +58,30 @@ for (const scenario of requested.length ? requested : scenarios) {
   fs.writeFileSync(path.join(dir, 'process.log'), (child.stdout || '') + (child.stderr || ''));
   if (child.error || child.status !== 0)
     throw child.error || new Error(scenario + ' test process failed. See ' + dir);
+  if (['character-themes', 'player-messages'].includes(scenario)) {
+    const first = JSON.parse(fs.readFileSync(path.join(dir, scenario + '-results.json'), 'utf8'));
+    if (!first.passed) throw new Error(first.error + '\nSee ' + dir);
+    const restart = spawnSync(electron, [root, '--self-test'], {
+      env: {
+        ...process.env,
+        TABLELIGHT_TEST_DATA: path.join(dir, 'data'),
+        TABLELIGHT_TEST_SCENARIO: scenario,
+        TABLELIGHT_TEST_RESTART: '1',
+      },
+      cwd: root,
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 120000,
+    });
+    fs.writeFileSync(
+      path.join(dir, 'restart.log'),
+      (restart.stdout || '') + (restart.stderr || '')
+    );
+    if (restart.error || restart.status !== 0)
+      throw restart.error || new Error(scenario + ' restart failed. See ' + dir);
+    if (!fs.existsSync(path.join(dir, scenario + '-restart-results.json')))
+      throw new Error('Missing ' + scenario + ' restart results. See ' + dir);
+  }
   const files = fs.readdirSync(dir).filter((name) => name.endsWith('results.json'));
   if (!files.length) throw new Error('No ' + scenario + ' test results. See ' + dir);
   for (const name of files) {

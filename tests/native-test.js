@@ -14,6 +14,81 @@ module.exports = async function ({
   updates,
   updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'visual-improvements')
+    return require('./visual-improvements-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'player-messages-ui')
+    return require('./player-messages-ui-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'player-messages')
+    return require('./player-messages-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'character-themes')
+    return require('./character-themes-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'hud-themes')
+    return require('./hud-themes-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-icons-performance')
+    return require('./ability-icons-performance-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-icons-ui')
+    return require('./ability-icons-ui-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-icons')
+    return require('./ability-icons-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'history')
     return require('./history-native')({
       app,

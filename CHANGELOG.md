@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 1.12.0 — 2026-09-15
+
+- Add a combined desktop regression for icons, themes, player messages, pending approvals, and backup restores, using isolated one-, two-, and eight-player parties. Correct the guide to describe save format 10 and consolidate the release review checklist.
+
+- Add Messages to the DM sidebar, with independent player drafts, recipient portraits, explicit replacement, and sent/delivered/opened status. Players receive an envelope without a text preview and can open, page, scroll, and close the note; the DM can force open, page, scroll, close, or dismiss it while click-through remains enabled.
+- Render messages in the recipient's theme and orientation, inside expanded HUD frames or temporary cards for collapsed players. Preserve saved HUD settings and map-input gaps, support eight simultaneous messages, and show only notification state in DM layout previews. Unread envelopes pulse for five seconds and stay steady with reduced motion. Opened text is visible on the shared TV.
+- Retain one plain-text message per active character, with explicit replacement, separate sent/delivered/opened receipts, and checked DM/player commands. Messages stay out of saves, backups, and gameplay Undo; hiding or reloading closes text, while removal, successful restore, and app restart clear the appropriate messages.
+- Add Theme to Create and Edit character, with Default plus all 13 class palettes, including Artificer. Each choice is independent of the entered class and other players and applies to the bubble, expanded HUD, and DM preview. Preserve choices through saves, backups, remove/rejoin, and Undo; changing a theme leaves live spending and pending approvals intact.
+- Keep Default for older saves and retain unknown theme identifiers while displaying Default until a replacement is chosen. Class themes keep reading surfaces opaque over maps and preserve player rings, ability artwork, resource colors, and HUD geometry.
+- Add a local class-palette review page under `docs/theme-preview.html`, with bright/dark/patterned maps, frame opacity, and ability/detail/sheet views. The page uses synthetic characters and does not save changes.
+- Add custom ability images: Upload, Replace, Remove, and preview controls for shared and character-only spells, actions, and features. PNG/JPEG/static WebP imports fit within 256 pixels without cropping and travel with party backups. Cancel and failed imports preserve the current image.
+- Show matching fixed-size thumbnails in the DM library, assignment picker/preview, character lists/details, and TV HUDs. Keep the usual ability symbol when artwork is absent or cannot load, alongside visible names and availability labels.
+- Keep shared image edits synchronized across active and inactive characters while preserving individual resource settings and live spending. Reuse immutable image data in Undo snapshots and send each distinct PNG once per window update to avoid repeated image copies in large parties.
+- Save format 10 preserves ability images with shared definitions and existing character-only copies, imports formats 1–9, and rejects damaged icon data before replacing valid saves.
+- Verify shared and local ability images, active and inactive character themes, and save preservation through the real installer/update/restart flow; session messages clear when the updated app reopens.
+
 ## 1.11.0 — 2026-09-14
 
 - Move the History icon to the right of the DM sidebar so Add character and Setup & help remain visible and clickable on wide and narrow windows.

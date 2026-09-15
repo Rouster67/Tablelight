@@ -1,4 +1,4 @@
-# Tablelight 1.11.0
+# Tablelight 1.12.0
 
 A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many players as you need and choose up to eight for the active party. All spells, actions, and features are entered by you; no rulebook content is bundled.
 
@@ -69,11 +69,89 @@ You can also open **Players & party** for a larger management screen. Search by 
 
 Only active party members participate in **Next turn**, whole-party rests, and automatic TV arrangement. Each active player's Show/Hide bubble setting still applies. You can remove everyone to leave an empty party while keeping all players saved. Tablelight does not count rounds.
 
+## Messages to players
+
+1. Open **Messages** in the left sidebar and choose an active player. Check the name and portrait
+   beside **Send message**, especially when characters have the same name.
+2. Write up to **2,000 characters**, then choose **Send message**. Each player has their own draft;
+   switching players or leaving this page keeps unfinished text during this session.
+3. The player's bubble or expanded HUD gains an envelope with an unread dot, without a text
+   preview. It pulses gently for five seconds, then stays steady. Windows reduced-motion settings
+   keep it steady from the start. Sending never shows a hidden player or exposes the note automatically.
+4. With HUD controls on, the player clicks the envelope to read the message. It faces the same
+   direction as their character. Use the page arrows and scroll the text when needed, then **Close**.
+
+**Opened messages are visible to everyone near the shared TV.** Recipient selection controls where
+the note appears; it cannot make an opened message private from other people at the table.
+
+The DM's **Force open** reveals the selected player's note. **Previous page**, **Next page**,
+**Scroll up**, **Scroll down**, and **Close on TV** also work in click-through mode, without turning
+player controls back on. If cards overlap, Force open brings the selected message to the front.
+The reading panel fits within an expanded HUD, or appears as a temporary card for a collapsed
+player. Closing restores access to the same bubble/HUD without changing its saved settings.
+
+**Sent** means accepted by Tablelight. **Delivered · Unread** means the envelope reached the
+visible overlay. **Opened by player/DM** means the overlay displayed the text; it is not proof
+that someone read it. **View sent text on laptop** lets the DM review a note without marking it
+opened on the TV. The layout preview shows notification state only.
+
+There is one retained message per player. Sending another requires **Replace** confirmation,
+which discards the old note and makes its replacement unread. **Close** retains the note for
+reopening; **Dismiss** removes it. A failed send keeps the draft for retry. A failed text load offers
+**Retry** on the TV; the DM can also use Force open again.
+
+Hiding the player/TV, changing between collapsed and expanded HUDs, dragging the HUD, or reloading
+the overlay closes exposed text. Showing the player again restores the envelope without reopening
+the message. Show hidden players through **TV & layout** before using Force open.
+
+Messages and drafts stay in memory during this session. They are excluded from party saves,
+backups, and gameplay Undo. Restarting Tablelight or successfully restoring a backup clears them.
+Removing a player clears their sent message; rejoining or Undo does not bring it back. Ordinary
+stat, theme, and library edits retain other messages and each player's independent settings.
+
+## Character overlay themes
+
+In **Create character** or **Edit character**, choose **Theme**, then **Save character**.
+The choices are **Default**, **Artificer**, **Barbarian**, **Bard**, **Cleric**, **Druid**,
+**Fighter**, **Monk**, **Paladin**, **Ranger**, **Rogue**, **Sorcerer**, **Warlock**, and **Wizard**.
+The selected colors appear on that character's collapsed bubble, expanded HUD, and DM preview.
+The typed **Class / subclass** does not choose a theme: multiclass, homebrew, and same-class
+characters can each use whichever palette they prefer.
+
+**Default** restores the original appearance. **Player color** still identifies the character;
+portraits, ability images, resource colors, spending, HUD size, position, and rotation stay the
+same. **Cancel** leaves the saved theme untouched; **Undo** can reverse a saved change during
+the current session. You can change themes from the DM screen while the overlay is hidden or
+click-through. Changing a theme does not show a hidden bubble or window.
+
+Themes stay with active and inactive characters, including after restarting, removing/rejoining
+the party, and exporting/restoring a backup. Older saves start with Default. If the editor says
+**Default (saved theme unavailable)**, this version cannot display that saved theme. It keeps
+the original choice when you edit other fields. Choose Default or a class theme to replace it.
+
 ## Shared ability library
 
 Open **Ability library** in the sidebar to create, search, filter, or edit your spells, actions, and features. You can build the library before adding characters. It starts empty; all text comes from you.
 
 On a character, **+ Add → Create new** saves a new entry to the library and adds it to that character. **+ Add → Choose existing** searches the library and links an entry you already wrote. You can also use **Add to character** from the library.
+
+**Ability images:** In an ability editor, choose **Upload image** to add artwork, **Replace image**
+to change it, or **Remove image** to return to the usual spell, action, or feature symbol.
+The preview shows the complete picture. Choose **Save shared entry** (or the character-only Save
+button) to apply your changes. **Cancel** keeps the saved image; a failed upload keeps the previous
+preview so you can try again. **Undo** can reverse a saved image edit during the session.
+
+Use PNG, JPEG, or static WebP, up to **5 MiB** and **4096 pixels per side**. Tablelight fits it
+within **256 × 256 pixels**, keeps transparency and orientation, and does not crop or enlarge
+small images. Converted images have a **300 KiB** limit; all saved ability images together have
+an **8 MiB** limit. A shared image counts once, while each independent local copy counts separately.
+If saving would exceed the limit, remove or replace some artwork and try again.
+
+Shared images update every linked character, including saved players outside the active party.
+Character-only abilities keep their own images. Artwork appears beside abilities on both screens,
+including the library picker and details. Names and availability remain visible, and a missing or
+unreadable image uses the usual symbol. Images save with your party and exported backups; you do
+not need to keep the original source files for Tablelight to display them.
 
 Each Ability library row has **Delete** beside **Edit**. For an assigned ability, a warning lists every character using it, including characters outside the active party. Choose:
 
@@ -321,7 +399,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Tablelight 1.11.0 writes save format 9 and imports formats 1–8. All manual fields, existing players, libraries, resources, and HUD choices are retained. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Older app versions cannot read format 9; export a backup before updating if you may need to return to an older app. Pending approvals and History are session-only and are not included in saves or exported backups.
+Tablelight 1.12.0 writes save format 10 and imports formats 1–9. Backups retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Tablelight 1.11.0 and earlier cannot read format 10; keep a backup from before updating if you may need to return to an older release. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
 
 ## Keyboard shortcuts
 

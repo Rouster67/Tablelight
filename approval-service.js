@@ -5,7 +5,7 @@
   else root.TLApprovalService = factory(root.TL, root.TLApproval);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (TL, Approval) {
   'use strict';
-  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const same = TL.same;
   function eventsFor(command) {
     const characterId = command.characterId;
     if (command.type === 'turn') return [{ type: 'new-turn', characterId }];
@@ -89,7 +89,11 @@
       }
       if (after.session.revision !== before.session.revision || meta.restore) {
         this.#preview = null;
-        this.onChange(this.snapshot(), { kind: meta.kind, requestId: result.requestId });
+        this.onChange(this.snapshot(), {
+          kind: meta.kind,
+          requestId: result.requestId,
+          ...(meta.restore && !result.replayed ? { restored: true } : {}),
+        });
       }
       return { ...this.snapshot(), result };
     }

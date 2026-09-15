@@ -42,6 +42,9 @@ if (!api) {
     avatar: async () => {
       throw new Error('Portrait upload is available in Tablelight.exe.');
     },
+    abilityIcon: async () => {
+      throw new Error('Ability image upload is available in Tablelight.exe.');
+    },
     exportParty: async () => false,
     importParty: async () => null,
     onState: () => {},
@@ -164,11 +167,14 @@ function render() {
   if (c) selectedId = c.id;
   const oldScroll = window.scrollY;
   const sidebarState = captureSidebarState();
+  const messageFocus = captureMessageFocus();
   document.getElementById('app').innerHTML =
-    `<div class="app-shell">${renderSidebar()}<main class="main"><header class="topbar"><div class="breadcrumb">Dungeon Master <span class="muted"> / </span> <b>${view === 'display' ? 'TV & layout' : view === 'help' ? 'Setup & help' : view === 'condition-library' ? 'Condition library' : view === 'library' ? 'Ability library' : view === 'roster' ? 'Players & party' : 'Session console'}</b></div><div class="row">${button('↶ Undo', 'undo', 'subtle small', history.length ? '' : 'disabled')}${button(state.settings.overlayInteractive ? 'HUD controls: on' : 'Click-through', 'toggle-interactive', state.settings.overlayInteractive ? 'active small' : 'small')}${button(overlayStatus.visible ? '● Hide TV overlay' : '▱ Show TV overlay', 'toggle-overlay', overlayStatus.visible ? 'active' : 'primary')}</div></header>${saveError ? `<div class="save-warning">${esc(saveError)} ${button('Retry save', 'retry-save', 'small')}</div>` : ''}<div class="content">${view === 'roster' ? renderRoster() : view === 'help' ? renderHelp() : view === 'condition-library' ? renderConditionLibrary() : view === 'library' ? renderLibrary() : view === 'display' ? renderDisplay() : c ? renderCharacter(c) : renderWelcome()}</div></main></div>`;
+    `<div class="app-shell">${renderSidebar()}<main class="main"><header class="topbar"><div class="breadcrumb">Dungeon Master <span class="muted"> / </span> <b>${view === 'messages' ? 'Messages' : view === 'display' ? 'TV & layout' : view === 'help' ? 'Setup & help' : view === 'condition-library' ? 'Condition library' : view === 'library' ? 'Ability library' : view === 'roster' ? 'Players & party' : 'Session console'}</b></div><div class="row">${button('↶ Undo', 'undo', 'subtle small', history.length ? '' : 'disabled')}${button(state.settings.overlayInteractive ? 'HUD controls: on' : 'Click-through', 'toggle-interactive', state.settings.overlayInteractive ? 'active small' : 'small')}${button(overlayStatus.visible ? '● Hide TV overlay' : '▱ Show TV overlay', 'toggle-overlay', overlayStatus.visible ? 'active' : 'primary')}</div></header>${saveError ? `<div class="save-warning">${esc(saveError)} ${button('Retry save', 'retry-save', 'small')}</div>` : ''}<div class="content">${view === 'messages' ? renderMessages() : view === 'roster' ? renderRoster() : view === 'help' ? renderHelp() : view === 'condition-library' ? renderConditionLibrary() : view === 'library' ? renderLibrary() : view === 'display' ? renderDisplay() : c ? renderCharacter(c) : renderWelcome()}</div></main></div>`;
   if (view === 'display') requestAnimationFrame(paintPreview);
   window.scrollTo(0, oldScroll);
   restoreSidebarState(sidebarState);
+  refreshMessages();
+  restoreMessageFocus(messageFocus);
   refreshConditionPicker();
   refreshConcentrationPicker();
   refreshDamageReminder();
@@ -226,7 +232,7 @@ function renderAbilityList(c) {
     filteredItems(c)
       .map((it) => {
         const reason = TL.availability(c, it);
-        return `<div class="ability-row ${reason ? 'spent' : ''}"><span class="ability-symbol">${symbols[it.kind] || symbols[it.economy]}</span><div class="ability-main"><b>${HUD.abilityName(it)}</b><small>${esc(labels[it.economy])}${it.kind === 'spell' ? ' · ' + TL.levelLabel(it) : ''}${it.resourceId ? ' · ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small>${reason ? `<small>${esc(reason)}</small>` : ''}</div><div class="ability-controls character-ability-controls">${button('View', 'view-item', 'small', `data-id="${esc(it.id)}"`)}${button('Use', 'use-item', 'small primary', `data-id="${esc(it.id)}" ${reason ? 'disabled' : ''}`)}${button('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4"></path></svg>', 'duplicate-local-item', 'small subtle icon ability-duplicate', `data-id="${esc(it.id)}" data-character="${esc(c.id)}" title="Duplicate locally only" aria-label="Duplicate locally only"`)}${button('Edit', 'edit-item', 'small subtle', `data-id="${esc(it.id)}"`)}${button('Remove from character', 'delete-item', 'small subtle danger ability-remove', `data-id="${esc(it.id)}" aria-label="Remove ${esc(it.name)} from ${esc(c.name)}"`)}</div></div>`;
+        return `<div class="ability-row ${reason ? 'spent' : ''}">${HUD.abilityThumbnail(it)}<div class="ability-main"><b>${HUD.abilityName(it)}</b><small>${esc(labels[it.economy])}${it.kind === 'spell' ? ' · ' + TL.levelLabel(it) : ''}${it.resourceId ? ' · ' + it.resourceCost + ' ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small>${reason ? `<small>${esc(reason)}</small>` : ''}</div><div class="ability-controls character-ability-controls">${button('View', 'view-item', 'small', `data-id="${esc(it.id)}"`)}${button('Use', 'use-item', 'small primary', `data-id="${esc(it.id)}" ${reason ? 'disabled' : ''}`)}${button('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h4"></path></svg>', 'duplicate-local-item', 'small subtle icon ability-duplicate', `data-id="${esc(it.id)}" data-character="${esc(c.id)}" title="Duplicate locally only" aria-label="Duplicate locally only"`)}${button('Edit', 'edit-item', 'small subtle', `data-id="${esc(it.id)}"`)}${button('Remove from character', 'delete-item', 'small subtle danger ability-remove', `data-id="${esc(it.id)}" aria-label="Remove ${esc(it.name)} from ${esc(c.name)}"`)}</div></div>`;
       })
       .join('') ||
     `<div class="empty-inline">${search ? 'No matching abilities.' : 'Your rules, your choices.<br>Add your own ' + esc(labels[tab]?.toLowerCase() || 'abilities') + ' to this character.'}</div>`
@@ -286,6 +292,7 @@ function paintPreview() {
     selectedId,
     state.settings.overlayInteractive ? 'overlay' : 'preview'
   );
+  paintMessagePreview();
   stage.querySelectorAll('[data-cancel-request]').forEach((button) => (button.disabled = true));
   if (!stage.hudGesture) {
     stage.hudGesture = HUDControls.gestures(stage, {
@@ -373,9 +380,13 @@ function editCharacter(isNew = false, playerId = selectedId) {
     ),
     original = TL.clone(draft);
   const f = (title, key, type = 'text', extra = '') => field(title, key, draft[key], type, extra);
+  const themeChoices = HUDThemes.choices.map(({ id, name }) => [id, name]);
+  const unavailableTheme = draft.theme !== 'default' && !HUDThemes.get(draft.theme);
+  if (unavailableTheme) themeChoices.unshift([draft.theme, 'Default (saved theme unavailable)']);
+  const themeField = `<label class="form-field"><span>Theme</span><select name="theme" aria-describedby="theme-help">${options(themeChoices, draft.theme)}</select><small id="theme-help" class="hint">${unavailableTheme ? 'Your saved theme is unavailable in this version. Default is shown until you choose a replacement. ' : ''}Changes only this character’s bubble, HUD, and DM preview. Player and resource colors stay the same.</small></label>`;
   modal(
     isNew ? 'Create an adventurer' : 'Edit ' + esc(draft.name),
-    `<form id="character-form">${isNew ? `<div class="note roster-create"><label class="row"><input type="checkbox" name="addToParty" ${state.characters.length < TL.PARTY_LIMIT ? 'checked' : 'disabled'}>Add to active party</label><p class="hint">${state.characters.length < TL.PARTY_LIMIT ? 'Leave unchecked to save this player for later.' : 'Your party has eight players. This new player will be saved in the roster.'}</p></div>` : ''}<div class="row" style="margin-bottom:22px"><div id="avatar-preview">${portrait(draft)}</div><div class="gap"><div class="row">${button('Upload portrait', 'upload-avatar', 'subtle')}${button('Remove image', 'remove-avatar', 'small subtle')}</div><span class="hint">PNG, JPG, or WebP. Saved with your character.</span></div></div><div class="form-grid">${f('Character name', 'name', 'text', 'required maxlength="100"')}${f('Class / subclass', 'className', 'text', 'maxlength="120"')}${f('Species', 'species', 'text', 'maxlength="120"')}${f('Level', 'level', 'number', 'min="1" max="30" required')}${f('Armor class', 'ac', 'number', 'min="0" max="99" required')}${f('Speed (feet)', 'speed', 'number', 'min="0" max="999" required')}${f('Current HP', 'hp', 'number', 'min="0" max="9999" required')}${f('Maximum HP', 'maxHp', 'number', 'min="1" max="9999" required')}${f('Temporary HP', 'tempHp', 'number', 'min="0" max="9999" required')}${f('Proficiency bonus', 'proficiency', 'number', 'min="0" max="20" required')}${f('Initiative order value', 'initiative', 'number', 'min="-99" max="999" required')}${f('Player color', 'accent', 'color')}</div><div class="form-section"><h3>Ability scores</h3><div class="stats-grid">${TL.abilities.map((a) => field(a.toUpperCase(), 'ability-' + a, draft.abilities[a], 'number', 'min="1" max="30" required')).join('')}</div>${renderEditorSaves(draft)}</div><div class="form-section"><h3>Skills</h3>${renderEditorSkills(draft)}</div><div class="form-section"><h3>Spellcasting</h3><div class="form-grid"><label class="form-field"><span>Spellcasting ability</span><select name="spellAbility">${options(
+    `<form id="character-form">${isNew ? `<div class="note roster-create"><label class="row"><input type="checkbox" name="addToParty" ${state.characters.length < TL.PARTY_LIMIT ? 'checked' : 'disabled'}>Add to active party</label><p class="hint">${state.characters.length < TL.PARTY_LIMIT ? 'Leave unchecked to save this player for later.' : 'Your party has eight players. This new player will be saved in the roster.'}</p></div>` : ''}<div class="row" style="margin-bottom:22px"><div id="avatar-preview">${portrait(draft)}</div><div class="gap"><div class="row">${button('Upload portrait', 'upload-avatar', 'subtle')}${button('Remove image', 'remove-avatar', 'small subtle')}</div><span class="hint">PNG, JPG, or WebP. Saved with your character.</span></div></div><div class="form-grid">${f('Character name', 'name', 'text', 'required maxlength="100"')}${f('Class / subclass', 'className', 'text', 'maxlength="120"')}${themeField}${f('Species', 'species', 'text', 'maxlength="120"')}${f('Level', 'level', 'number', 'min="1" max="30" required')}${f('Armor class', 'ac', 'number', 'min="0" max="99" required')}${f('Speed (feet)', 'speed', 'number', 'min="0" max="999" required')}${f('Current HP', 'hp', 'number', 'min="0" max="9999" required')}${f('Maximum HP', 'maxHp', 'number', 'min="1" max="9999" required')}${f('Temporary HP', 'tempHp', 'number', 'min="0" max="9999" required')}${f('Proficiency bonus', 'proficiency', 'number', 'min="0" max="20" required')}${f('Initiative order value', 'initiative', 'number', 'min="-99" max="999" required')}${f('Player color', 'accent', 'color')}</div><div class="form-section"><h3>Ability scores</h3><div class="stats-grid">${TL.abilities.map((a) => field(a.toUpperCase(), 'ability-' + a, draft.abilities[a], 'number', 'min="1" max="30" required')).join('')}</div>${renderEditorSaves(draft)}</div><div class="form-section"><h3>Skills</h3>${renderEditorSkills(draft)}</div><div class="form-section"><h3>Spellcasting</h3><div class="form-grid"><label class="form-field"><span>Spellcasting ability</span><select name="spellAbility">${options(
       TL.abilities.map((a) => [a, a.toUpperCase()]),
       draft.spellAbility
     )}</select></label>${field('Spell DC override', 'spellDC', draft.spellDC ?? '', 'number', 'min="0" max="99" placeholder="Automatic"')}${field('Spell attack override', 'spellAttack', draft.spellAttack ?? '', 'number', 'min="-99" max="99" placeholder="Automatic"')}</div><p class="space-top">Maximum standard spell slots. Raising a maximum adds available slots; lowering it caps remaining slots.</p><div class="form-slots">${draft.slots.map((s) => field('Level ' + s.level, 'slot-' + s.level, s.max, 'number', 'min="0" max="30" required')).join('')}</div></div>${renderResourceEditor(draft)}<div class="form-section"><h3>DM notes</h3><p>These stay on your laptop.</p><textarea name="notes" maxlength="40000" rows="4">${esc(draft.notes)}</textarea></div></form>`,
@@ -401,6 +412,7 @@ function editCharacter(isNew = false, playerId = selectedId) {
     readResourceEditor(draft);
     for (const k of ['name', 'className', 'species', 'notes', 'accent', 'spellAbility'])
       draft[k] = data.get(k).trim();
+    draft.theme = data.get('theme') || 'default';
     if (!draft.name) throw new Error('Enter a character name.');
     for (const k of ['level', 'ac', 'speed', 'hp', 'maxHp', 'tempHp', 'proficiency', 'initiative'])
       draft[k] = Number(data.get(k));
@@ -670,6 +682,7 @@ document.addEventListener('click', async (event) => {
       action.startsWith('view-') &&
       [
         'view-character',
+        'view-messages',
         'view-display',
         'view-help',
         'view-library',
@@ -678,6 +691,12 @@ document.addEventListener('click', async (event) => {
       ].includes(action)
     ) {
       view = action.slice(5);
+      if (view === 'messages') {
+        if (!messageRecipient) messageRecipient = selectedId;
+        messageClient
+          ?.refresh()
+          .catch(() => toast('Message controls could not load. Try again.', true));
+      }
       render();
       return;
     }
@@ -1063,6 +1082,7 @@ api.onOverlay((value) => {
     approvalState = loaded.approvals || approvalState;
     history = Array(loaded.undoCount || 0);
     api.onApprovals?.(acceptApprovalState);
+    initMessages();
     overlayStatus = loaded.status || { visible: false };
     dataPath = loaded.dataPath || '';
     appVersion = loaded.version || '';

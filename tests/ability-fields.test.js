@@ -152,7 +152,7 @@ test('format 7 preserves explicit manual numbers as text and keeps personal exce
     TL.allCharacters(raw).map((c) => c.items[0].id)
   );
   const backup = TL.toBackup(restored);
-  assert.equal(backup.version, 9);
+  assert.equal(backup.version, 10);
   assert.ok(
     !/attackValue|saveDCValue|targetSaveAbility|attackOverride|saveDCOverride|targetSaveOverride/.test(
       JSON.stringify(backup)
