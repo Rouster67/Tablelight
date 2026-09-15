@@ -1,11 +1,11 @@
 # Ability icons, class themes, and player messages — proposed plan
 
 Status: implementation started at the user's request on September 14, 2026.
-Milestones 1–5 are implemented and tested locally. Milestones 6–7 remain planned.
+Milestones 1–6 are implemented and tested locally. Milestone 7 remains planned.
 Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
 `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
-in use, and class themes include selection and persistence. Player-message delivery is implemented;
-the composer, mail indicator, and reading interface remain planned.
+in use, and class themes include selection and persistence. Player-message delivery, the composer,
+mail indicators, and reading controls are implemented. Combined review remains before release.
 
 ## Branch setup completed
 
@@ -24,6 +24,7 @@ the composer, mail indicator, and reading interface remain planned.
    (Implement ability image editing and display). Milestone 3 was committed as `6302224`
    (Add class palette themes and previews). Milestone 4 was committed as `a5d9ff8`
    (Add character theme selection and persistence).
+   Milestone 5 was committed as `9b3340b` (Implement session-only player messaging).
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
 The normal source folder is now the working location; the previous separate-folder instructions
@@ -61,7 +62,7 @@ commit, uncommitted status, build time, and backup location.
 ## What the current project already provides
 
 - [Roadmap](ROADMAP.md): F09 storage, editing, and display are implemented on this branch;
-  F12 class themes are implemented; F02 delivery is implemented, with its interface still planned.
+  F12 class themes and F02 delivery/reading controls are implemented. Combined review remains.
   These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
   focused issues with decisions and completion checklists when implementation is scheduled.
 - [Core state](../core.js): shared definitions supply each character's ability display fields.
@@ -85,7 +86,7 @@ commit, uncommitted status, build time, and backup location.
 - [Overlay](../overlay.js) and [window shapes](../window-shape.js): all players share one TV
   window. Rotated input regions let map clicks through the gaps. Full click-through disables
   player controls, while DM controls use a separate checked route. The current geometry limit
-  is 16 frames, including transient notices.
+  is 17 frames, covering eight HUDs, eight collapsed-message cards, and a transient notice.
 - [Storage](../storage.js): saving is atomic and preserves the previous valid save. The
   main-process approval service keeps up to 40 Undo snapshots. Image size affects memory, saving, and
   repeated TV updates as well as disk space.
@@ -347,6 +348,36 @@ Completion and tests:
 
 ### Milestone 6 — F02 composer, mail indicator, and reading controls
 
+Implemented locally September 15, 2026. **Messages** in the sidebar provides the recipient selector,
+name/portrait confirmation, independent drafts, Send/Replace, status, Force open, Close, Dismiss,
+page controls, and text scrolling from the laptop. The shared-TV notice appears beside the reading
+controls. Reviewing sent text on the laptop never counts as a TV opening. Failed sends keep their
+draft and retry request; stale text responses cannot appear after replacement or dismissal.
+
+Envelopes remain inside existing bubble/HUD bounds and contain no message text. They pulse for
+five seconds before remaining steady; reduced motion starts steady. The TV reading area uses
+plain text, fixed Close/page controls, and scrolling for long words and line breaks. It uses the
+recipient's palette and orientation, with an opaque surface for every theme including Default.
+Collapsed cards fit around the saved center; expanded cards stay within the existing HUD frame.
+Their own dimensions fit small viewports without changing character scale or saved placement.
+
+The message service now owns the reading page, deduplicated scroll sequence, and temporary card
+stacking order. Opening an already-open card brings it to the front. Interaction-mode changes
+retain the message page and scroll; normal HUD detail/section state remains unchanged. Native
+region validation now supports 17 frames, including eight HUDs, eight cards, and the notice.
+Closing, hiding, and starting a TV HUD drag remove the relevant card region.
+
+The new desktop scenario checks actual UI delivery/open acknowledgements, per-recipient drafts,
+explicit replacement/cancel, failed send/body retry, stale-response rejection, same-name players,
+eight simultaneous cards, hidden/removed recipients, click-through, and notification-only previews.
+It also checks all 14 palettes for text/control contrast of at least 4.5:1 and borders of at least
+3:1; 0°, 90°, 180°, 270°, arbitrary rotation, edge fitting, and 40%/250% expanded frames; reduced
+motion and pulse duration; overlapping-card order; and the regions Windows actually applies,
+including empty rotated corners and cleanup after native dragging. Physical TV viewing distance
+and the full combined walkthrough remain milestone 7. All 194 unit tests and 28 Windows desktop
+scenarios pass, along with syntax and formatting checks. Update `D:\Programs\Tablelight` with
+this milestone and verify the installed executable using isolated synthetic parties.
+
 Add a DM recipient selector with the chosen player's name and portrait beside Send. Show status,
 Force open, Close, and Dismiss controls for that recipient. Replacing the current message must
 be an explicit action that identifies the recipient and loss of the old message. Preserve
@@ -495,10 +526,10 @@ counting it as opened. Private delivery to personal devices is outside this plan
    class reading surfaces stay opaque without changing the outer opacity preference.
 3. **Message scope — adopted in milestone 5:** one retained plain-text message per active character,
    a 2,000 Unicode-code-point limit, explicit replacement, visible-render Opened status, and the
-   lifecycle table above. Milestone 6 must connect acknowledgements to actual visible rendering.
-4. **Reading controls:** approve the temporary rotated card for collapsed recipients and DM
-   open/page/close/dismiss controls in click-through? Sending must not unhide players or expose
-   text automatically; include the shared-TV notice.
+   lifecycle table above. Milestone 6 connects acknowledgements to current visible rendering.
+4. **Reading controls — implemented in milestone 6:** temporary rotated cards for collapsed players,
+   a reading area inside expanded HUD frames, and DM open/page/scroll/close/dismiss controls in
+   click-through. Sending does not unhide players or expose text; the shared-TV notice is included.
 5. **Lifetime — implemented in milestone 5:** session-only messages end at restart, successful backup restore, or recipient
    removal. Keep them out of backups and gameplay Undo. Closing retains a message for reopening;
    dismissing clears it. An inbox or persistent history would require a different storage policy.
@@ -512,7 +543,7 @@ and transient messages outside gameplay saves. Extend validation, migration, ser
 changed-field merging together. Preserve existing user content, resource bindings, current HUD
 sizing rules, map input, escaped text, checked window communication, and save recovery.
 
-Completed: **Milestones 1–5 — F09 icons, F12 class themes, and F02 delivery**. The next milestone is
-**Milestone 6 — F02 composer, mail indicator, and reading controls**: connect the delivery service
-to recipient selection, notification-only envelopes, and readable rotated message panels with DM
-controls in click-through mode. Two milestones remain before the next release, as requested.
+Completed: **Milestones 1–6 — F09 icons, F12 class themes, and F02 messages**. The next milestone is
+**Milestone 7 — combined regression and review**: exercise all three features together, review the
+actual laptop/TV arrangement, and finish documentation for the separate release step.
+One milestone remains before the next release, as requested.

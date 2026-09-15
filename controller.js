@@ -167,11 +167,14 @@ function render() {
   if (c) selectedId = c.id;
   const oldScroll = window.scrollY;
   const sidebarState = captureSidebarState();
+  const messageFocus = captureMessageFocus();
   document.getElementById('app').innerHTML =
-    `<div class="app-shell">${renderSidebar()}<main class="main"><header class="topbar"><div class="breadcrumb">Dungeon Master <span class="muted"> / </span> <b>${view === 'display' ? 'TV & layout' : view === 'help' ? 'Setup & help' : view === 'condition-library' ? 'Condition library' : view === 'library' ? 'Ability library' : view === 'roster' ? 'Players & party' : 'Session console'}</b></div><div class="row">${button('↶ Undo', 'undo', 'subtle small', history.length ? '' : 'disabled')}${button(state.settings.overlayInteractive ? 'HUD controls: on' : 'Click-through', 'toggle-interactive', state.settings.overlayInteractive ? 'active small' : 'small')}${button(overlayStatus.visible ? '● Hide TV overlay' : '▱ Show TV overlay', 'toggle-overlay', overlayStatus.visible ? 'active' : 'primary')}</div></header>${saveError ? `<div class="save-warning">${esc(saveError)} ${button('Retry save', 'retry-save', 'small')}</div>` : ''}<div class="content">${view === 'roster' ? renderRoster() : view === 'help' ? renderHelp() : view === 'condition-library' ? renderConditionLibrary() : view === 'library' ? renderLibrary() : view === 'display' ? renderDisplay() : c ? renderCharacter(c) : renderWelcome()}</div></main></div>`;
+    `<div class="app-shell">${renderSidebar()}<main class="main"><header class="topbar"><div class="breadcrumb">Dungeon Master <span class="muted"> / </span> <b>${view === 'messages' ? 'Messages' : view === 'display' ? 'TV & layout' : view === 'help' ? 'Setup & help' : view === 'condition-library' ? 'Condition library' : view === 'library' ? 'Ability library' : view === 'roster' ? 'Players & party' : 'Session console'}</b></div><div class="row">${button('↶ Undo', 'undo', 'subtle small', history.length ? '' : 'disabled')}${button(state.settings.overlayInteractive ? 'HUD controls: on' : 'Click-through', 'toggle-interactive', state.settings.overlayInteractive ? 'active small' : 'small')}${button(overlayStatus.visible ? '● Hide TV overlay' : '▱ Show TV overlay', 'toggle-overlay', overlayStatus.visible ? 'active' : 'primary')}</div></header>${saveError ? `<div class="save-warning">${esc(saveError)} ${button('Retry save', 'retry-save', 'small')}</div>` : ''}<div class="content">${view === 'messages' ? renderMessages() : view === 'roster' ? renderRoster() : view === 'help' ? renderHelp() : view === 'condition-library' ? renderConditionLibrary() : view === 'library' ? renderLibrary() : view === 'display' ? renderDisplay() : c ? renderCharacter(c) : renderWelcome()}</div></main></div>`;
   if (view === 'display') requestAnimationFrame(paintPreview);
   window.scrollTo(0, oldScroll);
   restoreSidebarState(sidebarState);
+  refreshMessages();
+  restoreMessageFocus(messageFocus);
   refreshConditionPicker();
   refreshConcentrationPicker();
   refreshDamageReminder();
@@ -289,6 +292,7 @@ function paintPreview() {
     selectedId,
     state.settings.overlayInteractive ? 'overlay' : 'preview'
   );
+  paintMessagePreview();
   stage.querySelectorAll('[data-cancel-request]').forEach((button) => (button.disabled = true));
   if (!stage.hudGesture) {
     stage.hudGesture = HUDControls.gestures(stage, {
@@ -678,6 +682,7 @@ document.addEventListener('click', async (event) => {
       action.startsWith('view-') &&
       [
         'view-character',
+        'view-messages',
         'view-display',
         'view-help',
         'view-library',
@@ -686,6 +691,12 @@ document.addEventListener('click', async (event) => {
       ].includes(action)
     ) {
       view = action.slice(5);
+      if (view === 'messages') {
+        if (!messageRecipient) messageRecipient = selectedId;
+        messageClient
+          ?.refresh()
+          .catch(() => toast('Message controls could not load. Try again.', true));
+      }
       render();
       return;
     }
@@ -1071,6 +1082,7 @@ api.onOverlay((value) => {
     approvalState = loaded.approvals || approvalState;
     history = Array(loaded.undoCount || 0);
     api.onApprovals?.(acceptApprovalState);
+    initMessages();
     overlayStatus = loaded.status || { visible: false };
     dataPath = loaded.dataPath || '';
     appVersion = loaded.version || '';

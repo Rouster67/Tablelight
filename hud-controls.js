@@ -222,6 +222,7 @@
     }
     stage.addEventListener('pointerdown', (event) => {
       if (event.button !== 0 || config.enabled?.() === false) return;
+      if (event.target.closest('.message-badge,.message-panel')) return;
       const node = event.target.closest('.hud-position');
       if (!node) return;
       const rotate = event.target.closest('.hud-rotate-handle');

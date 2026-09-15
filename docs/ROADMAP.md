@@ -83,10 +83,14 @@ message. Metadata-only updates distinguish sent, indicator-delivered, and visibl
 the latter records whether the DM or player requested opening. Stale requests cannot alter a
 replacement or another player. DM commands remain usable with click-through enabled.
 
-**Next:** Milestone 6 in [the implementation plan](VISUAL_IMPROVEMENTS_PLAN.md) adds the composer,
-envelope, rotated reading panel, DM paging controls, and shared-TV notice. The current milestone
-provides the underlying commands; it does not yet expose message controls in either screen.
-Actual rendering, contrast, orientation, and map-input checks accompany that interface.
+**Interface implemented:** Messages in the sidebar provides recipient selection, per-player drafts,
+explicit replacement, and DM reading/dismissal controls. Envelopes contain no text preview; text
+opens in the recipient's theme and orientation. DM page/scroll/close controls work in click-through.
+The preview remains notification-only, and the composer states the shared-TV visibility boundary.
+Eight HUDs, eight collapsed-message cards, and the notice fit within the validated 17-frame input
+model. Native tests check actual Windows regions, rotation/edge placement, retry races, palette
+contrast, reduced motion, and closing during movement. Combined regression and the physical TV
+walkthrough remain milestone 7 in [the implementation plan](VISUAL_IMPROVEMENTS_PLAN.md).
 
 ## F03 — Visible application version on the DM screen
 
@@ -473,7 +477,7 @@ was released in 1.10.2.
 
 1. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
 2. F09 icons and F12 class themes are implemented on the visual-improvements branch. Continue
-   with the F02 message interface using its completed delivery service, then combined regression.
+   with combined regression and the physical TV walkthrough for icons, themes, and F02 messages.
 3. Design passive abilities and character-based calculations together where they affect the shared
    library and character assignments (F01, F07).
 4. Prototype messages and player-use review with the actual TV setup (F02, F10). Agree on privacy

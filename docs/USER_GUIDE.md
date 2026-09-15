@@ -69,6 +69,46 @@ You can also open **Players & party** for a larger management screen. Search by 
 
 Only active party members participate in **Next turn**, whole-party rests, and automatic TV arrangement. Each active player's Show/Hide bubble setting still applies. You can remove everyone to leave an empty party while keeping all players saved. Tablelight does not count rounds.
 
+## Messages to players
+
+1. Open **Messages** in the left sidebar and choose an active player. Check the name and portrait
+   beside **Send message**, especially when characters have the same name.
+2. Write up to **2,000 characters**, then choose **Send message**. Each player has their own draft;
+   switching players or leaving this page keeps unfinished text during this session.
+3. The player's bubble or expanded HUD gains an envelope with an unread dot, without a text
+   preview. It pulses gently for five seconds, then stays steady. Windows reduced-motion settings
+   keep it steady from the start. Sending never shows a hidden player or exposes the note automatically.
+4. With HUD controls on, the player clicks the envelope to read the message. It faces the same
+   direction as their character. Use the page arrows and scroll the text when needed, then **Close**.
+
+**Opened messages are visible to everyone near the shared TV.** Recipient selection controls where
+the note appears; it cannot make an opened message private from other people at the table.
+
+The DM's **Force open** reveals the selected player's note. **Previous page**, **Next page**,
+**Scroll up**, **Scroll down**, and **Close on TV** also work in click-through mode, without turning
+player controls back on. If cards overlap, Force open brings the selected message to the front.
+The reading panel fits within an expanded HUD, or appears as a temporary card for a collapsed
+player. Closing restores access to the same bubble/HUD without changing its saved settings.
+
+**Sent** means accepted by Tablelight. **Delivered · Unread** means the envelope reached the
+visible overlay. **Opened by player/DM** means the overlay displayed the text; it is not proof
+that someone read it. **View sent text on laptop** lets the DM review a note without marking it
+opened on the TV. The layout preview shows notification state only.
+
+There is one retained message per player. Sending another requires **Replace** confirmation,
+which discards the old note and makes its replacement unread. **Close** retains the note for
+reopening; **Dismiss** removes it. A failed send keeps the draft for retry. A failed text load offers
+**Retry** on the TV; the DM can also use Force open again.
+
+Hiding the player/TV, changing between collapsed and expanded HUDs, dragging the HUD, or reloading
+the overlay closes exposed text. Showing the player again restores the envelope without reopening
+the message. Show hidden players through **TV & layout** before using Force open.
+
+Messages and drafts stay in memory during this session. They are excluded from party saves,
+backups, and gameplay Undo. Restarting Tablelight or successfully restoring a backup clears them.
+Removing a player clears their sent message; rejoining or Undo does not bring it back. Ordinary
+stat, theme, and library edits retain other messages and each player's independent settings.
+
 ## Character overlay themes
 
 In **Create character** or **Edit character**, choose **Theme**, then **Save character**.

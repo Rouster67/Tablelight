@@ -1,10 +1,11 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
 'use strict';
 const { randomUUID, createHash } = require('node:crypto');
+const { pages } = require('./message-client');
 const MAX_LENGTH = 2000;
 const operations = {
-  dm: ['send', 'force-open', 'close', 'dismiss'],
-  player: ['open', 'close', 'ack-indicator', 'ack-opened'],
+  dm: ['send', 'force-open', 'close', 'dismiss', 'page', 'scroll'],
+  player: ['open', 'close', 'page', 'scroll', 'ack-indicator', 'ack-opened'],
 };
 function identifier(value, maximum = 100) {
   if (typeof value !== 'string' || !value.trim() || value.length > maximum)
@@ -28,6 +29,7 @@ function players(state) {
 class MessageService {
   #id = randomUUID();
   #revision = 0;
+  #front = 0;
   #players;
   #interactive;
   #displayId;
@@ -66,6 +68,11 @@ class MessageService {
       available: this.#available(message),
       indicatorVisible: message.indicatorVisible,
       bodyVisible: message.bodyVisible,
+      page: message.page,
+      pageCount: message.pageCount,
+      scrollSequence: message.scrollSequence,
+      scrollDirection: message.scrollDirection,
+      order: message.order || 0,
     };
   }
   snapshot() {
@@ -85,6 +92,8 @@ class MessageService {
     message.indicatorVisible = false;
     message.bodyVisible = false;
     message.bodyToken = null;
+    message.scrollSequence = 0;
+    message.scrollDirection = 0;
     if (close && message.open) {
       message.open = false;
       message.requestedBy = null;
@@ -110,6 +119,7 @@ class MessageService {
     if (reset) {
       this.#id = randomUUID();
       this.#revision = 0;
+      this.#front = 0;
       this.#messages.clear();
       this.#completed.clear();
       changed = true;
@@ -203,6 +213,15 @@ class MessageService {
       input.revision = request.revision;
       input.presentationId = identifier(request.presentationId);
       if (input.type === 'ack-opened') input.bodyToken = identifier(request.bodyToken);
+      if (input.type === 'page') {
+        if (!Number.isSafeInteger(request.page) || request.page < 0)
+          throw Error('Choose a valid message page.');
+        input.page = request.page;
+      }
+      if (input.type === 'scroll') {
+        if (![1, -1].includes(request.direction)) throw Error('Choose a valid scroll direction.');
+        input.direction = request.direction;
+      }
     }
     // Keep only a digest of command text. Receipts survive dismissal and removal
     // for this session so a late retry never resurrects an old message.
@@ -237,6 +256,8 @@ class MessageService {
         openedBy: null,
         open: false,
         requestedBy: null,
+        page: 0,
+        pageCount: pages(input.body).length,
       };
       this.#present(message);
       this.#messages.set(input.characterId, message);
@@ -244,18 +265,46 @@ class MessageService {
       status = 'sent';
     } else {
       message = this.#target(input, { presentation: true });
-      if (actor === 'player' && ['open', 'close'].includes(input.type) && !this.#interactive)
+      if (
+        actor === 'player' &&
+        ['open', 'close', 'page', 'scroll'].includes(input.type) &&
+        !this.#interactive
+      )
         throw Error('The overlay is in click-through mode. Use the DM message controls.');
       if (
-        ['open', 'force-open', 'ack-indicator', 'ack-opened'].includes(input.type) &&
+        ['open', 'force-open', 'page', 'scroll', 'ack-indicator', 'ack-opened'].includes(
+          input.type
+        ) &&
         !this.#available(message)
       )
         throw Error(
           'Show this player and the TV overlay before opening or acknowledging the message.'
         );
       switch (input.type) {
+        case 'page':
+        case 'scroll':
+          if (!message.open) throw Error('Open this message before using its reading controls.');
+          if (input.type === 'page') {
+            if (input.page >= message.pageCount) throw Error('This message has no such page.');
+            if (message.page !== input.page) {
+              message.page = input.page;
+              message.revision++;
+              this.#present(message);
+              changed = true;
+            }
+          } else {
+            message.scrollSequence++;
+            message.scrollDirection = input.direction;
+            changed = true;
+          }
+          message.order = ++this.#front;
+          changed = true;
+          status = input.type === 'page' ? 'paged' : 'scrolled';
+          break;
         case 'open':
         case 'force-open':
+          message.order = ++this.#front;
+          changed = true;
           if (!message.open) {
             message.open = true;
             message.requestedBy = actor;

@@ -11,11 +11,13 @@ let concentrationPicker = null;
 let conditionPicker = null;
 let useWarning = null;
 const pendingUses = new Set();
+let playerMessages;
 const requestPrompts = new Map();
 // Picker results can change the summary height after the initial paint.
 const hudSizeObserver = new ResizeObserver(() => {
   if (!state || gesture?.isDragging) return;
   HUD.fit(stage, state, innerWidth, innerHeight);
+  playerMessages?.render();
   updateHit();
   publishRegions();
 });
@@ -202,6 +204,7 @@ function updateHit() {
   hit(gesture?.isDragging || target?.closest('.hud-position'));
 }
 function publishRegions() {
+  if (!state) return;
   const frames = [...stage.children].map((el) => {
     const c = state.characters.find((c) => c.id === el.dataset.hudId),
       r = el.getBoundingClientRect();
@@ -213,6 +216,7 @@ function publishRegions() {
       rotation: c.hud.rotation,
     };
   });
+  frames.push(...(playerMessages?.frames() || []));
   const notice = document.querySelector('#overlay-notice.visible');
   if (notice) {
     const r = notice.getBoundingClientRect();
@@ -298,6 +302,7 @@ function paint() {
   }
   HUD.fit(stage, state, innerWidth, innerHeight);
   for (const el of stage.children) hudSizeObserver.observe(el);
+  playerMessages?.render();
   updateHit();
   publishRegions();
 }
@@ -359,6 +364,7 @@ gesture = HUDControls.gestures(stage, {
   viewport: () => ({ width: innerWidth, height: innerHeight }),
   onActive: (active) => {
     window.tablelight.hudDragging(active);
+    if (active) playerMessages?.drag(gesture.activeId);
     if (active) hit(true);
     else {
       if (pendingPaint) {
@@ -550,6 +556,14 @@ window.tablelight.onOverlay((value) => {
     paint();
   }
 });
+playerMessages = new MessageOverlay({
+  api: window.tablelight,
+  stage,
+  getState: () => state,
+  changed: () => publishRegions(),
+  report: notice,
+});
+window.addEventListener('beforeunload', () => playerMessages.destroy());
 window.tablelight.load().then((value) => {
   state = value.state;
   paint();

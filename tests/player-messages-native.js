@@ -42,6 +42,9 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(async () => (await snapshot()).overlay.connected && getOverlay().isVisible());
     const { width, height } = getOverlay().getContentBounds();
     await wait(() => tv(`return !!state&&innerWidth===${width}&&innerHeight===${height};`));
+    // This scenario tests explicit transport acknowledgements. The UI scenario
+    // separately checks automatic acknowledgements after actual rendering.
+    await tv('playerMessages.destroy();');
     await tv('paint();');
   };
   // The reading UI belongs to milestone 6. These explicit renderer acknowledgements

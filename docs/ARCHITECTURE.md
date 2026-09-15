@@ -348,11 +348,13 @@ ID. Closing retains the message and opened history; dismissal deletes it. There 
 
 `messages:snapshot` and `messages:state` contain metadata only: session/global revision, transport
 availability, character/message IDs, command revision, presentation ID, sent/delivered/opened times,
-requesting actor, unread, open, and current indicator/body visibility. These are separate from party,
+requesting actor, unread, open, current indicator/body visibility, page/count, scroll sequence/direction,
+and stacking order. These are separate from party,
 approval, backup, and HUD payloads. No message body enters gameplay Undo or the save format.
 
 `messages:command` validates the actual top-level sender frame and window. The DM may send, force
 open, close, and dismiss; the overlay may open, close, and acknowledge indicator/body display.
+Both roles have page/scroll commands, with player reading commands rejected in click-through.
 Each command carries a session ID, unique request ID, and character ID. Existing-message operations
 also require the exact message ID, revision, and presentation ID. Same-request retries return a
 receipt without repeating effects. Session-long replay records store a digest and result metadata,
@@ -380,11 +382,41 @@ Metadata resync never automatically reopens a body. Force open rejects unavailab
 than queuing future exposure. Click-through keeps its existing native mode: player open/close are
 rejected, while DM operations, body fetches, and renderer acknowledgements remain available.
 
-Milestone 5 implements this contract only. Milestone 6 will connect actual visible-render acknowledgements,
-composer/status controls, envelope indicators, and themed/rotated reading surfaces. It must keep
-message text out of DM layout previews and notification labels, preserve saved HUD geometry, and
-provide DM reading controls in click-through. All players share one renderer and TV: recipient
-targeting is not a private-device security boundary. An opened message is visible to nearby people.
+`message-client.js` supplies lossless bounded text pages and an ordered metadata subscriber in both
+renderers. A late initial snapshot cannot overwrite a newer session event; retired sessions cannot
+be resurrected by delayed responses. Page changes invalidate the presentation/body token while
+retaining read history; new page acknowledgements record the latest display. Scroll commands are
+deduplicated within the current presentation. Reopening retains the selected page; changing
+interaction mode retains both page and scroll. Repeated open requests raise only that card.
+
+`message-dm.js` implements the Messages sidebar page. Drafts, confirmation targets, retry request
+IDs, and explicit laptop-review text are separate from party state. Recipient changes retain the
+corresponding draft; removal never selects a different recipient silently. Replacements bind to
+the reviewed message ID. Errors retain draft text; successful session reset clears drafts. Only
+the selected note's explicit laptop-review request retrieves its body, without a TV read receipt.
+
+`message-overlay.js` adds a fixed-size envelope within existing bubble/HUD bounds and renders text
+through `textContent`. It discards stale body responses and acknowledges the current presentation
+after two animation frames and a visible, connected, on-screen DOM check. Unread badges have a
+five-second pulse with a reduced-motion override. Metadata and party updates do not remount the
+reading area, preserving scroll and keyboard focus. Failed loads remain unread and offer retry.
+
+Reading cards use the character palette with an opaque surface, including Default, and inherit the
+character's rotation and scale. They are at most 480 × 320 CSS pixels before scale, reducing their
+own dimensions for small viewports without rewriting HUD settings. Expanded messages sit visually
+inside the existing HUD frame; collapsed cards fit independently around the saved center. No
+full-screen backdrop or saved section/detail/page change is needed. `messages.css` enables pointer
+input on the card only when HUD controls are enabled; DM controls remain usable in click-through.
+
+The separate message layer publishes additional native regions only for collapsed cards. The
+validated maximum is 17 frames (eight HUDs, eight cards, one notice); Windows receives every rotated
+frame. Expanded cards stay within their existing HUD region. Mail controls cannot initiate a HUD
+gesture. Starting a TV HUD drag closes that character's message before the gesture completes,
+and the existing gesture cleanup restores normal map-input regions. A dismissed/hidden/closed card
+is removed immediately and publishes updated regions. DM layout previews add disabled badges only.
+
+All players share one renderer and TV: recipient targeting is not a private-device security boundary.
+An opened message is visible to nearby people; the composer states this next to Force open.
 
 ## Tests
 

@@ -2,7 +2,8 @@
 'use strict';
 // Windows hit-tests the HUD regions directly, without a hover/ignore-mouse race.
 function hudRegions(frames, viewportWidth, viewportHeight) {
-  if (!Array.isArray(frames) || frames.length > 16) throw new Error('Invalid HUD regions.');
+  // Eight HUDs, eight independent collapsed-message cards, and one notice.
+  if (!Array.isArray(frames) || frames.length > 17) throw new Error('Invalid HUD regions.');
   const rects = [];
   for (const f of frames) {
     if (
