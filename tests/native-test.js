@@ -14,6 +14,15 @@ module.exports = async function ({
   updates,
   updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'hud-themes')
+    return require('./hud-themes-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'ability-icons-performance')
     return require('./ability-icons-performance-native')({
       app,

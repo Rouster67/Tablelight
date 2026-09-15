@@ -299,6 +299,36 @@ Run `node --expose-gc scripts/benchmark-ability-icons.cjs` for the synthetic 5,0
 measurements under ignored `test-results/`, then checks all 40 undos restore the original state.
 The `ability-icons-performance` native scenario additionally measures both real window updates.
 
+## Class overlay palettes
+
+`hud-themes.js` contains the immutable palette registry, stable identifiers, safe Default
+fallback, and DOM application helper. `hud-themes.css` loads after the existing HUD styles in
+both windows; every rule is scoped to `.hud-position[data-hud-theme]`. `HUD.mount` applies the
+character's theme after decorating controls. Missing/unknown themes add no styling, and
+returning to Default removes only the module's variables, attribute, and resource-icon frames.
+Milestone 3 supplies rendering and preview only; character normalization, editor selection and
+theme persistence are deliberately the next milestone. No save-format change occurs here.
+
+Each class uses the planned dark surface/highlight pair, derived panel/control/hover/border
+colors, and common readable text/semantic colors. The outer frame uses the existing background
+opacity setting; reading areas and controls stay opaque. Spent and disabled states retain text
+contrast using dashed borders and the existing labels, rather than fading the whole subtree.
+The class-theme damage/concentration reminder stays fully visible instead of pulsing dimmer.
+Default continues using the original styles, including the original animation and opacity.
+
+Player accent values and portrait rings are untouched; themed initials use readable text.
+Ability images keep their pixels and neutral backing. Resource shapes retain their stored
+color/clip path inside the same 16-pixel footprint, with a 14-pixel shape on a one-pixel black or
+white backing chosen for contrast. Default removes that frame. Borders, backings and focus
+outlines do not change HUD sizing, scrolling, position, scale, rotation, or hit regions.
+
+`docs/theme-preview.html` renders synthetic expanded/collapsed examples of all 14 choices,
+using the real HUD renderer and styles, with map/opacity/view controls and no app bridge or
+saved state. Native theme checks inspect computed/composited text and control colors in both
+windows, compare Default with the theme sheet disabled, and check independent themes, geometry,
+artwork, resource colors, hover/focus, warnings, and click-through. Physical TV viewing distance
+is outside automated coverage. Unread message UI checks belong to the message milestone.
+
 ## Tests
 
 Unit tests cover cost spending, migration, linked definitions, independent bindings, save recovery, geometry, command validation, and stale-editor merging. Native scenarios exercise the real renderer and Electron windows using synthetic state, capture screenshots, and verify persistence. Run them with `npm run test:native` in a Windows desktop session. The native harness creates a unique user-data directory per scenario and never reads the normal party file.

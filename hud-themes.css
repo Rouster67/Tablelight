@@ -1,0 +1,233 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
+/* Only validated, explicitly themed HUD containers opt in. Default uses the original sheets. */
+.hud-position[data-hud-theme] {
+  --text: var(--hud-theme-text);
+  --muted: var(--hud-theme-muted);
+  --gold: var(--hud-theme-highlight);
+  --line: var(--hud-theme-border);
+  color: var(--hud-theme-text);
+}
+.hud-position[data-hud-theme] .hud-card {
+  background: rgba(var(--hud-theme-rgb), var(--panel-opacity, 0.94));
+  border-color: var(--hud-theme-border);
+  border-top-color: var(--hud-theme-highlight);
+  color: var(--hud-theme-text);
+}
+/* Text surfaces stay opaque; the existing preference controls the surrounding frame/gaps. */
+.hud-position[data-hud-theme] :is(.hud-summary, .hud-browser, .hud-collapsed, .bubble-name) {
+  background: var(--hud-theme-surface);
+}
+.hud-position[data-hud-theme] .hud-collapsed {
+  border-radius: 50%;
+}
+.hud-position[data-hud-theme] .bubble-name {
+  color: var(--hud-theme-text);
+  border-radius: 6px;
+  text-shadow: none;
+}
+.hud-position[data-hud-theme] .portrait {
+  box-shadow:
+    0 0 0 3px var(--hud-theme-surface),
+    0 0 0 4px var(--hud-theme-border);
+}
+.hud-position[data-hud-theme] .portrait :is(img, span) {
+  background: var(--hud-theme-panel);
+  border-color: var(--hud-theme-surface);
+}
+.hud-position[data-hud-theme] .portrait > span {
+  color: var(--hud-theme-text);
+}
+.hud-position[data-hud-theme] :is(.hud-toolstrip, .bubble-controls, .hud-use-warning) {
+  background: var(--hud-theme-surface);
+  border-color: var(--hud-theme-border);
+  color: var(--hud-theme-text);
+}
+.hud-position[data-hud-theme]
+  :is(
+    .hud-browser,
+    .hud-panel,
+    .hud-slots,
+    .hud-size-controls,
+    .hud-stats > div,
+    .condition-table td,
+    .hud-condition-menu
+  ) {
+  border-color: var(--hud-theme-border);
+}
+.hud-position[data-hud-theme]
+  :is(
+    .hud-ac,
+    .hud-economy > div,
+    .hud-option,
+    .hud-resource,
+    .hud-condition-menu,
+    .hud-pending-requests
+  ) {
+  color: var(--hud-theme-text);
+  background: var(--hud-theme-panel);
+  border-color: var(--hud-theme-border);
+}
+.hud-position[data-hud-theme] :is(.hud-section-content, .hud-pending-requests) {
+  scrollbar-color: var(--hud-theme-border) var(--hud-theme-surface);
+}
+.hud-position[data-hud-theme]
+  :is(
+    .hud-card button,
+    .hud-use-warning button,
+    .hud-toolstrip button,
+    .bubble-controls button,
+    .hud-nav-label,
+    .concentration-toggle,
+    .hud-condition-menu input
+  ) {
+  color: var(--hud-theme-text);
+  background: var(--hud-theme-control);
+  border-color: var(--hud-theme-border);
+}
+.hud-position[data-hud-theme]
+  :is(
+    .hud-card button:hover,
+    .hud-use-warning button:hover,
+    .hud-toolstrip button:hover,
+    .bubble-controls button:hover,
+    .hud-option:hover
+  ) {
+  background: var(--hud-theme-hover);
+  border-color: var(--hud-theme-highlight);
+}
+.hud-position[data-hud-theme] :is(button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--hud-theme-highlight);
+  outline-offset: 2px;
+}
+.hud-position[data-hud-theme] .hud-nav .chosen {
+  background: var(--hud-theme-highlight) !important;
+  border-color: var(--hud-theme-highlight) !important;
+  color: var(--hud-theme-ink);
+}
+.hud-position[data-hud-theme]
+  :is(
+    .hud-identity > span,
+    .hud-health > span,
+    .hud-overview-data small,
+    .hud-overview-hint,
+    .hud-stats small,
+    .hud-stats span,
+    .hud-slots small,
+    .hud-option small,
+    .hud-option > span:last-child,
+    .resource-status,
+    .hud-page,
+    .hud-pagination,
+    .hud-vitals-controls,
+    .hud-size-controls > span,
+    .hud-condition-table caption,
+    .hud-condition-menu .condition-choice small,
+    [data-hud-condition-count],
+    .hud-pending-requests > small
+  ) {
+  color: var(--hud-theme-muted);
+}
+.hud-position[data-hud-theme] :is(.hud-description, .hud-economy small) {
+  color: var(--hud-theme-text);
+}
+.hud-position[data-hud-theme] :is(.hud-economy b, .hud-skills b, .hud-saves b) {
+  color: var(--hud-theme-highlight);
+}
+.hud-position[data-hud-theme] .hud-economy i {
+  color: var(--hud-theme-muted);
+}
+.hud-position[data-hud-theme] :is(.hud-card .spent, .hud-option.spent, .hud-economy .spent) {
+  opacity: 1;
+  filter: none;
+  background: var(--hud-theme-surface);
+  border-color: var(--hud-theme-border);
+  border-style: dashed;
+}
+.hud-position[data-hud-theme] .hud-economy .spent > :is(b, small, i) {
+  opacity: 1;
+  filter: none;
+  color: var(--hud-theme-muted);
+}
+.hud-position[data-hud-theme]
+  :is(.hud-card button:disabled, .hud-toolstrip button:disabled, .bubble-controls button:disabled) {
+  opacity: 1;
+  color: var(--hud-theme-muted);
+  background: var(--hud-theme-surface);
+  border-style: dashed;
+}
+.hud-position[data-hud-theme] .ability-symbol {
+  background: var(--hud-theme-surface);
+  border-color: var(--hud-theme-border);
+  color: var(--hud-theme-highlight);
+}
+.hud-position[data-hud-theme] :is(.rank-bubble, .hud-card button.rank-bubble) {
+  color: var(--hud-theme-muted);
+  border-color: var(--hud-theme-border);
+  background: var(--hud-theme-surface);
+}
+.hud-position[data-hud-theme] :is(.rank-bubble.filled, .hud-card button.rank-bubble.filled) {
+  color: var(--hud-theme-ink);
+  background: var(--hud-theme-highlight);
+  border-color: var(--hud-theme-highlight);
+}
+.hud-position[data-hud-theme] .pips i {
+  border-color: var(--hud-theme-border);
+  background: var(--hud-theme-surface);
+  box-shadow: none;
+}
+.hud-position[data-hud-theme] .pips i.filled {
+  background: var(--hud-theme-highlight);
+  border-color: var(--hud-theme-highlight);
+}
+.hud-position[data-hud-theme] .hud-resource-icon-frame {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  padding: 1px;
+  background: var(--resource-backing);
+  box-shadow: 0 0 0 1px var(--hud-theme-border);
+}
+.hud-position[data-hud-theme] .hud-resource-icon-frame .resource-icon {
+  width: 14px;
+  height: 14px;
+}
+.hud-position[data-hud-theme] .hud-health strong {
+  color: var(--hud-theme-hp);
+}
+.hud-position[data-hud-theme] .hp-track {
+  background: var(--hud-theme-surface);
+  box-shadow: 0 0 0 1px var(--hud-theme-border);
+}
+.hud-position[data-hud-theme] .hp-track i {
+  background: var(--hud-theme-hp);
+}
+.hud-position[data-hud-theme] :is(.hud-temp-hp, .hud-temp-controls) {
+  color: var(--hud-theme-temp);
+  border-color: var(--hud-theme-temp);
+}
+.hud-position[data-hud-theme] .damage-controls button {
+  color: var(--hud-theme-damage);
+}
+.hud-position[data-hud-theme]
+  :is(.concentration-toggle.is-on, .hud-card button.concentration-toggle.is-on) {
+  color: var(--hud-theme-warning);
+  background: var(--hud-theme-warning-surface);
+  border-color: var(--hud-theme-warning);
+}
+.hud-position[data-hud-theme] .damage-concentration-reminder {
+  color: var(--hud-theme-warning);
+}
+.hud-position[data-hud-theme] .damage-concentration-reminder.is-active > span {
+  animation: none;
+}
+.hud-position[data-hud-theme] :is(.hud-use-controls small, .hud-pending-use small) {
+  color: var(--hud-theme-warning);
+}
+.hud-position[data-hud-theme] .hud-pending-use.urgent small {
+  color: var(--hud-theme-damage);
+}
+.hud-position[data-hud-theme] .hud-pending-use {
+  border-color: var(--hud-theme-border);
+}

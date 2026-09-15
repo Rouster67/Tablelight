@@ -1,10 +1,10 @@
 # Ability icons, class themes, and player messages — proposed plan
 
 Status: implementation started at the user's request on September 14, 2026.
-Milestones 1–2 are implemented and tested locally. Milestones 3–7 remain planned.
+Milestones 1–3 are implemented and tested locally. Milestones 4–7 remain planned.
 Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
 `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
-in use; later theme and message choices remain proposals.
+in use, and the class palettes are implemented; theme selection/persistence and messages remain planned.
 
 ## Branch setup completed
 
@@ -19,7 +19,8 @@ in use; later theme and message choices remain proposals.
    features. Work now appears in the repository already used by GitHub Desktop.
 4. Published the branch, fetched it back, and configured upstream tracking. The branch and
    published starting commit matched before development. Milestone 1 was committed as
-   `efbeef2` (Add ability icon storage foundation); milestone 2 is ready for review and commit.
+   `efbeef2` (Add ability icon storage foundation), and milestone 2 as `6bd094c`
+   (Implement ability image editing and display). Milestone 3 is ready for review and commit.
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
 The normal source folder is now the working location; the previous separate-folder instructions
@@ -28,7 +29,7 @@ are superseded. No installed program, real saved party, or application release w
 ## What the current project already provides
 
 - [Roadmap](ROADMAP.md): F09 storage, editing, and display are implemented on this branch;
-  F12 and F02 remain planned.
+  F12 palettes/previews are ready, selection/persistence and F02 remain planned.
   These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
   focused issues with decisions and completion checklists when implementation is scheduled.
 - [Core state](../core.js): shared definitions supply each character's ability display fields.
@@ -162,6 +163,31 @@ Completion and tests:
   unresponsive, settle immutable image references/cache and serialization before expanding limits.
 
 ### Milestone 3 — F12 palettes and matching previews
+
+Implemented September 14. The [palette review page](theme-preview.html) uses the actual HUD
+renderer with synthetic characters and no saved changes. It includes Default, every class,
+bright/dark/patterned maps, frame opacity, and ability/detail/sheet views. `hud-themes.js` owns
+the palette registry and per-HUD variables; `hud-themes.css` opts in only known class themes.
+Default is compared against the original stylesheet and restored exactly after switching back.
+
+All proposed surface/highlight pairs passed the color checks. Rendered class text in the main
+fixture had a minimum contrast of 6.73:1 across map backgrounds at 40%, 94%, and 100% frame opacity;
+the test also checks 4.5:1 for sheet/detail text and 3:1 control boundaries. Reading surfaces remain
+opaque while outer frame gaps retain the opacity preference. Spent/disabled states keep labels
+and dashed boundaries; semantic HP, damage, temporary HP and concentration colors stay consistent.
+Resource shapes use contrasting black/white backing without changing saved colors or layout.
+
+Known limits: Default intentionally retains existing dimmed spent labels and low-opacity text
+over bright maps, which do not meet the class-theme contrast targets. Physical TV viewing-distance
+review still needs the intended display and seats. Unread message indicator checks wait for
+milestone 6. Character dropdowns, normalization and saved theme identifiers remain milestone 4;
+the palette review page and tests exercise renderer choices without editing real saves.
+
+Validation: all 171 unit tests and 25 native desktop scenarios pass, along with syntax,
+formatting and whitespace checks. The theme scenario measures 117 palette/map/opacity
+combinations plus sheet/details, hover/focus, warnings, independent bubbles, and Default
+restoration. Reviewed screenshots cover all 14 choices and a full-size Wizard details view.
+Desktop checks used a 1440 × 950 DM window and the configured 1440 × 2560 overlay display.
 
 Introduce per-character HUD color variables and the 13 built-in class palettes listed below.
 Recolor bubble backing, panels, borders, text, and navigation highlights. Scope colors to each
@@ -312,7 +338,7 @@ Completion and tests:
   behavior. Publishing an application release and updating the working installation remain
   separate later actions.
 
-## Class palettes and existing colors — proposed policy
+## Class palettes and existing colors — implemented rendering policy
 
 Use these coordinated surface/highlight directions. Default retains the current appearance.
 The class palettes use near-white main text (`#F3F5F7`) and readable secondary text, with panel,
@@ -409,7 +435,7 @@ and transient messages outside gameplay saves. Extend validation, migration, ser
 changed-field merging together. Preserve existing user content, resource bindings, current HUD
 sizing rules, map input, escaped text, checked window communication, and save recovery.
 
-Completed: **Milestones 1–2 — F09 storage, editing, and shared display**. The next milestone is
-**Milestone 3 — F12 palettes and matching previews**: introduce scoped class colors while
-preserving Default, player identity colors, resource colors, and HUD geometry. Theme selection
-and saving follow in milestone 4. Release after all seven milestones are complete, as requested.
+Completed: **Milestones 1–3 — F09 icons and F12 palettes/previews**. The next milestone is
+**Milestone 4 — F12 character selection and persistence**: add the Theme dropdown to character
+creation/editing and preserve each character's choice in saves and backups. Release after all
+seven milestones are complete, as requested.

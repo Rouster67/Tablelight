@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Tablelight · Class palette preview</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="../interaction.css" />
+    <link rel="stylesheet" href="../session.css" />
+    <link rel="stylesheet" href="../hud-themes.css" />
+    <link rel="stylesheet" href="theme-preview.css" />
+  </head>
+  <body>
+    <header class="gallery-heading">
+      <div>
+        <h1>Class palette preview</h1>
+        <p>Compare all 13 classes with Default. Sample characters only; nothing is saved.</p>
+      </div>
+      <div class="gallery-controls">
+        <label
+          >Map<select id="map">
+            <option value="dark">Dark</option>
+            <option value="bright">Bright</option>
+            <option value="pattern">Patterned</option>
+          </select></label
+        ><label
+          >Frame opacity <output id="opacity-value">94%</output
+          ><input id="opacity" type="range" min="40" max="100" value="94" /></label
+        ><label
+          >View<select id="panel">
+            <option value="action">Abilities</option>
+            <option value="detail">Ability details</option>
+            <option value="sheet">Skills and saves</option>
+          </select></label
+        >
+      </div>
+    </header>
+    <p class="gallery-note">
+      Class themes keep reading areas solid while frame opacity changes. Player rings, artwork, and
+      resource colors stay independent. Theme selection in character editors arrives in the next
+      milestone.
+    </p>
+    <main id="theme-gallery"></main>
+    <script src="../ability-icon.js"></script>
+    <script src="../core.js"></script>
+    <script src="../hud.js"></script>
+    <script src="../hud-controls.js"></script>
+    <script src="../hud-themes.js"></script>
+    <script src="theme-preview.js"></script>
+  </body>
+</html>

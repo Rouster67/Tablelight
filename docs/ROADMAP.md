@@ -33,7 +33,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F08 | Upcast and level-based upgrade text           | Merged; release pending |
 | F09 | Uploaded icons for abilities                  | Implemented on branch   |
 | F10 | DM approval queue, History, and targeted undo | Merged; release pending |
-| F12 | Class overlay color themes                    | Planned candidate       |
+| F12 | Class overlay color themes                    | Palettes ready          |
 | F13 | Bundled illustrated PDF user guide            | Planned candidate       |
 
 ## F01 — Passive abilities section
@@ -342,6 +342,17 @@ implementation recommendations, milestone checks, and final walkthrough on
 
 ## F12 — Class overlay color themes
 
+**Milestone 3 — palettes and previews implemented (September 14, 2026):** All 13 class palettes
+and Default are available in the renderer. Each HUD owns its theme variables; class surfaces,
+controls, borders, text, selection and focus colors change together. Player identity rings,
+uploaded artwork, resource colors/shapes, and saved gameplay data stay independent. Class themes
+use solid reading surfaces with adjustable surrounding frame opacity. Returning to Default
+restores the original appearance, including its existing low-opacity and dimmed-spent-text
+limitations. The [local palette preview](theme-preview.html) uses synthetic characters only.
+The character Theme dropdown, independent saved selections and backup migration remain milestone 4.
+Validation passes 171 unit tests and 25 desktop scenarios, including rendered contrast checks
+and independent geometry/appearance checks for all class palettes.
+
 **Requested (September 13, 2026):** Add a Theme dropdown to the character creator that changes
 that character's overlay appearance through recoloring. Include one theme per class, including
 Artificer, built into the program.
@@ -364,8 +375,9 @@ Ranger, Rogue, Sorcerer, Warlock, and Wizard.
 - Keep text readable at TV viewing distances and retain clear warning, concentration, unavailable,
   and resource states across every palette.
 
-**Open decisions:** Choose the colors for each class and decide how class themes interact with
-the existing Player color setting and custom resource colors. This feature is scoped to recoloring;
+**Color policy implemented:** Use the class colors in [the visual improvements plan](VISUAL_IMPROVEMENTS_PLAN.md),
+retain Player color for identity rings, and put custom resource shapes on a contrasting backing
+without rewriting their colors. Physical TV viewing-distance review is still needed. This feature is scoped to recoloring;
 custom theme editors, class artwork, and layout changes would be separate ideas.
 
 **Completion checks:** Verify all 13 class choices and Default, creation and editing, independent

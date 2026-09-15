@@ -277,6 +277,7 @@
     for (const el of stage.children) {
       const c = state.characters.find((c) => c.id === el.dataset.hudId);
       if (controls) HUDControls.decorate(el, c, controls);
+      if (typeof HUDThemes !== 'undefined') HUDThemes.apply(el, c.theme);
       el.dataset.contentKey = JSON.stringify([c.hud.panel, c.hud.detailId, c.hud.page]);
       const old = previous.get(c.id);
       if (old && c.hud.expanded) {
