@@ -338,6 +338,54 @@ windows, compare Default with the theme sheet disabled, and check independent th
 artwork, resource colors, hover/focus, warnings, and click-through. Physical TV viewing distance
 is outside automated coverage. Unread message UI checks belong to the message milestone.
 
+## Player-message delivery
+
+`message-service.js` owns a separate main-process session, instantiated beside the approval service.
+It retains at most one message per active character ID, independent of name, initiative, theme,
+resource values, and placement. Bodies are plain text, nonblank, limited to 2,000 Unicode code
+points, and preserved verbatim. Sending into an occupied slot requires the exact previous message
+ID. Closing retains the message and opened history; dismissal deletes it. There is no inbox or expiry.
+
+`messages:snapshot` and `messages:state` contain metadata only: session/global revision, transport
+availability, character/message IDs, command revision, presentation ID, sent/delivered/opened times,
+requesting actor, unread, open, and current indicator/body visibility. These are separate from party,
+approval, backup, and HUD payloads. No message body enters gameplay Undo or the save format.
+
+`messages:command` validates the actual top-level sender frame and window. The DM may send, force
+open, close, and dismiss; the overlay may open, close, and acknowledge indicator/body display.
+Each command carries a session ID, unique request ID, and character ID. Existing-message operations
+also require the exact message ID, revision, and presentation ID. Same-request retries return a
+receipt without repeating effects. Session-long replay records store a digest and result metadata,
+never the command text, so delayed retries after dismissal or removal cannot resurrect messages.
+Unknown windows, wrong-role operations, stale sessions/views, and inactive recipients are rejected.
+
+The DM may explicitly retrieve a selected body through `messages:body`. The overlay can retrieve
+only a current, open message for a visible character in a connected, visible TV window. Responses
+carry all view identifiers; renderer code must discard a response whose identifiers no longer match
+the current metadata. A player body response also carries a per-presentation body token. Neither
+an open request nor fetching its body marks it read. An `ack-opened` must return that token for the
+same current visible presentation. First indicator acknowledgement records delivery; each new
+acknowledged opening records the latest opened time and whether the player or DM requested it.
+Unread becomes false after an acknowledged opening and stays false until replacement.
+
+The service reconciles active membership after successful approval-service state changes. Removal
+deletes the recipient's message; Undo/rejoining cannot recover it. Successful backup restore emits
+`change.restored`, including confirmed restores, and starts a new message session. Cancelled or failed
+restores do not. Ordinary saves, theme changes, spending, and gameplay Undo retain other messages.
+App restart creates an empty service. No message bodies or command text are written to logs.
+
+Hiding a character or the TV, changing collapsed/expanded state, changing displays, and renderer
+reload/loss close exposed text and invalidate presentation tokens, retaining historical read status.
+Metadata resync never automatically reopens a body. Force open rejects unavailable recipients rather
+than queuing future exposure. Click-through keeps its existing native mode: player open/close are
+rejected, while DM operations, body fetches, and renderer acknowledgements remain available.
+
+Milestone 5 implements this contract only. Milestone 6 will connect actual visible-render acknowledgements,
+composer/status controls, envelope indicators, and themed/rotated reading surfaces. It must keep
+message text out of DM layout previews and notification labels, preserve saved HUD geometry, and
+provide DM reading controls in click-through. All players share one renderer and TV: recipient
+targeting is not a private-device security boundary. An opened message is visible to nearby people.
+
 ## Tests
 
 Unit tests cover cost spending, migration, linked definitions, independent bindings, save recovery, geometry, command validation, and stale-editor merging. Native scenarios exercise the real renderer and Electron windows using synthetic state, capture screenshots, and verify persistence. Run them with `npm run test:native` in a Windows desktop session. The native harness creates a unique user-data directory per scenario and never reads the normal party file.

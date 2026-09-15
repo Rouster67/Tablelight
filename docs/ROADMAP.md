@@ -24,7 +24,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | ID  | Idea                                          | Status                  |
 | --- | --------------------------------------------- | ----------------------- |
 | F01 | Passive abilities section                     | Considering             |
-| F02 | Messages sent to individual player overlays   | Considering             |
+| F02 | Messages sent to individual player overlays   | In progress             |
 | F03 | Visible application version on the DM screen  | Released                |
 | F04 | Launch update prompt and Windows installer    | Released                |
 | F05 | Source reference on abilities                 | Merged; release pending |
@@ -75,10 +75,18 @@ design delays its exposure and makes casual glances less likely. Per-player priv
 be a separate idea if actual private viewing is needed. Message text should not appear in other
 characters' HUDs or ordinary ability descriptions.
 
-**Open decisions:** One pending message or an inbox? Should messages expire after reading? Should
-they survive app restarts or be included in backups? What happens when the recipient leaves the
-party or their overlay is hidden? Should the DM see sent/opened status? If a popup changes which
-screen area is interactive, how should it preserve map interaction outside that area?
+**Delivery foundation implemented:** One retained plain-text message per active character, with
+a 2,000 Unicode-code-point limit and explicit replacement. Message text is session-only and stays
+out of saves, backups, and gameplay Undo. Removal clears that recipient; restart and successful
+backup restore clear the session. Hiding or reloading closes exposed text while retaining the
+message. Metadata-only updates distinguish sent, indicator-delivered, and visibly-opened receipts;
+the latter records whether the DM or player requested opening. Stale requests cannot alter a
+replacement or another player. DM commands remain usable with click-through enabled.
+
+**Next:** Milestone 6 in [the implementation plan](VISUAL_IMPROVEMENTS_PLAN.md) adds the composer,
+envelope, rotated reading panel, DM paging controls, and shared-TV notice. The current milestone
+provides the underlying commands; it does not yet expose message controls in either screen.
+Actual rendering, contrast, orientation, and map-input checks accompany that interface.
 
 ## F03 — Visible application version on the DM screen
 
@@ -465,7 +473,7 @@ was released in 1.10.2.
 
 1. Consider the remaining source, upgrade-text, and icon changes (F05, F08, F09).
 2. F09 icons and F12 class themes are implemented on the visual-improvements branch. Continue
-   with individual-player message state and delivery (F02), then its UI and combined regression.
+   with the F02 message interface using its completed delivery service, then combined regression.
 3. Design passive abilities and character-based calculations together where they affect the shared
    library and character assignments (F01, F07).
 4. Prototype messages and player-use review with the actual TV setup (F02, F10). Agree on privacy

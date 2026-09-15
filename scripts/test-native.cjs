@@ -9,6 +9,7 @@ const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
 const scenarios = [
+  'player-messages',
   'character-themes',
   'hud-themes',
   'ability-icons-performance',
@@ -55,10 +56,8 @@ for (const scenario of requested.length ? requested : scenarios) {
   fs.writeFileSync(path.join(dir, 'process.log'), (child.stdout || '') + (child.stderr || ''));
   if (child.error || child.status !== 0)
     throw child.error || new Error(scenario + ' test process failed. See ' + dir);
-  if (scenario === 'character-themes') {
-    const first = JSON.parse(
-      fs.readFileSync(path.join(dir, 'character-themes-results.json'), 'utf8')
-    );
+  if (['character-themes', 'player-messages'].includes(scenario)) {
+    const first = JSON.parse(fs.readFileSync(path.join(dir, scenario + '-results.json'), 'utf8'));
     if (!first.passed) throw new Error(first.error + '\nSee ' + dir);
     const restart = spawnSync(electron, [root, '--self-test'], {
       env: {
@@ -77,9 +76,9 @@ for (const scenario of requested.length ? requested : scenarios) {
       (restart.stdout || '') + (restart.stderr || '')
     );
     if (restart.error || restart.status !== 0)
-      throw restart.error || new Error('Theme restart failed. See ' + dir);
-    if (!fs.existsSync(path.join(dir, 'character-themes-restart-results.json')))
-      throw new Error('Missing theme restart results. See ' + dir);
+      throw restart.error || new Error(scenario + ' restart failed. See ' + dir);
+    if (!fs.existsSync(path.join(dir, scenario + '-restart-results.json')))
+      throw new Error('Missing ' + scenario + ' restart results. See ' + dir);
   }
   const files = fs.readdirSync(dir).filter((name) => name.endsWith('results.json'));
   if (!files.length) throw new Error('No ' + scenario + ' test results. See ' + dir);

@@ -89,7 +89,11 @@
       }
       if (after.session.revision !== before.session.revision || meta.restore) {
         this.#preview = null;
-        this.onChange(this.snapshot(), { kind: meta.kind, requestId: result.requestId });
+        this.onChange(this.snapshot(), {
+          kind: meta.kind,
+          requestId: result.requestId,
+          ...(meta.restore && !result.replayed ? { restored: true } : {}),
+        });
       }
       return { ...this.snapshot(), result };
     }

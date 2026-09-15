@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add the session-only player-message delivery foundation: one plain-text message per active character, explicit replacement, separate sent/delivered/opened receipts, and checked DM/player commands. Messages stay out of saves, backups, and gameplay Undo; hiding or reloading closes text, while removal, successful restore, and app restart clear the appropriate messages. The composer, envelope indicator, and reading panel are the next milestone.
 - Add Theme to Create and Edit character, with Default plus all 13 class palettes, including Artificer. Each choice is independent of the entered class and other players and applies to the bubble, expanded HUD, and DM preview. Preserve choices through saves, backups, remove/rejoin, and Undo; changing a theme leaves live spending and pending approvals intact.
 - Keep Default for older saves and retain unknown theme identifiers while displaying Default until a replacement is chosen. Class themes keep reading surfaces opaque over maps and preserve player rings, ability artwork, resource colors, and HUD geometry.
 - Add a local class-palette review page under `docs/theme-preview.html`, with bright/dark/patterned maps, frame opacity, and ability/detail/sheet views. The page uses synthetic characters and does not save changes.

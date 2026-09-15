@@ -1,10 +1,11 @@
 # Ability icons, class themes, and player messages — proposed plan
 
 Status: implementation started at the user's request on September 14, 2026.
-Milestones 1–4 are implemented and tested locally. Milestones 5–7 remain planned.
+Milestones 1–5 are implemented and tested locally. Milestones 6–7 remain planned.
 Originally prepared September 13; refreshed against Tablelight 1.11.0 main at
 `f29bc449327f0d9f204a1dcbbaa84fc39da17306`. The initial image/storage decisions below are
-in use, and class themes now include selection and persistence; player messages remain planned.
+in use, and class themes include selection and persistence. Player-message delivery is implemented;
+the composer, mail indicator, and reading interface remain planned.
 
 ## Branch setup completed
 
@@ -21,7 +22,8 @@ in use, and class themes now include selection and persistence; player messages 
    published starting commit matched before development. Milestone 1 was committed as
    `efbeef2` (Add ability icon storage foundation), and milestone 2 as `6bd094c`
    (Implement ability image editing and display). Milestone 3 was committed as `6302224`
-   (Add class palette themes and previews).
+   (Add class palette themes and previews). Milestone 4 was committed as `a5d9ff8`
+   (Add character theme selection and persistence).
 
 GitHub branch: [codex/ability-icons-class-themes-player-messages](https://github.com/Rouster67/Tablelight/tree/codex/ability-icons-class-themes-player-messages).
 The normal source folder is now the working location; the previous separate-folder instructions
@@ -59,7 +61,7 @@ commit, uncommitted status, build time, and backup location.
 ## What the current project already provides
 
 - [Roadmap](ROADMAP.md): F09 storage, editing, and display are implemented on this branch;
-  F12 class themes are implemented; F02 player messages remain planned.
+  F12 class themes are implemented; F02 delivery is implemented, with its interface still planned.
   These identifiers are roadmap references, not GitHub issue numbers. The roadmap calls for
   focused issues with decisions and completion checklists when implementation is scheduled.
 - [Core state](../core.js): shared definitions supply each character's ability display fields.
@@ -290,6 +292,31 @@ Completion and tests:
 
 ### Milestone 5 — F02 recipient state and delivery
 
+Completed locally September 15, 2026. `message-service.js` owns the ephemeral message session;
+the preload exposes sender-checked commands, metadata subscriptions, and explicit body requests.
+One retained message per active character, the 2,000 Unicode-code-point limit, explicit replacement,
+and the lifetime table below are adopted. No saved-party schema changes are needed.
+
+Messages are addressed by character ID. Session/request/message/view identifiers reject stale
+requests and make retries harmless, even after dismissal or removal. Only metadata is broadcast.
+Fetching text does not mark it opened: the overlay must acknowledge the current open presentation
+using its fetched-body token. Opened records the latest confirmed display and its requesting actor;
+it never claims the player actually read the text. Reopening does not reset the unread state.
+
+Main-process hooks reconcile membership after successful state changes and close exposed text
+on hide, expansion changes, display changes, or renderer reload/loss. Successful backup restore
+starts a new session, including after the existing pending-request confirmation. Cancelled and
+failed restores retain messages. DM controls remain available while click-through stays enabled.
+
+Checks cover 15 message unit/integration tests and a Windows desktop scenario with eight same-name
+players, mixed visibility/expansion, request retries, wrong-window/role rejection, read receipts,
+click-through, native export/import, removal/Undo, and a second-process restart. Desktop reload is
+real; display-loss and renderer-exit events are simulated. The desktop checks explicitly exercise
+renderer acknowledgements; actual visible text, envelope rendering, rotation, paging, and input
+regions belong to milestone 6. All 190 unit tests and 27 Windows desktop scenarios pass, along with
+syntax and formatting checks. Update `D:\Programs\Tablelight` with this milestone and record the
+installed-payload checks and preserved-save hashes locally.
+
 Before adding the reading interface, create a session-only message store in the main process,
 separate from saved party state and gameplay Undo. Recommend one current message per active
 character, retained until dismissed, with a 2,000-character plain-text limit. Reject blank
@@ -420,7 +447,7 @@ Replacing the spell's image updates both. Changing the first character to Artifi
 that character's bubble, HUD, and preview. Their Player color, resource colors, spent charges,
 and HUD placement remain intact. Returning to Default restores their original appearance.
 
-## Message lifetime and visibility — proposed policy
+## Message lifetime and visibility — adopted delivery policy
 
 Use one retained message per active character. Closing hides text; dismissing clears it.
 Messages have no automatic expiry during the session and are excluded from saved parties,
@@ -463,15 +490,16 @@ counting it as opened. Private delivery to personal devices is outside this plan
    256-pixel PNG, 300 KiB per stored icon, and an 8 MiB budget including character-only images.
    Start without a crop
    editor or personal icon overrides; confirm performance before increasing the budget.
-2. **Themes:** adopt the proposed 13 palettes and Default, chosen independently of entered class?
-   Preserve Player color for identity and custom resource colors, with opaque class reading
-   surfaces where needed without changing the outer opacity preference.
-3. **Message scope:** adopt one retained plain-text message per active character, a 2,000-character
-   limit, explicit replacement, visible-render Opened status, and the lifecycle table above?
+2. **Themes — implemented in milestones 3–4:** all 13 palettes and Default are chosen independently
+   of entered class. Player color identifies the character, resources retain custom colors, and
+   class reading surfaces stay opaque without changing the outer opacity preference.
+3. **Message scope — adopted in milestone 5:** one retained plain-text message per active character,
+   a 2,000 Unicode-code-point limit, explicit replacement, visible-render Opened status, and the
+   lifecycle table above. Milestone 6 must connect acknowledgements to actual visible rendering.
 4. **Reading controls:** approve the temporary rotated card for collapsed recipients and DM
    open/page/close/dismiss controls in click-through? Sending must not unhide players or expose
    text automatically; include the shared-TV notice.
-5. **Lifetime:** recommend session-only messages, ending at restart, backup restore, or recipient
+5. **Lifetime — implemented in milestone 5:** session-only messages end at restart, successful backup restore, or recipient
    removal. Keep them out of backups and gameplay Undo. Closing retains a message for reopening;
    dismissing clears it. An inbox or persistent history would require a different storage policy.
 6. **Save compatibility — implemented in milestone 1:** write format 10 while accepting formats
@@ -484,7 +512,7 @@ and transient messages outside gameplay saves. Extend validation, migration, ser
 changed-field merging together. Preserve existing user content, resource bindings, current HUD
 sizing rules, map input, escaped text, checked window communication, and save recovery.
 
-Completed: **Milestones 1–4 — F09 icons and F12 class themes**. The next milestone is
-**Milestone 5 — F02 recipient state and delivery**: add session-only messages addressed by
-character ID, with safe delivery and lifecycle handling before the reading interface.
-Three milestones remain before the next release, as requested.
+Completed: **Milestones 1–5 — F09 icons, F12 class themes, and F02 delivery**. The next milestone is
+**Milestone 6 — F02 composer, mail indicator, and reading controls**: connect the delivery service
+to recipient selection, notification-only envelopes, and readable rotated message panels with DM
+controls in click-through mode. Two milestones remain before the next release, as requested.

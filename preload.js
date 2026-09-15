@@ -43,6 +43,14 @@ else {
     changeParty: (value) => invokeState('party:change', value),
     undo: () => invokeState('party:undo'),
     flush: () => ipcRenderer.invoke('party:flush'),
+    messages: () => ipcRenderer.invoke('messages:snapshot'),
+    messageCommand: (request) => ipcRenderer.invoke('messages:command', request),
+    messageBody: (request) => ipcRenderer.invoke('messages:body', request),
+    onMessages: (callback) => {
+      const listener = (_event, value) => callback(value);
+      ipcRenderer.on('messages:state', listener);
+      return () => ipcRenderer.removeListener('messages:state', listener);
+    },
     approvalCommand: (value) => invokeState('approval:command', value),
     onApprovals: (callback) => {
       const listener = (_event, value) => callback(unpackImages(value));
