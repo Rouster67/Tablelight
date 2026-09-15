@@ -1,12 +1,13 @@
 # DM approval queue and History
 
 Branch: `codex/dm-approval-queue`, starting from `b8883db` (the merge of PR #10).
-Status: milestone 1 committed as `479ce68`; milestone 2 implemented for review, uncommitted.
+Status: milestone 1 committed as `479ce68`; milestone 2 and the HUD layout amendment committed
+as `d6ae50e`. Milestone 3 is implemented locally for review, uncommitted.
 This document replaces the earlier F10 post-use notice proposal in ABILITY_DETAILS_PLAN.md.
 
 Work one approved milestone at a time. Leave changes uncommitted; the user handles staging,
-commits, publishing, and branch changes. The visible approval flow is now connected. History,
-Reconsider, and targeted undo still await their own approved milestone.
+commits, publishing, and branch changes. The user approved milestone 3 after committing milestone 2.
+History, Reconsider, and targeted undo are now connected for review.
 
 ## Agreed product behavior
 
@@ -217,6 +218,16 @@ Completion checks:
 
 ### 3. History, Reconsider, and targeted undo
 
+**Implemented locally:** The bottom-left History list retains five resolved requests and shows
+recorded details and actual costs. Reconsider creates one new attempt with the current definition
+and costs, opens its request, and marks the old entry Reconsidered. Urgent requests keep priority.
+Targeted undo validates all receipt components before returning any cost. Ordinary Undo updates
+the corresponding History status and can reverse a targeted refund without enabling double refunds.
+Dependent pending requests use the existing warning before a refund.
+
+All 155 unit tests and 21 desktop scenarios pass, including 18 new history/refund unit checks and
+a native History scenario covering the dialogs, later actions, resets, failed saves, and reloads.
+
 Add the bottom-left History list, five-entry eviction, current-definition Reconsider, and safe
 targeted undo. Connect ordinary Undo to the session bookkeeping so state and labels stay aligned.
 
@@ -244,7 +255,6 @@ review. Leave all source changes uncommitted; no branch changes or release publi
 
 ## Next milestone recommendation
 
-Review and commit milestone 2 before starting milestone 3: History controls, Reconsider, targeted
-undo, and coordination of those reversals with ordinary Undo. Receipts and counter markers alone
-do not implement reversal. The final combined milestone will repeat relevant desktop checks
-after those controls are connected.
+Review the installed milestone 3 controls and commit this batch after approval. The full unit
+and desktop regressions now cover the combined feature. A final user walkthrough should exercise
+History and queued requests on the actual table before merging or publishing a release.

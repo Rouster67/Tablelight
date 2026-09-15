@@ -17,6 +17,27 @@
   color: #efc76b;
   animation: queue-pulse 2s ease-in-out infinite;
 }
+.dm-history-button {
+  left: 24px;
+  right: auto;
+}
+.history-actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+.history-entry.approved .history-outcome,
+.history-summary.approved .history-outcome {
+  color: #a2d6a8;
+}
+.history-entry.denied .history-outcome,
+.history-summary.denied .history-outcome {
+  color: #ff9292;
+}
+.history-entry.undone .history-outcome,
+.history-summary.undone .history-outcome {
+  color: #efc76b;
+}
 .dm-queue-button.urgent,
 .urgent-label {
   color: #ff9292;

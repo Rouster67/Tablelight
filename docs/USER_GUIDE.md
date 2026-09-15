@@ -186,7 +186,28 @@ that warning too; concentration switches only on approval.
 
 DM-console ability uses remain immediate. Damage, healing, and ability effects remain manual.
 Requests survive reloading a window but clear when Tablelight closes. Approved costs stay saved.
-History, Reconsider, and targeted undo are planned for the next milestone.
+Open the **History** icon at the bottom left of the DM screen to see the five most recent resolved
+requests. Each entry shows its outcome; open it to read the ability details recorded with that
+request and the costs actually spent. Older entries drop off without changing any counters.
+
+Denied, player-canceled, and expired requests offer **Reconsider**. This creates one new request
+at the front of the queue and opens it immediately, using the current ability and costs. Urgent
+reactions stay ahead of ordinary requests. The earlier entry is marked Reconsidered so it cannot
+queue another copy. Unavailable abilities, invalid old slot choices, and a full queue show why
+Reconsider is disabled; submit a fresh request with a valid slot when needed.
+
+Approved requests offer **Undo this use**. It refunds only that use’s recorded costs and restores
+its previous concentration when safe. Later tracked ability spending, HP changes, and other
+unrelated work remain intact. For example, spend two charges, then one more: undoing the first
+use returns two charges while leaving the later one spent. A reset, manual correction, capacity
+change, or later concentration change can disable the whole refund, with a reason beside the
+button. If pending requests rely on counters being refunded, the existing warning lets you
+cancel or continue and deny those dependent requests.
+
+A refunded request is marked **Undone** and cannot be refunded or reconsidered again. Ordinary
+**Undo** also updates these labels; undoing a targeted refund restores that use’s costs and Allowed
+status. History and the queue survive window reloads but clear when the app closes. They are never
+included in exported backups.
 
 ## Move and rotate individual bubbles
 

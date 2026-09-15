@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
 'use strict';
-let approvalState = { id: '', revision: -1, pending: [] };
+let approvalState = { id: '', revision: -1, pending: [], history: [] };
 let approvalOpenId = '';
 let approvalListOpen = false;
 let approvalBusyId = '';
@@ -27,6 +27,7 @@ function acceptApprovalState(value) {
     showApprovalRequest(value.change.requestId);
 }
 function renderApprovalQueue() {
+  renderApprovalHistory();
   const root = document.getElementById('dm-queue-root');
   if (!root) return;
   const count = approvalState.pending.length;
@@ -103,12 +104,12 @@ function guardChange(result) {
     const focus = document.activeElement;
     const expires = result.affected.every((r) => r.status === 'expired');
     root.innerHTML = `<div class="modal-backdrop queue-guard-backdrop"><section class="modal narrow" role="alertdialog" aria-modal="true" aria-labelledby="queue-guard-title"><header class="modal-header"><h2 id="queue-guard-title">${expires ? 'Start a new turn?' : 'Pending requests depend on this change'}</h2></header><div class="modal-body"><p>${expires ? 'Starting this turn will expire these pending requests and release their reserved costs.' : 'These queued requests rely on data being changed. Continuing will automatically deny them.'}</p><ul class="queue-affected">${result.affected.map((r) => `<li>${esc(r.characterName)} — ${esc(r.abilityName)}</li>`).join('')}</ul><p>Do you wish to continue?</p></div><footer class="modal-footer"><button type="button" data-guard-cancel>Cancel</button><button type="button" data-guard-continue class="primary">Continue</button></footer></section></div>`;
-    for (const id of ['app', 'modal-root', 'dm-queue-root'])
+    for (const id of ['app', 'modal-root', 'dm-queue-root', 'dm-history-root'])
       document.getElementById(id).inert = true;
     const finish = (answer) => {
       root.innerHTML = '';
       pendingGuard = null;
-      for (const id of ['app', 'modal-root', 'dm-queue-root'])
+      for (const id of ['app', 'modal-root', 'dm-queue-root', 'dm-history-root'])
         document.getElementById(id).inert = false;
       if (focus?.isConnected) focus.focus({ preventScroll: true });
       resolve(answer);
@@ -139,9 +140,16 @@ async function finishPartyChange(response) {
   return true;
 }
 function handleApprovalAction(b) {
+  if (handleHistoryAction(b)) return true;
   const action = b.dataset.action;
   if (action === 'dm-queue') {
-    if (document.querySelector('.modal') && !approvalOpenId && !approvalListOpen)
+    if (
+      document.querySelector('.modal') &&
+      !approvalOpenId &&
+      !approvalListOpen &&
+      !historyOpenId &&
+      !historyListOpen
+    )
       toast('Close the current dialog to review queued requests.');
     else showApprovalList();
     return true;

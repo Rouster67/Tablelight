@@ -226,12 +226,12 @@ its dropdown; Spell Level is available on all types. Casting Time is free text a
 existing explicit Turn cost selector. Resource links and charge costs remain character-specific.
 Upcast / Upgrades stays below Damage / Healing, and Reference replaces the Source label below
 Description, at the bottom right. All fields can be left blank. Shared text appears consistently
-on DM details, assignment previews, and the fixed, rotatable player HUD.
+on DM details, assignment previews, and the expanding, rotatable player HUD.
 
 Save format 9 imports formats 1–8 and preserves existing text and character state. Fixed values
 entered in the earlier preview are retained as manual text; differing personal exceptions become
-separate library variants. No automatic ability calculation remains. F10 notices and targeted
-undo still require their own approved milestone.
+separate library variants. No automatic ability calculation remains. F10 approval, History, and
+targeted undo are tracked separately below.
 
 **Approved duplication follow-up:** Duplicate creates a numbered library version. Duplicate
 locally only, available in each character ability row, creates an independently editable ability
@@ -276,11 +276,13 @@ making saves or HUD updates slow. Users supply the images; no spell art is bundl
 
 ## F10 — DM approval queue, History, and targeted undo
 
-**Milestones 1–2 implemented:** Player requests now reserve costs on the HUD and enter the DM queue.
+**Milestones 1–3 implemented:** Player requests now reserve costs on the HUD and enter the DM queue.
 The DM can review full details, approve, deny, minimize, and view the character. Conflicting edits
 and new turns require confirmation. Window reloads retain pending requests; app exit clears them.
-The accounting foundation is committed; the visible integration is ready for review. History,
-Reconsider, and targeted undo remain the next milestone. All 137 unit tests and 20 desktop scenarios pass.
+The request flow and growing HUD are committed as `d6ae50e`. The new bottom-left History list,
+current-definition Reconsider, and targeted undo are implemented locally for review. Refunds
+preserve unrelated later work, block unsafe counter/concentration changes, and coordinate with
+ordinary Undo. All 155 unit tests and 21 desktop scenarios pass.
 
 **HUD layout amendment:** The player HUD grows taller to keep the entire character column and
 Smaller/Larger controls visible. Pending requests appear in a separate column to the right of

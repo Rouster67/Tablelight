@@ -212,6 +212,111 @@
       }
       return copy({ request, reason, concentrationWarning: warning });
     }
+    #historyEntry(id) {
+      const entry = this.#history.find((r) => r.id === id);
+      if (!entry) throw new Error('This request is no longer in History.');
+      return entry;
+    }
+    #checkUndo(entry) {
+      if (entry.status !== 'approved' || !entry.receipt)
+        throw new Error(
+          entry.status === 'undone'
+            ? 'This use has already been undone.'
+            : 'Only approved uses can be undone.'
+        );
+      const c = TL.findCharacter(this.#state, entry.characterId);
+      if (!c) throw new Error('This character has been deleted.');
+      for (const cost of entry.receipt.costs.filter((cost) => cost.amount > 0)) {
+        // Later tracked spending shares this epoch; corrections and resets permanently advance it.
+        const marker = this.#revisions[counterKey(c.id, cost.kind, cost.key)];
+        if (marker?.epoch !== cost.marker.epoch)
+          throw new Error(
+            `${cost.label} changed after this use through a reset, correction, or edit.`
+          );
+        const current = valueOf(c, cost);
+        const max =
+          cost.kind === 'turn'
+            ? 1
+            : cost.kind === 'resource'
+              ? c.resources.find((r) => r.id === cost.key)?.max
+              : c.slots.find((s) => s.level === cost.key)?.max;
+        if (!Number.isFinite(current) || !Number.isFinite(max) || current + cost.amount > max)
+          throw new Error(`${cost.label} cannot receive the full refund.`);
+      }
+      const focus = entry.receipt.concentration;
+      if (focus) {
+        const marker = this.#revisions[counterKey(c.id, 'concentration')];
+        if (
+          marker?.epoch !== focus.marker.epoch ||
+          marker.owner !== entry.id ||
+          !same(concentration(c), focus.after)
+        )
+          throw new Error('Concentration changed after this use.');
+        if (
+          focus.before.active &&
+          focus.before.itemId &&
+          !c.items.some((it) => it.id === focus.before.itemId && it.requiresConcentration)
+        )
+          throw new Error('The previous concentration ability is no longer available.');
+      }
+      return c;
+    }
+    #request(characterId, itemId, slotLevel, create = true) {
+      const c = character(this.#state, characterId),
+        it = ability(c, itemId),
+        urgent = it.economy === 'reaction';
+      if (
+        !urgent &&
+        this.#pending.filter((r) => r.kind === 'ability' && !r.urgent).length >= ABILITY_LIMIT
+      )
+        throw new Error(BUSY_MESSAGE);
+      const costs = costsFor(this.projectCharacter(characterId), it, slotLevel);
+      return {
+        id: create ? TL.uid() : '',
+        kind: 'ability',
+        source: 'overlay',
+        status: 'pending',
+        characterId,
+        characterName: c.name,
+        itemId,
+        libraryId: it.libraryId,
+        local: it.local === true,
+        ability: {
+          ...TL.libraryEntry(it),
+          resourceId: it.resourceId,
+          resourceCost: it.resourceCost,
+          local: it.local === true,
+        },
+        definitionKey: definitionKey(it),
+        slotLevel,
+        costs,
+        urgent,
+        createdAt: create ? this.#now() : 0,
+        sequence: this.#revision + 1,
+      };
+    }
+    #checkReconsider(entry, create = true) {
+      if (!['denied', 'canceled', 'expired'].includes(entry.status))
+        throw new Error('Only denied, canceled, or expired requests can be reconsidered.');
+      if (entry.reconsideredAs) throw new Error('This request has already been reconsidered.');
+      return this.#request(entry.characterId, entry.itemId, entry.slotLevel, create);
+    }
+    reviewHistory(id) {
+      const entry = this.#historyEntry(id);
+      let undoReason = '',
+        reconsiderReason = '';
+      try {
+        this.#checkUndo(entry);
+      } catch (error) {
+        undoReason = error.message;
+      }
+      try {
+        this.#checkReconsider(entry, false);
+      } catch (error) {
+        reconsiderReason = error.message;
+      }
+      return copy({ entry, undoReason, reconsiderReason });
+    }
     #serial(work) {
       const job = this.#tail.then(work);
       this.#tail = job.catch(() => {});
@@ -318,40 +423,62 @@
         let result;
         if (type === 'request') {
           const c = character(this.#state, characterId),
-            it = ability(c, itemId),
-            urgent = it.economy === 'reaction';
-          if (
-            !urgent &&
-            this.#pending.filter((r) => r.kind === 'ability' && !r.urgent).length >= ABILITY_LIMIT
-          )
-            throw new Error(BUSY_MESSAGE);
-          const costs = costsFor(this.projectCharacter(characterId), it, slotLevel);
+            it = ability(c, itemId);
+          const request = this.#request(characterId, itemId, slotLevel);
           const warning = TL.concentrationUseWarning(c, it);
           if (warning && confirmedConcentration !== warning.token)
             throw new Error('Review the concentration warning before requesting this ability.');
-          const request = {
-            id: TL.uid(),
-            kind: 'ability',
-            source: 'overlay',
-            status: 'pending',
-            characterId,
-            characterName: c.name,
-            itemId,
-            libraryId: it.libraryId,
-            local: it.local === true,
-            ability: TL.libraryEntry(it),
-            definitionKey: definitionKey(it),
-            slotLevel,
-            costs,
-            urgent,
-            createdAt: this.#now(),
-            sequence: this.#revision + 1,
-          };
           const pending = [...this.#pending, request].sort(
-            (a, b) => Number(b.urgent) - Number(a.urgent) || a.sequence - b.sequence
+            (a, b) => Number(b.urgent) - Number(a.urgent)
           );
           await this.#commit(this.#state, pending, this.#history, this.#revisions);
           result = { accepted: true, requestId: request.id };
+        } else if (type === 'reconsider') {
+          const entry = this.#historyEntry(requestId),
+            request = this.#checkReconsider(entry);
+          const pending = [request, ...this.#pending].sort(
+            (a, b) => Number(b.urgent) - Number(a.urgent)
+          );
+          await this.#commit(
+            this.#state,
+            pending,
+            this.#history.map((r) =>
+              r.id === entry.id ? { ...r, reconsideredAs: request.id } : r
+            ),
+            this.#revisions
+          );
+          result = { accepted: true, requestId: request.id };
+        } else if (type === 'undo-use') {
+          const entry = this.#historyEntry(requestId);
+          this.#checkUndo(entry);
+          const next = copy(this.#state),
+            revisions = copy(this.#revisions),
+            c = TL.findCharacter(next, entry.characterId);
+          for (const cost of entry.receipt.costs.filter((cost) => cost.amount > 0)) {
+            if (cost.kind === 'turn') c.turn[cost.key] = true;
+            else {
+              const pool =
+                cost.kind === 'resource'
+                  ? c.resources.find((r) => r.id === cost.key)
+                  : c.slots.find((s) => s.level === cost.key);
+              pool.current += cost.amount;
+            }
+            this.#mark(revisions, counterKey(c.id, cost.kind, cost.key), null);
+          }
+          if (entry.receipt.concentration) {
+            const previous = entry.receipt.concentration.before;
+            Object.assign(c, {
+              concentrating: previous.active,
+              concentrationItemId: previous.itemId,
+              concentration: previous.name,
+            });
+            this.#mark(revisions, counterKey(c.id, 'concentration'), null, true);
+          }
+          result = await this.#prepareChange(TL.normalize(next), [], revisions, {
+            type: 'undone',
+            requestId,
+          });
+          result.requestId = requestId;
         } else if (['approve', 'deny', 'cancel'].includes(type)) {
           const request = this.#pending.find((r) => r.id === requestId);
           if (!request) throw new Error('This request is no longer pending.');
@@ -419,7 +546,37 @@
         return this.#remember(command, signature, result);
       });
     }
-    async #prepareChange(next, events, spendRevisions) {
+    undoChange(raw, entry) {
+      const command = copy(raw),
+        saved = copy(entry);
+      return this.#serial(async () => {
+        const signature = JSON.stringify({ type: 'undo-change', entry: saved });
+        const replay = this.#replay(command, signature);
+        if (replay) return replay;
+        const next = TL.normalize(saved.state);
+        let revisions, historyUpdate;
+        if (['approve', 'direct-use', 'undo-use'].includes(saved.kind)) {
+          // Reverse a tracked operation without reviving epochs invalidated by subsequent edits.
+          revisions = copy(this.#revisions);
+          const before = counters(this.#state),
+            after = counters(next);
+          for (const key of new Set([...before.keys(), ...after.keys()]))
+            if (!same(before.get(key), after.get(key)))
+              this.#mark(revisions, key, null, JSON.parse(key)[1] === 'concentration');
+          if (saved.kind === 'approve')
+            historyUpdate = { type: 'undone', requestId: saved.requestId };
+          else if (saved.kind === 'undo-use')
+            historyUpdate = {
+              type: 'approved',
+              requestId: saved.requestId,
+              entry: saved.historyEntry,
+            };
+        }
+        const result = await this.#prepareChange(next, [], revisions, historyUpdate);
+        return this.#remember(command, signature, result);
+      });
+    }
+    async #prepareChange(next, events, spendRevisions, historyUpdate) {
       const { keys, newTurns } = invalidations(this.#state, events);
       const beforeCounters = counters(this.#state),
         afterCounters = counters(next);
@@ -452,7 +609,14 @@
         }));
       const revisions = spendRevisions || copy(this.#revisions);
       if (!spendRevisions) for (const key of keys) this.#mark(revisions, key, null, true);
-      const plan = { id: TL.uid(), revision: this.#revision, next, affected, revisions };
+      const plan = {
+        id: TL.uid(),
+        revision: this.#revision,
+        next,
+        affected,
+        revisions,
+        historyUpdate,
+      };
       if (affected.length) {
         this.#prepared = plan;
         return {
@@ -472,10 +636,26 @@
           const { status, reason } = affected.get(r.id);
           return this.#resolve(r, status, { reason });
         });
+      let history = this.#history;
+      if (plan.historyUpdate) {
+        // Update only this operation's surviving entry; never resurrect evicted History or old requests.
+        const update = plan.historyUpdate;
+        history = history.map((entry) => {
+          if (entry.id !== update.requestId) return entry;
+          if (update.type === 'undone')
+            return { ...entry, status: 'undone', undoneAt: this.#now() };
+          const restored = copy(update.entry);
+          if (restored?.receipt?.concentration) {
+            const key = counterKey(restored.characterId, 'concentration');
+            restored.receipt.concentration.marker = this.#mark(plan.revisions, key, restored.id);
+          }
+          return restored || entry;
+        });
+      }
       await this.#commit(
         plan.next,
         this.#pending.filter((r) => !affected.has(r.id)),
-        [...resolved.reverse(), ...this.#history],
+        [...resolved.reverse(), ...history],
         plan.revisions
       );
     }

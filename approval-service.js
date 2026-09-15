@@ -33,6 +33,10 @@
     }
     snapshot() {
       const value = this.#session.snapshot();
+      value.session.history = value.session.history.map((entry) => {
+        const { undoReason, reconsiderReason } = this.#session.reviewHistory(entry.id);
+        return { ...entry, undoReason, reconsiderReason };
+      });
       return { state: value.state, approvals: value.session, undoCount: this.#undo.length };
     }
     overlayState() {
@@ -63,10 +67,20 @@
         return { ...this.snapshot(), result };
       }
       const after = this.#session.snapshot();
-      if (!same(before.state, after.state)) {
-        if (meta.undo) this.#undo.pop();
-        else {
-          this.#undo.push({ state: before.state, kind: meta.kind, requestId: meta.requestId });
+      if (meta.undo && result.status === 'changed' && !result.replayed) this.#undo.pop();
+      else if (
+        !same(before.state, after.state) ||
+        (['approve', 'undo-use'].includes(meta.kind) &&
+          !same(before.session.history, after.session.history))
+      ) {
+        if (!result.replayed) {
+          const requestId = meta.requestId || result.requestId;
+          this.#undo.push({
+            state: before.state,
+            kind: meta.kind,
+            requestId,
+            historyEntry: before.session.history.find((entry) => entry.id === requestId),
+          });
           if (this.#undo.length > 40) this.#undo.shift();
         }
       }
@@ -150,7 +164,10 @@
         if (actor === 'overlay') {
           if (!['request', 'cancel'].includes(input.type))
             throw new Error('Only the DM can resolve requests.');
-        } else if (actor !== 'dm' || !['approve', 'deny', 'direct-use'].includes(input.type))
+        } else if (
+          actor !== 'dm' ||
+          !['approve', 'deny', 'direct-use', 'reconsider', 'undo-use'].includes(input.type)
+        )
           throw new Error('Unknown DM approval control.');
         return this.#run(() => this.#session.dispatch(input), {
           actor,
@@ -194,13 +211,11 @@
       return this.#serial(() => {
         const entry = this.#undo.at(-1);
         if (!entry) return { ...this.snapshot(), result: { status: 'unchanged' } };
-        return this.#run(
-          () =>
-            this.#session.change(this.#command(), (draft) =>
-              Object.assign(draft, TL.clone(entry.state))
-            ),
-          { actor: 'dm', kind: 'undo', undo: true }
-        );
+        return this.#run(() => this.#session.undoChange(this.#command(), entry), {
+          actor: 'dm',
+          kind: 'undo',
+          undo: true,
+        });
       });
     }
     flush() {

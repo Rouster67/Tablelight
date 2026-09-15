@@ -142,8 +142,8 @@ both deletion dialogs require review again when this set changes, while final co
 the latest shared text and character costs. The full operation uses ordinary session Undo.
 The lower-level `removeLibraryEntry` remains restricted to unassigned definitions.
 Removing a character or assignment leaves the library intact. A confirmed backup restore replaces
-the party, roster, and both libraries. Existing snapshot Undo behavior is unchanged; targeted use
-undo and notices remain a separate, unimplemented milestone.
+the party, roster, and both libraries. Ordinary Undo remains a chronological stack, now coordinated
+with approved-use History and targeted reversals by the approval service.
 
 ## Conditions and concentration
 
@@ -205,8 +205,25 @@ requests. Cancel discards the preview. A later successful mutation makes that pr
 Callers must assign a fresh command ID to each distinct edit; a retry must identify the same edit.
 Explicit new-turn, rest, and adjustment events record resets even when counters end up equal.
 Tracked spending updates counter ownership while external corrections advance an invalidation
-marker. Those markers and exact use receipts support future targeted undo; reversal, Reconsider,
-and coordination of targeted reversal with ordinary Undo remain a later milestone.
+marker. Targeted undo requires every recorded cost epoch to match and every refund to fit its
+counter. Later tracked deductions retain the epoch and survive additive refunds. Concentration
+also checks ownership and its exact after-state; restoring an old focus requires its assignment
+to remain available. Validation precedes every mutation, so a blocked component prevents the
+entire refund. Counter-changing refunds guard dependent pending requests before applying.
+
+The service attaches read-only undo/reconsider reasons to each History entry. Reconsider validates
+the current character assignment, selected slot, reservation projection, and queue cap, creates a
+new request ID, and marks the prior entry with that ID. Stable priority insertion keeps reactions
+first and reconsidered requests ahead of existing ordinary requests after subsequent arrivals.
+Recorded definitions and cost labels remain available even after the library entry is edited.
+
+Ordinary Undo records before-state plus the operation kind, request ID, and prior History entry.
+`Session.undoChange` applies the inverse party state and updates only that operation’s surviving
+History entry: undoing approval marks it Undone; undoing a targeted refund restores Allowed.
+It never revives evicted History or old pending requests. Tracked inverses preserve cost epochs
+without rolling back intervening invalidations; concentration restoration establishes a new
+ownership marker. Costless approvals and refunds also enter the ordinary Undo stack so their
+labels remain reversible. Party data, markers, and History publish only after a successful save.
 
 The service merges only changed editor fields into current state, including assignment ownership
 and explicit party ordering. Dependency previews belong to their originating screen and become
@@ -223,7 +240,10 @@ concentration. The request popup and existing View share `HUD.renderAbilityDetai
 Window reloads reattach to the main-process session and its ordinary Undo stack. App exit clears
 requests and internal History; saved costs remain. Explicit backup restore confirms any affected
 requests before replacing the state, then starts a fresh request session. The restore itself can
-still be reversed with ordinary Undo. History, Reconsider, and targeted-undo UI are not enabled yet.
+still be reversed with ordinary Undo. `history-ui.js` supplies the bottom-left list, historical
+detail view, Reconsider, and Undo this use. Buttons show current reasons when blocked. Both queue
+icons respect open editors and become inert behind dependency confirmations. Reconsider opens
+its new request only if the initiating History view is still open, preserving a later editor.
 
 ## Tests
 
