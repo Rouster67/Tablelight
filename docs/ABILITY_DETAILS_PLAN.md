@@ -1,5 +1,9 @@
 # Ability details and DM review
 
+The ability-details branch was merged in PR #10. Its F10 proposal below is historical;
+the agreed replacement is [DM approval queue and History](DM_APPROVAL_QUEUE_PLAN.md) on
+`codex/dm-approval-queue`. Use that plan for current F10 requirements and milestones.
+
 Current branch: `codex/ability-details-and-review`. The user committed the approved manual ability
 fields as `7ff4a47` and duplication/local creation as `96f9648`. F05, F08, and the revised manual
 F07 scope are complete. Assigned library deletion is the current approved follow-up. F10 still

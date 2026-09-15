@@ -180,6 +180,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await tv(
       `const el=[...document.querySelectorAll('[data-hud-id="${b}"] [data-hud-command]')].find(el=>{const command=JSON.parse(el.dataset.hudCommand);return command.type==='use'&&command.itemId==='${bItem}';});if(!el||el.disabled)throw new Error('Missing use control');el.click();`
     );
+    await require('./approve-pending')(controller);
     await wait(() => getState().characters[1].resources[0].current === 3);
     await submit();
     await wait(() => getState().characters.every((c) => c.items[0].onSave === 'No damage'));
@@ -222,7 +223,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await tv(
-        `return [...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880&&el.offsetHeight===650) && [...document.querySelectorAll('.hud-panel')].every(el=>el.lastElementChild.classList.contains('ability-source'));`
+        `return [...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880&&el.offsetHeight>=650 && el.querySelector('.hud-summary').scrollHeight<=el.querySelector('.hud-summary').clientHeight+1) && [...document.querySelectorAll('.hud-panel')].every(el=>el.lastElementChild.classList.contains('ability-source'));`
       )
     );
     assert.deepEqual(

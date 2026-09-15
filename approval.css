@@ -1,0 +1,133 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later; Copyright (C) 2026 Tablelight contributors. */
+.dm-queue-button {
+  position: fixed;
+  right: 24px;
+  bottom: 22px;
+  z-index: 45;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: #183037;
+  color: #dbe9e8;
+  box-shadow: 0 5px 22px #0008;
+  padding: 12px;
+}
+.dm-queue-button.waiting {
+  border-color: #efc76b;
+  color: #efc76b;
+  animation: queue-pulse 2s ease-in-out infinite;
+}
+.dm-history-button {
+  left: calc(var(--sidebar-width) + 24px);
+  right: auto;
+}
+.history-actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+.history-entry.approved .history-outcome,
+.history-summary.approved .history-outcome {
+  color: #a2d6a8;
+}
+.history-entry.denied .history-outcome,
+.history-summary.denied .history-outcome {
+  color: #ff9292;
+}
+.history-entry.undone .history-outcome,
+.history-summary.undone .history-outcome {
+  color: #efc76b;
+}
+.dm-queue-button.urgent,
+.urgent-label {
+  color: #ff9292;
+  border-color: #ff9292;
+}
+.queue-alert {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  background: #efc76b;
+  color: #152023;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-weight: 800;
+}
+.urgent .queue-alert {
+  background: #ff9292;
+}
+.queue-count {
+  font-size: 11px;
+  position: absolute;
+  bottom: 2px;
+  right: 9px;
+}
+.dm-queue-list {
+  display: grid;
+  gap: 10px;
+}
+.dm-queue-entry {
+  text-align: left;
+  display: grid;
+  gap: 6px;
+  white-space: normal;
+  padding: 14px;
+  overflow-wrap: anywhere;
+}
+.dm-queue-entry.urgent {
+  border-color: #f0808055;
+  background: #532a2b44;
+}
+.dm-queue-entry small {
+  color: #a8bfbe;
+}
+.urgent-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+}
+.approval-summary {
+  padding: 16px;
+  background: #173239;
+  border: 1px solid #739d9c55;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  overflow-wrap: anywhere;
+}
+.approval-summary.urgent {
+  border-color: #ff929288;
+}
+.approval-costs {
+  display: grid;
+  gap: 5px;
+  margin-top: 14px;
+}
+.approval-concentration {
+  margin-top: 14px;
+}
+.queue-guard-backdrop {
+  z-index: 1200;
+}
+.queue-affected {
+  padding-left: 22px;
+  margin: 14px 0;
+  max-height: 25vh;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.main .content {
+  padding-bottom: 96px;
+}
+@keyframes queue-pulse {
+  50% {
+    box-shadow:
+      0 0 0 6px #efc76b18,
+      0 5px 22px #0008;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dm-queue-button.waiting {
+    animation: none;
+  }
+}

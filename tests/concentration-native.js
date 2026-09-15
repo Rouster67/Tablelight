@@ -132,11 +132,16 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       ),
       true
     );
-    assert.deepEqual(
+    const filteredFrame = await tv(
+      `const el=stage.firstElementChild;return [el.offsetWidth,el.offsetHeight,el.style.transform];`
+    );
+    assert.equal(filteredFrame[0], frame[0]);
+    assert.ok(filteredFrame[1] < frame[1]);
+    assert.equal(filteredFrame[2], frame[2]);
+    assert.ok(
       await tv(
-        `const el=stage.firstElementChild;return [el.offsetWidth,el.offsetHeight,el.style.transform];`
-      ),
-      frame
+        `const summary=document.querySelector('.hud-summary');return summary.scrollHeight<=summary.clientHeight+1;`
+      )
     );
     await tv(`document.querySelector('[data-hud-concentration-pick]').click();`);
     await wait(() => getState().characters[0].concentrationItemId === ids[1]);
@@ -146,7 +151,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       'Focus bonus spell'
     );
     results.push(
-      'The TV uses the same assigned-only list, supports search through live updates, retains size and rotation, and shows the chosen name on hover.'
+      'The TV uses the same assigned-only list, supports search through live updates, adapts its height while preserving scale and rotation, and shows the chosen name on hover.'
     );
     await click('[data-action="view-library"]');
     await click(`[data-action="edit-library-entry"][data-id="${spellLibrary}"]`);

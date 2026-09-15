@@ -60,7 +60,7 @@
         const key = ['action', 'bonus', 'reaction'][i];
         node.insertAdjacentHTML(
           'beforeend',
-          `<div class="hud-inline-buttons">${control(c, 'Options', 'panel', { panel: key })}${control(c, c.turn[key] ? 'Spend' : 'Restore', 'economy', { key })}</div>`
+          `<div class="hud-inline-buttons">${control(c, 'Options', 'panel', { panel: key })}${control(c, c.turn[key] ? 'Spend' : 'Restore', 'economy', { key, ready: !c.turn[key] })}</div>`
         );
       } else
         node.insertAdjacentHTML(

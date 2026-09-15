@@ -202,18 +202,23 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       await tv(`return document.querySelector('[data-concentration-indicator]').title;`),
       'DM selected focus'
     );
-    assert.deepEqual(
+    const passiveFrame = await tv(
+      `const el=document.querySelector('.hud-position');return [el.offsetWidth,el.offsetHeight,el.style.transform];`
+    );
+    assert.equal(passiveFrame[0], frame[0]);
+    assert.ok(passiveFrame[1] >= 650);
+    assert.equal(passiveFrame[2], frame[2]);
+    assert.ok(
       await tv(
-        `const el=document.querySelector('.hud-position');return [el.offsetWidth,el.offsetHeight,el.style.transform];`
-      ),
-      frame
+        `const summary=document.querySelector('.hud-summary');return summary.scrollHeight<=summary.clientHeight+1;`
+      )
     );
     await shot('01-status-click-through', overlay);
     await run(`commit(()=>state.settings.overlayInteractive=true);await saveQueue;`);
     await wait(() => tv(`return !!document.querySelector('.hud-status button');`));
     await shot('02-status-interactive', overlay);
     results.push(
-      'DM concentration edits reach the TV; click-through mode keeps indicators and fixed HUD dimensions while disabling input.'
+      'DM concentration edits reach the TV; click-through mode keeps all indicators visible with the chosen scale and rotation while disabling input.'
     );
     await click('[data-action="short-rest"]');
     await fill('rest-form', { scope: 'selected' });

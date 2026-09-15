@@ -134,11 +134,16 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.equal(getState().characters[1].conditionIds.length, 0);
     assert.equal(getState().conditionLibrary.length, 2);
-    assert.deepEqual(
+    const openFrame = await tv(
+      `const el=stage.firstElementChild;return [el.offsetWidth,el.offsetHeight,el.style.transform];`
+    );
+    assert.equal(openFrame[0], frame[0]);
+    assert.ok(openFrame[1] > frame[1]);
+    assert.equal(openFrame[2], frame[2]);
+    assert.ok(
       await tv(
-        `const el=stage.firstElementChild;return [el.offsetWidth,el.offsetHeight,el.style.transform];`
-      ),
-      frame
+        `const summary=document.querySelector('.hud-summary');return summary.scrollHeight<=summary.clientHeight+1;`
+      )
     );
     await shot('01-tv-add-conditions', overlay);
     assert.ok(
@@ -148,7 +153,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       'Open Add menu must stay visible after live updates and assignment.'
     );
     results.push(
-      'TV Add searches saved conditions, accepts keyboard input, preserves drafts during live updates, prevents duplicates, and keeps HUD size and rotation.'
+      'TV Add searches saved conditions, preserves drafts during live updates, prevents duplicates, and grows the frame while keeping its scale and rotation.'
     );
     await run(
       `commit(()=>state.conditionLibrary.find(e=>e.id===${JSON.stringify(choice.id)}).description='Updated while picker is open');await saveQueue;`

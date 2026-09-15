@@ -154,9 +154,60 @@ Shared edits preserve each character’s remaining resources and other independe
 For different manual text, create a separate library variant.
 
 Requirements and Special accept long text and appear as labeled sections in DM and HUD details.
-The HUD pages long descriptions, upgrades, requirements, and special notes within its fixed
-frame. Reference stays last at the bottom right. Empty detail fields are hidden, and library
+The HUD pages long descriptions, upgrades, requirements, and special notes within its ability
+column. Reference stays last at the bottom right. Empty detail fields are hidden, and library
 search includes all these text fields. Existing ability text remains intact.
+
+## DM approval queue (unreleased)
+
+Using an ability from a player's overlay now requests DM approval. Choose the spell-slot level
+first if needed. The HUD reserves the action, bonus action, reaction, slots, and linked charges
+for that request, showing what would remain if all pending uses were approved. The DM's actual
+counts stay unchanged until **Allow use**. Pending uses appear in their own column to the right
+of the ability browser. Each pending use has its own **Cancel** button; the column disappears
+when that character has no waiting requests.
+
+The **DM queue** icon sits at the bottom right of the DM screen. It pulses and shows **!** while
+requests wait. Open it to choose a request and read the same ability details as View, together
+with the costs that approval will spend. Choose **Allow use**, **Deny use**, **View character**, or
+**Minimize**. View character opens the character's DM page and keeps the request queued. Close
+and Escape also minimize. Finishing a request does not automatically open the next one.
+
+The first request opens automatically only when no popup or earlier request is waiting. Incoming
+requests never replace an open editor. Close the current dialog before opening the queue. At most
+three ordinary ability requests can wait across the party. A fourth shows **Hold up—the DM is super
+busy!** Affordable reactions are exempt, appear in red as **Urgent**, and sort first.
+
+If an edit changes data that a request depends on, a warning lists the affected requests. Continue
+applies the change and denies them; Cancel preserves both the edit form and the requests. Starting
+a new turn similarly warns before expiring that character's requests. Unrelated changes can continue.
+If already concentrating, the player sees a warning before requesting the new ability. The DM sees
+that warning too; concentration switches only on approval.
+
+DM-console ability uses remain immediate. Damage, healing, and ability effects remain manual.
+Requests survive reloading a window but clear when Tablelight closes. Approved costs stay saved.
+Open the **History** icon at the bottom left of the DM screen to see the five most recent resolved
+requests. Each entry shows its outcome; open it to read the ability details recorded with that
+request and the costs actually spent. Older entries drop off without changing any counters.
+
+Denied, player-canceled, and expired requests offer **Reconsider**. This creates one new request
+at the front of the queue and opens it immediately, using the current ability and costs. Urgent
+reactions stay ahead of ordinary requests. The earlier entry is marked Reconsidered so it cannot
+queue another copy. Unavailable abilities, invalid old slot choices, and a full queue show why
+Reconsider is disabled; submit a fresh request with a valid slot when needed.
+
+Approved requests offer **Undo this use**. It refunds only that use’s recorded costs and restores
+its previous concentration when safe. Later tracked ability spending, HP changes, and other
+unrelated work remain intact. For example, spend two charges, then one more: undoing the first
+use returns two charges while leaving the later one spent. A reset, manual correction, capacity
+change, or later concentration change can disable the whole refund, with a reason beside the
+button. If pending requests rely on counters being refunded, the existing warning lets you
+cancel or continue and deny those dependent requests.
+
+A refunded request is marked **Undone** and cannot be refunded or reconsidered again. Ordinary
+**Undo** also updates these labels; undoing a targeted refund restores that use’s costs and Allowed
+status. History and the queue survive window reloads but clear when the app closes. They are never
+included in exported backups.
 
 ## Move and rotate individual bubbles
 
@@ -169,13 +220,13 @@ Every character has their own position, rotation, size, and visibility. Moving o
 
 ## Use the TV overlay directly
 
-Expanded HUDs use a wide layout. Portrait, HP, AC, actions, movement, ability scores, slots, and all custom resource counters are on the left. Resources stack downward below slots; long names wrap. **Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Sheet, and Resources** are at the top of the right column, with the selected section's data directly underneath. Sheet shows skills and saves beside the main character controls instead of adding them below. Descriptions, resource controls, and page buttons stay in that same right column.
+Expanded HUDs use a wide layout. Portrait, character name, HP, AC, actions, movement, ability scores, conditions, slots, all custom resource counters, and Smaller/Larger controls are on the left. Resources stack downward below slots; long names wrap. **Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Sheet, and Resources** are at the top of the right column, with the selected section's data directly underneath. Sheet shows skills and saves beside the main character controls instead of adding them below. Descriptions, resource controls, and page buttons stay in that same right column.
 
-Expanded HUD dimensions stay fixed as you change sections, read descriptions, and update values. Long content scrolls inside each column. Both columns move, rotate, and resize together as one character HUD. Collapsing still returns to the small portrait bubble. The laptop's TV preview shows the same arrangement.
+The HUD grows taller as needed to keep everything in the left column visible without scrolling. Long ability details scroll inside the ability column. Pending DM approvals add a separate column on the far right, keeping the ability browser’s width unchanged. All columns move, rotate, and resize together at your chosen scale. Collapsing still returns to the small portrait bubble. The laptop’s TV preview shows the same arrangement.
 
 When HUD controls are on, expanded HUDs can show options and full descriptions, spend actions or bonus actions, adjust HP and movement, use spell slots or custom resource pools, and start a new turn. These actions also update your laptop and save to the same party.
 
-Click an option to show its description. Use **Use ability**, or **Cast L…** for a spell, to spend its costs. Apply any additional ability effects yourself as before.
+Click an option to show its description. Use **Use ability**, or **Cast L…** for a spell, to request approval and reserve its costs. Apply any additional ability effects yourself as before.
 
 Only the bubbles and their panels receive clicks; blank map areas remain click-through. Use the laptop’s **HUD controls: on / Click-through** button, or **Ctrl + Alt + I**, to switch to full click-through mode. In that mode the section labels and current data remain visible, while interactive controls disappear and clicks on the HUD reach the map. All laptop controls continue to work.
 
@@ -199,7 +250,7 @@ Action-cost tabs include every matching ability, including spells and class feat
 
 **HUD size** changes only this player’s size, from 40% to 250%. Use the slider, Smaller, Larger, or 100%. It stays in sync with TV & layout. The chosen scale stays exactly the same across menus and rotations. If a card is too large for the display, reduce its size yourself.
 
-The **Vitals & resources** and **Section details** arrow buttons scroll the corresponding TV column, including in click-through mode. With HUD controls on, you can also scroll directly over a TV column. Live stat updates preserve reading position; choosing a different section or description page starts its details at the top.
+The **Section details** arrow buttons scroll the ability column on the TV, including in click-through mode. With HUD controls on, you can also scroll directly over that column. Live updates preserve reading position; choosing a different section or description page starts its details at the top. Character vitals and resources need no scrolling: the frame grows to show them all.
 
 The panel indicates whether the TV overlay, player, or expanded HUD is hidden. Choosing a tab expands that character’s HUD; the global Show TV overlay button still controls whether the TV window is visible.
 
@@ -260,7 +311,7 @@ Open **Edit character** and scroll to **Custom resources**, immediately below sp
 | Per turn   | Start turn for that character, including Next turn when their turn begins |
 | Manual     | Its Reset button on the DM screen or interactive TV HUD                   |
 
-All counters appear in a vertical stack beneath spell slots on the overlay, with their icon, name, remaining/maximum amount, and reset rule. Use **− / +** to spend or restore a charge. Manual counters also have **Reset** beside these controls. Large lists scroll inside the HUD; use the DM's Vitals & resources arrows when controlling it from the laptop. The right-side Resources section also shows these counters with pages.
+All counters appear in a vertical stack beneath spell slots on the overlay, with their icon, name, remaining/maximum amount, and reset rule. Use **− / +** to spend or restore a charge. Manual counters also have **Reset** beside these controls. The HUD grows taller to show the full list and the Smaller/Larger buttons beneath it. The right-side Resources section also shows these counters with pages.
 
 Edit names, amounts, reset rules, icons, or colors in **Edit character**. **Remove resource** removes a counter when you save the character. A resource linked to an ability must be unlinked from that ability first. **Cancel** discards your draft edits; **Undo** can reverse a saved change. Up to 60 counters can be stored on each character. Existing resource pools keep their counts and ability links after upgrading.
 

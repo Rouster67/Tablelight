@@ -122,7 +122,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await tv(
-        `return [...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880&&el.offsetHeight===650);`
+        `return [...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880&&el.offsetHeight>=650 && el.querySelector('.hud-summary').scrollHeight<=el.querySelector('.hud-summary').clientHeight+1);`
       )
     );
     const deletedState = JSON.parse(JSON.stringify(getState()));

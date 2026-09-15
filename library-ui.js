@@ -119,9 +119,9 @@ function attachLibraryEntry(libraryId, characterId) {
     `<form id="attach-form"><div class="eyebrow">${esc(entry.kind)} · ${esc(labels[entry.economy])}</div>${HUD.renderAbilityDetails(entry, c)}${characterBindingFields(c)}</form>`,
     `<span class="hint">Linked to the shared library.</span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="attach-form" type="submit" class="primary">Add to ${esc(c.name)}</button></div>`
   );
-  submitForm('attach-form', (data) => {
+  submitForm('attach-form', async (data) => {
     if (
-      commit(
+      await commit(
         () => TL.attachItem(state, c.id, entry.id, readCharacterBinding(data)),
         'Ability added to ' + c.name
       )
@@ -212,7 +212,7 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
     `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${local ? (binding ? 'Save character ability' : 'Save to character') : entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
   );
   const initialFields = new FormData(document.getElementById('item-form'));
-  submitForm('item-form', (data) => {
+  submitForm('item-form', async (data) => {
     for (const key of TL.definitionFields) {
       if (['level', 'usesSlot', 'requiresConcentration'].includes(key)) continue;
       draft[key] = data.get(key) === initialFields.get(key) ? original[key] : data.get(key);
@@ -220,7 +220,7 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
     draft.level = data.get('level') === '' ? null : Number(data.get('level'));
     draft.usesSlot = data.has('usesSlot');
     draft.requiresConcentration = data.has('requiresConcentration');
-    const success = commit(
+    const success = await commit(
       () => {
         if (local) {
           if (!binding) {
@@ -284,7 +284,7 @@ function libraryDeletionCharacters(users, selection) {
     .join('')}</div>`;
 }
 
-function finishLibraryDeletion(id, keepIds, assignments, reopen) {
+async function finishLibraryDeletion(id, keepIds, assignments, reopen) {
   if (JSON.stringify(TL.libraryAssignments(state, id)) !== JSON.stringify(assignments)) {
     reopen(
       'The assigned characters changed while this dialog was open. Review the updated list before deleting.'
@@ -292,7 +292,10 @@ function finishLibraryDeletion(id, keepIds, assignments, reopen) {
     return;
   }
   if (
-    commit(() => TL.deleteLibraryEntry(state, id, keepIds, assignments), 'Library ability deleted')
+    await commit(
+      () => TL.deleteLibraryEntry(state, id, keepIds, assignments),
+      'Library ability deleted'
+    )
   )
     closeModal();
 }
@@ -334,9 +337,9 @@ function chooseLocalCopiesBeforeDelete(id, selection = {}, notice = '') {
     );
   document.getElementById('back-library-delete').onclick = () =>
     showLibraryDeletion(id, readSelection());
-  submitForm('delete-library-form', (data) => {
+  submitForm('delete-library-form', async (data) => {
     const currentSelection = readSelection();
-    finishLibraryDeletion(id, data.getAll('localCharacter'), assignments, (message) =>
+    await finishLibraryDeletion(id, data.getAll('localCharacter'), assignments, (message) =>
       chooseLocalCopiesBeforeDelete(id, currentSelection, message)
     );
   });
@@ -353,19 +356,21 @@ function handleLibraryAction(buttonElement) {
       return true;
     case 'copy-library-locally': {
       let copy;
-      if (
-        commit(
-          () => (copy = TL.copyLibraryItemLocally(state, character, id)),
-          'Character-only copy created'
-        )
-      )
-        editLibraryEntry('', character, copy.id);
+      commit(
+        () => (copy = TL.copyLibraryItemLocally(state, character, id)),
+        'Character-only copy created'
+      ).then((success) => {
+        if (success) editLibraryEntry('', character, copy.id);
+      });
       return true;
     }
     case 'duplicate-library-entry': {
       let copy;
-      if (commit(() => (copy = TL.duplicateLibraryEntry(state, id)), 'Library entry duplicated'))
-        editLibraryEntry(copy.id);
+      commit(() => (copy = TL.duplicateLibraryEntry(state, id)), 'Library entry duplicated').then(
+        (success) => {
+          if (success) editLibraryEntry(copy.id);
+        }
+      );
       return true;
     }
     case 'new-library-entry':

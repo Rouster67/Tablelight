@@ -2,13 +2,25 @@
 
 ## Unreleased
 
+- Move the History icon to the right of the DM sidebar so Add character and Setup & help remain visible and clickable on wide and narrow windows.
+- Keep keyboard focus inside History when its actions or list refresh, and restore focus to the underlying dialog after canceling a dependency warning.
+- Add bottom-left History for the five most recent resolved requests, with recorded ability details, outcomes, and actual costs. Reconsider opens a new request using current ability details and costs while preserving urgent priority and preventing duplicate attempts.
+- Add Undo this use to refund only an approved use’s recorded costs and concentration change. Preserve later tracked spending and unrelated work; block the complete refund after relevant resets, corrections, capacity changes, or concentration changes. Warn before denying pending requests that depend on refunded counters.
+- Coordinate ordinary Undo with History and targeted refunds, including costless uses, so labels and counters agree and refunds cannot be duplicated. Save failures preserve the prior state for retry.
+
+- Grow the player HUD vertically to keep its entire character summary, spell slots, conditions, resource list, and Smaller/Larger buttons visible without scrolling. Put pending approvals in a separate far-right column without narrowing the ability browser. Preserve chosen scale and rotation, update the TV preview, and adapt native click regions to the taller frame.
+
+- Add DM approval for player-overlay ability uses. Pending requests reserve costs only on the player's HUD; the DM reviews full details and can Allow use, Deny use, View character, or Minimize. Direct DM-console uses remain immediate.
+- Add the bottom-right DM queue, a three-request limit for ordinary abilities, and red Urgent reactions outside that cap. Incoming requests wait quietly while a popup or earlier request is open. Players can cancel each pending use; a full queue displays a small popup.
+- Warn before applying changes that affect pending requests. Continue denies those requests, or expires them for a new turn; Cancel keeps the draft, requests, and counters intact. Concentration switches on approval. Save failures leave requests available for retry.
+- Keep queue state in memory across window reloads and clear it on app exit. Existing saves remain format 9. History, reservations, spending receipts, and dependency markers are session-only and stay out of backups.
 - Replace blocked deletion of assigned abilities with a warning listing every affected character, a white Edit instead button to the left of the yellow Make local copies and delete button, and a Remove and delete choice. The local-copy checklist defaults to everyone, includes inactive characters, and preserves each kept assignment's name, costs, HUD selection, and concentration. Confirmed deletion supports Undo and requires another review if assignments change while the dialog is open.
 - Mark local ability names with a small person icon on the character screen and HUD. Add smaller Create new local ability and Create local-only copy buttons beneath the shared Add choices, with hover explanations. New local abilities and direct library copies belong only to the selected character.
 - Add Duplicate to the ability library and a compact copy icon between Use and Edit on character ability rows, with the tooltip Duplicate locally only. Copies receive numbered names and open for editing. Character-only copies keep independent details, slot settings, and resource costs without entering the shared library.
 - Keep local copies through saves, exports, inactive-party moves, and Undo. Save format 9 imports formats 1–8 and prevents older readers from converting local copies into shared entries.
 - Add manual Trigger, Area, Casting Time, School, On Save, Requirements, and Special fields to every ability type. Keep Attack and Save as user-written text, with no automatic ability calculations. Keep the existing Type dropdown and explicit turn-cost tracking, and allow Spell Level on every type.
 - Label the checkbox Concentration and rename Source to Reference. Keep Reference beneath Description at the bottom right and Upcast / Upgrades directly beneath Damage / Healing. Fields can be left blank.
-- Show consistent manual details on the DM screen, assignment previews, and player HUDs. Search the new fields and page long Description, Upgrades, Requirements, and Special sections within the fixed HUD size and rotation.
+- Show consistent manual details on the DM screen, assignment previews, and player HUDs. Search the new fields and page long Description, Upgrades, Requirements, and Special sections while preserving the chosen HUD scale and rotation.
 - Preserve shared-library behavior, each character's resource links and charge costs, existing text, and later resource spending when saving an open editor.
 - Add shared source references and upcast/upgrade text. Blank details stay hidden; upgrades describe improvements without calculating or applying damage, healing, or effects.
 - Preserve manually entered fixed values from the earlier calculation preview as text, with separate library variants for personal exceptions. Remove its automatic modes and numeric controls.

@@ -270,7 +270,7 @@ module.exports = async function ({
     );
     assert.ok(
       await overlay.webContents.executeJavaScript(
-        `[...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880 && el.offsetHeight===650)`
+        `[...document.querySelectorAll('.hud-position')].every(el=>el.offsetWidth===880 && el.offsetHeight>=650 && el.querySelector('.hud-summary').scrollHeight<=el.querySelector('.hud-summary').clientHeight+1)`
       )
     );
     await wait(() =>
@@ -335,6 +335,7 @@ module.exports = async function ({
     await overlay.webContents.executeJavaScript(
       `window.tablelight.hudCommand({type:'use',characterId:${JSON.stringify(b)},itemId:${JSON.stringify(getState().characters[1].items[0].id)}})`
     );
+    await require('./approve-pending')(controller);
     await fill('item-form', { source: '', upgrades: '' });
     await wait(() => getState().library[0].source === '');
     assert.equal(getState().characters[1].turn.bonus, false);

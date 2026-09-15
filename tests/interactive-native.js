@@ -168,10 +168,11 @@ module.exports = async function ({
     await mouseClick(overlay, commandSelector(ids[0], 'detail'));
     await wait(() => getState().characters[0].hud.detailId === 'test-option');
     await mouseClick(overlay, commandSelector(ids[0], 'use'));
+    await require('./approve-pending')(controller);
     await wait(() => getState().characters[0].resources[0].current === 1);
     assert.equal(getState().characters[0].turn.bonus, false);
     results.push(
-      'An option can be opened and used entirely from the TV, consuming its linked action and charge.'
+      'An option can be requested from the TV and approved by the DM, consuming its linked action and charge.'
     );
     await mouseClick(overlay, commandSelector(ids[1], 'hide'));
     await wait(() => !getState().characters[1].hud.visible);

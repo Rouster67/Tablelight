@@ -39,12 +39,12 @@ function editCondition(id, characterId = '', name = '') {
     `<form id="condition-form"><div class="gap">${characterId ? `<p class="hint">Save to the library and add to ${esc(TL.findCharacter(state, characterId)?.name || 'this character')}.</p>` : ''}${field('Condition name', 'name', entry?.name || name, 'text', 'required maxlength="300"')}<label class="form-field"><span>Description · shown on hover</span><textarea name="description" maxlength="40000" rows="8">${esc(draft.description)}</textarea></label></div></form>`,
     `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button type="submit" form="condition-form" class="primary">${characterId ? 'Save & add' : 'Save condition'}</button></div>`
   );
-  submitForm('condition-form', (data) => {
+  submitForm('condition-form', async (data) => {
     draft.name = data.get('name').trim();
     draft.description = data.get('description');
     if (!draft.name) throw Error('Enter a condition name.');
     if (
-      commit(() => {
+      await commit(() => {
         if (entry) {
           const index = state.conditionLibrary.findIndex((e) => e.id === id);
           if (index < 0) throw Error('This condition no longer exists.');
@@ -147,13 +147,12 @@ function handleConditionAction(b) {
       editConcentration(character);
       return true;
     case 'concentration-pick':
-      if (
-        commit(
-          () => TL.setConcentration(TL.findCharacter(state, character), true, id),
-          'Concentration updated'
-        )
-      )
-        closeModal();
+      commit(
+        () => TL.setConcentration(TL.findCharacter(state, character), true, id),
+        'Concentration updated'
+      ).then((success) => {
+        if (success) closeModal();
+      });
       return true;
     case 'condition-assign': {
       const entry = state.conditionLibrary.find((e) => e.id === id);
@@ -170,9 +169,12 @@ function handleConditionAction(b) {
         `<span></span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button type="submit" form="assign-condition-form" class="primary">Assign condition</button></div>`,
         true
       );
-      submitForm('assign-condition-form', (data) => {
+      submitForm('assign-condition-form', async (data) => {
         if (
-          commit(() => TL.assignCondition(state, data.get('characterId'), id), 'Condition assigned')
+          await commit(
+            () => TL.assignCondition(state, data.get('characterId'), id),
+            'Condition assigned'
+          )
         )
           closeModal();
       });
