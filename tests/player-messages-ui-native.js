@@ -189,14 +189,12 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await click('next');
     await wait(async () => (await meta()).page === 2);
     await opened();
-    await click('scroll-down');
-    await wait(
-      () => tv(`return document.querySelector('${panel('p0')} .message-text').scrollTop>0;`),
-      'DM scrolling'
+    assert.ok(
+      await tv(
+        `const text=document.querySelector('${panel('p0')} .message-text');return text.scrollHeight<=text.clientHeight+1 && text.scrollWidth<=text.clientWidth+1;`
+      )
     );
-    const scroll = await tv(
-      `return document.querySelector('${panel('p0')} .message-text').scrollTop;`
-    );
+    const scroll = 0;
     await run(`await commit(()=>{state.settings.overlayInteractive=true;});`);
     await wait(() => tv('return state.settings.overlayInteractive;'));
     assert.equal((await meta()).page, 2);
@@ -210,7 +208,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     assert.deepEqual(await tv(pose), beforePose);
     assert.deepEqual(getState().characters, through.characters);
     results.push(
-      'Native mail clicks open literal text without movement. Player Close and DM paging/scrolling work; toggling click-through preserves the reading page, scroll, ownership and saved geometry.'
+      'Native mail clicks open literal text without movement. Player Close and DM paging works without scrolling; toggling click-through preserves the reading page and ownership and saved geometry.'
     );
 
     await fill('SYNTHETIC_PRIVATE_REPLACEMENT');

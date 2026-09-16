@@ -47,6 +47,7 @@
     .hud-browser,
     .hud-panel,
     .hud-slots,
+    .hud-section-box,
     .hud-size-controls,
     .hud-stats > div,
     .condition-table td,
@@ -121,6 +122,7 @@
     .hud-vitals-controls,
     .hud-size-controls > span,
     .hud-condition-table caption,
+    .hud-section-label,
     .hud-condition-menu .condition-choice small,
     [data-hud-condition-count],
     .hud-pending-requests > small

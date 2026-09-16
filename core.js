@@ -600,6 +600,8 @@
         panel: '',
         detailId: '',
         page: 0,
+        conditionPage: 0,
+        resourcePage: 0,
       },
     };
     c.turn = freshTurn(c);
@@ -767,6 +769,8 @@
       : '';
     c.hud.detailId = c.items.some((i) => i.id === raw.hud?.detailId) ? raw.hud.detailId : '';
     c.hud.page = integer(raw.hud?.page, 0, 999);
+    c.hud.conditionPage = integer(raw.hud?.conditionPage, 0, 999);
+    c.hud.resourcePage = integer(raw.hud?.resourcePage, 0, 999);
     return c;
   }
   function normalize(raw) {
@@ -979,6 +983,34 @@
       p === 'spell' || p === 'feature' ? i.kind === p : i.economy === p
     );
   }
+  const abilityPageSize = 15;
+  const conditionPageSize = 6;
+  const resourcePageSize = 3;
+  const conditionPickerPageSize = 5;
+  function hudListPage(c, kind) {
+    const key = kind === 'conditions' ? 'conditionPage' : 'resourcePage';
+    const all = kind === 'conditions' ? c.appliedConditions || [] : c.resources;
+    const pageSize = kind === 'conditions' ? conditionPageSize : resourcePageSize;
+    const total = Math.max(1, Math.ceil(all.length / pageSize));
+    const page = integer(c.hud[key], 0, total - 1);
+    return {
+      key,
+      page,
+      total,
+      items: all.slice(page * pageSize, (page + 1) * pageSize),
+    };
+  }
+  function hudPage(c) {
+    if (c.hud.panel === 'resources' && !c.items.some((i) => i.id === c.hud.detailId))
+      return hudListPage(c, 'resources').page;
+    return integer(c.hud.page, 0, hudPageCount(c) - 1);
+  }
+  function hudPageCount(c) {
+    const detail = c.items.find((i) => i.id === c.hud.detailId);
+    if (detail) return abilityTextPages(detail).length;
+    if (c.hud.panel === 'resources') return hudListPage(c, 'resources').total;
+    return Math.max(1, Math.ceil(panelItems(c).length / abilityPageSize));
+  }
   function reorderParty(state, ids) {
     if (
       !Array.isArray(ids) ||
@@ -1137,9 +1169,21 @@
         c.hud.detailId = command.itemId;
         c.hud.page = 0;
         break;
-      case 'page':
-        c.hud.page = integer(c.hud.page + amount(), 0, 999);
+      case 'page': {
+        const lastPage = hudPageCount(c) - 1;
+        const key =
+          c.hud.panel === 'resources' && !c.items.some((i) => i.id === c.hud.detailId)
+            ? 'resourcePage'
+            : 'page';
+        c.hud[key] = integer(hudPage(c) + amount(), 0, lastPage);
         break;
+      }
+      case 'list-page': {
+        if (!['conditions', 'resources'].includes(command.kind)) throw new Error('Unknown list.');
+        const list = hudListPage(c, command.kind);
+        c.hud[list.key] = integer(list.page + amount(), 0, list.total - 1);
+        break;
+      }
       case 'turn':
         startTurn(c);
         state.activeId = c.id;
@@ -1247,6 +1291,11 @@
     heal,
     rest,
     panelItems,
+    abilityPageSize,
+    hudPageCount,
+    hudPage,
+    hudListPage,
+    conditionPickerPageSize,
     fitHud,
     mergeChanges,
     hudCommand,

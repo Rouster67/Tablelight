@@ -150,23 +150,11 @@ class MessageOverlay {
         size = this.dimensions(c);
       HUDThemes.apply(frame, c.theme);
       frame.style.width = size.width + 'px';
-      frame.style.height = size.height + 'px';
+      frame.style.setProperty('--message-min-height', size.height + 'px');
       frame.style.setProperty('--message-font', size.font + 'px');
       frame.style.setProperty('--message-padding', size.padding + 'px');
       frame.style.zIndex = m.order;
       frame.dataset.expanded = String(c.hud.expanded);
-      let position;
-      if (c.hud.expanded) {
-        const r = root.getBoundingClientRect(),
-          angle = (c.hud.rotation * Math.PI) / 180;
-        position = {
-          x: r.left + r.width / 2 - Math.sin(angle) * 25 * c.hud.scale,
-          y: r.top + r.height / 2 + Math.cos(angle) * 25 * c.hud.scale,
-        };
-      } else position = TL.fitHud(c.hud, size.width, size.height, innerWidth, innerHeight);
-      frame.style.left = position.x + 'px';
-      frame.style.top = position.y + 'px';
-      frame.style.transform = `translate(-50%, -50%) rotate(${c.hud.rotation}deg) scale(${c.hud.scale})`;
       frame.querySelector('h2').textContent = 'Message for ' + c.name;
       frame.querySelector('section').setAttribute('aria-label', 'Message for ' + c.name);
       const area = frame.querySelector('.message-text');
@@ -190,6 +178,19 @@ class MessageOverlay {
       frame.querySelector('[data-message-action="previous"]').disabled ||= m.page === 0;
       frame.querySelector('[data-message-action="next"]').disabled ||= m.page === m.pageCount - 1;
       area.tabIndex = state.settings.overlayInteractive ? 0 : -1;
+      let position;
+      if (c.hud.expanded) {
+        const r = root.getBoundingClientRect(),
+          angle = (c.hud.rotation * Math.PI) / 180;
+        position = {
+          x: r.left + r.width / 2 - Math.sin(angle) * 25 * c.hud.scale,
+          y: r.top + r.height / 2 + Math.cos(angle) * 25 * c.hud.scale,
+        };
+      } else
+        position = TL.fitHud(c.hud, frame.offsetWidth, frame.offsetHeight, innerWidth, innerHeight);
+      frame.style.left = position.x + 'px';
+      frame.style.top = position.y + 'px';
+      frame.style.transform = `translate(-50%, -50%) rotate(${c.hud.rotation}deg) scale(${c.hud.scale})`;
       if (entry.focus && state.settings.overlayInteractive) {
         const control = frame.querySelector(
           `[data-message-action="${entry.focus}"]:not(:disabled)`

@@ -74,6 +74,7 @@
   const portrait = (c) =>
     `<div class="portrait" style="--accent:${c.accent};--hp:${Math.max(0, c.hp / c.maxHp) * 100}%">${c.avatar ? `<img src="${c.avatar}" alt="${esc(c.name)}">` : `<span>${esc(initial(c))}</span>`}</div>`;
   const pages = TL.textPages;
+  const abilityPageSize = TL.abilityPageSize;
   function abilityThumbnail(it, size = '') {
     let icon = '';
     try {
@@ -110,10 +111,7 @@
     return icon + esc(it.name);
   }
   function countPages(c) {
-    const detail = c.items.find((i) => i.id === c.hud.detailId);
-    if (detail) return TL.abilityTextPages(detail).length;
-    if (c.hud.panel === 'resources') return Math.max(1, Math.ceil(c.resources.length / 6));
-    return Math.max(1, Math.ceil(TL.panelItems(c).length / 5));
+    return TL.hudPageCount(c);
   }
   function pips(current, max) {
     return max <= 10
@@ -171,7 +169,16 @@
     return `<span class="resource-icon resource-icon-${shape}" style="color:${color}" aria-hidden="true"></span>`;
   }
   function resource(r) {
-    return `<div class="hud-resource" data-resource-id="${esc(r.id)}"><div class="resource-title">${resourceIcon(r)}<b>${esc(r.name)}</b><strong>${r.current}/${r.max}</strong></div><div class="resource-status"><small>${esc(TL.resourceResetLabels[r.reset])}</small>${r.max <= 10 ? pips(r.current, r.max) : ''}</div></div>`;
+    return `<div class="hud-resource" data-resource-id="${esc(r.id)}"><div class="resource-title">${resourceIcon(r)}<b>${esc(r.name)}</b></div><div class="resource-status">${resourceCharges(r)}<small>${esc(TL.resourceResetLabels[r.reset])}</small></div></div>`;
+  }
+  function resourceCharges(r) {
+    return `<span class="resource-charges" role="img" aria-label="${r.current} of ${r.max} charges available" title="${r.current} / ${r.max}">${pips(r.current, r.max)}</span>`;
+  }
+  function listPages(c, kind) {
+    const list = TL.hudListPage(c, kind);
+    return list.total > 1
+      ? `<div class="hud-pagination" data-hud-list-pages="${kind}" aria-label="${kind} pages"><span>${list.page + 1} / ${list.total}</span></div>`
+      : '';
   }
   function concentrationTitle(c) {
     return c.concentrating
@@ -183,7 +190,14 @@
     return `<span class="damage-concentration-reminder${c?.concentrating ? ' is-active' : ''}" ${c?.concentrating ? `role="img" title="${esc(label)}" aria-label="${esc(label)}"` : 'aria-hidden="true"'}><span aria-hidden="true">◉</span></span>`;
   }
   function characterStatus(c) {
-    return `<div class="hud-status"><span class="concentration-toggle ${c.concentrating ? 'is-on' : ''}" data-concentration-indicator title="${esc(concentrationTitle(c))}"><span aria-hidden="true">◉</span> Concentrating</span><div class="hud-concentration-editor"></div><table class="condition-table hud-condition-table"><caption><div class="hud-condition-heading"><span>Conditions</span></div></caption><tbody>${(c.appliedConditions || []).map((e) => `<tr data-condition-id="${esc(e.id)}"><td tabindex="0" title="${esc(e.description || 'No description entered.')}">${esc(e.name)}</td></tr>`).join('') || '<tr><td class="muted">None</td></tr>'}</tbody></table></div>`;
+    return `<div class="hud-status"><span class="concentration-toggle ${c.concentrating ? 'is-on' : ''}" data-concentration-indicator title="${esc(concentrationTitle(c))}"><span aria-hidden="true">◉</span> Concentrating</span><div class="hud-concentration-editor"></div><section class="hud-section-box hud-conditions-section" aria-label="Conditions"><table class="condition-table hud-condition-table"><caption><div class="hud-condition-heading"><span>Conditions</span></div></caption><tbody>${
+      TL.hudListPage(c, 'conditions')
+        .items.map(
+          (e) =>
+            `<tr data-condition-id="${esc(e.id)}"><td tabindex="0" title="${esc(e.description || 'No description entered.')}">${esc(e.name)}</td></tr>`
+        )
+        .join('') || '<tr><td class="muted">None</td></tr>'
+    }</tbody></table>${listPages(c, 'conditions')}</section></div>`;
   }
   function concentrationOptions(c, query = '', mode = 'dm') {
     const choices = TL.concentrationChoices(c, query);
@@ -209,7 +223,7 @@
       return `<div class="hud-collapsed" title="${esc(c.name)}">${portrait(c)}</div>`;
     const detail = c.items.find((i) => i.id === c.hud.detailId),
       details = detail && abilityDetails(detail, c);
-    const page = Math.min(c.hud.page, countPages(c) - 1);
+    const page = TL.hudPage(c);
     let panel = overviewPanel(c);
     if (detail)
       panel = `<section class="hud-panel"><div class="eyebrow">${esc(detail.kind)} · ${esc(labels[detail.economy] || detail.economy)}${detail.kind === 'spell' ? ` · ${TL.levelLabel(detail)}` : ''}</div><div class="ability-detail-heading">${abilityThumbnail(detail, 'large')}<h3>${abilityName(detail)}</h3></div><div class="hud-metadata">${details.metadata
@@ -219,16 +233,14 @@
         )}</div>${renderTextSections(TL.abilityTextPages(detail)[page], 'hud-description')}${countPages(c) > 1 ? `<div class="hud-page">Details ${page + 1} / ${countPages(c)}</div>` : ''}${sourceReference(details.source)}</section>`;
     else if (c.hud.panel === 'sheet') panel = sheetPanel(c);
     else if (c.hud.panel === 'resources')
-      panel = `<section class="hud-panel"><div class="eyebrow">Custom resources</div>${
-        c.resources
-          .slice(page * 6, page * 6 + 6)
-          .map(resource)
-          .join('') || '<p class="muted">No resources entered.</p>'
+      panel = `<section class="hud-panel hud-section-box"><div class="eyebrow">Custom resources</div>${
+        TL.hudListPage(c, 'resources').items.map(resource).join('') ||
+        '<p class="muted">No resources entered.</p>'
       }</section>`;
     else if (c.hud.panel)
       panel = `<section class="hud-panel"><div class="eyebrow">${labels[c.hud.panel]}</div><div class="hud-options">${
         TL.panelItems(c)
-          .slice(page * 5, page * 5 + 5)
+          .slice(page * abilityPageSize, (page + 1) * abilityPageSize)
           .map(
             (it) =>
               `<div class="hud-option ${TL.availability(c, it) ? 'spent' : ''}">${abilityThumbnail(it)}<div><b>${abilityName(it)}</b><small>${esc(it.kind === 'spell' ? TL.levelLabel(it) : labels[it.economy])}${it.resourceId ? ' · ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small></div><span>${TL.availability(c, it) ? 'Spent' : 'Ready'}</span></div>`
@@ -237,14 +249,14 @@
       }</div>${countPages(c) > 1 ? `<div class="hud-page">Options ${page + 1} / ${countPages(c)}</div>` : ''}</section>`;
     return `<div class="hud-card" style="--accent:${c.accent};--panel-opacity:${opacity}"><div class="hud-summary"><header class="hud-header">${portrait(c)}<div class="hud-identity"><h2>${esc(c.name)}</h2><span>${esc(c.className || 'Adventurer')} · Level ${c.level}</span><div class="hud-health"><strong>${c.hp}</strong><span>/ ${c.maxHp} HP</span></div><div class="hud-temp-hp">Temp HP <b>${c.tempHp}</b></div></div><div class="hud-ac"><b>${c.ac}</b><small>AC</small></div></header><div class="hp-track"><i style="width:${(c.hp / c.maxHp) * 100}%"></i></div><div class="hud-economy">${['action', 'bonus', 'reaction'].map((k) => `<div class="${c.turn[k] ? '' : 'spent'}"><b>${symbols[k]}</b><small>${k === 'bonus' ? 'Bonus' : k[0].toUpperCase() + k.slice(1)}</small><i>${c.turn[k] ? 'Ready' : 'Spent'}</i></div>`).join('')}<div class="${c.turn.movement ? '' : 'spent'}"><b>${c.turn.movement}<em>ft</em></b><small>Movement</small><i>of ${c.speed} ft</i></div></div><div class="hud-stats">${TL.abilities.map((a) => `<div><small>${a.toUpperCase()}</small><b>${TL.signed(TL.mod(c.abilities[a]))}</b><span>${c.abilities[a]}</span></div>`).join('')}</div>${characterStatus(c)}${
       c.slots.some((s) => s.max)
-        ? `<div class="hud-slots">${c.slots
+        ? `<div class="hud-slots hud-section-box" aria-label="Spell slots"><strong class="hud-section-label">Spell slots</strong>${c.slots
             .filter((s) => s.max)
             .map((s) => `<div><small>L${s.level}</small>${pips(s.current, s.max)}</div>`)
             .join('')}</div>`
         : ''
     }${
       c.resources.length
-        ? `<div class="hud-charges">${c.resources.map(resource).join('')}</div>`
+        ? `<div class="hud-charges hud-section-box" aria-label="Custom resources"><strong class="hud-section-label">Custom resources</strong>${TL.hudListPage(c, 'resources').items.map(resource).join('')}${listPages(c, 'resources')}</div>`
         : ''
     }</div><div class="hud-browser"><nav class="hud-nav" aria-label="Character sections">${panelChoices.map(([key, name]) => `<span class="hud-nav-label ${c.hud.panel === key && !c.hud.detailId ? 'chosen' : ''}">${esc(name)}</span>`).join('')}</nav><div class="hud-section-content">${panel}</div></div>${pendingRequests(c, interactive)}</div>`;
   }
@@ -318,6 +330,7 @@
     damageConcentrationReminder,
     concentrationOptions,
     resourceIcon,
+    resourceCharges,
     resource,
     scroll,
     esc,
@@ -325,6 +338,7 @@
     symbols,
     labels,
     pages,
+    abilityPageSize,
     countPages,
     pips,
     abilityDetails,

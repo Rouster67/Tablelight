@@ -47,12 +47,16 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       return {
         turn:rect('.character-turn-tools'), hero:rect('.character-hero'),
         tools:rect('.hero-tools'), combat:rect('.combat-strip'),
+        name:rect('.character-hero h1'),
         scores:rect('.character-scores'), display:rect('.current-display'),
         abilities:rect('.character-abilities'),
+        status:rect('.character-status'),
         slots:rect('.character-resources > section:first-child'),
         resources:rect('.character-resources > section:last-child'),
         heading:document.querySelector('.character-scores h3').textContent,
         counters:tiles.length,
+        hitPointsWidth:tiles[0].getBoundingClientRect().width,
+        actionWidth:tiles[1].getBoundingClientRect().width,
         controlsFit:tiles.every(tile => [...tile.querySelectorAll('button')].every(button => {
           const r=button.getBoundingClientRect(), p=tile.getBoundingClientRect();
           return r.left>=p.left && r.right<=p.right+1 && r.top>=p.top && r.bottom<=p.bottom+1;
@@ -62,13 +66,36 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     `);
     assert.equal(layout.heading, 'Abilities');
     assert.equal(layout.counters, 5);
+    assert.ok(
+      Math.abs(layout.hitPointsWidth - layout.actionWidth) <= 1,
+      'Hit points uses an ordinary counter width'
+    );
     assert.ok(layout.turn.bottom <= layout.hero.top, 'Turn/rest controls sit above the portrait');
     assert.ok(layout.display.top <= layout.hero.top, 'The display controls start at the top');
     assert.ok(layout.display.left >= layout.tools.right, 'Character controls stay on the left');
-    assert.ok(layout.scores.top >= layout.combat.bottom, 'Ability scores follow the counters');
-    assert.ok(layout.abilities.top >= layout.scores.bottom, 'Ability tabs follow ability scores');
+    assert.ok(layout.tools.left >= layout.name.right, 'Character controls sit beside the name');
+    assert.ok(layout.tools.top < layout.name.bottom && layout.tools.bottom > layout.name.top);
+    assert.ok(layout.scores.bottom <= layout.combat.top, 'Ability scores sit above the counters');
+    assert.ok(
+      layout.combat.top - layout.scores.bottom <= 17,
+      'Counters directly follow ability scores'
+    );
+    assert.ok(layout.status.top >= layout.combat.bottom, 'Conditions follow the counters');
+    assert.ok(
+      layout.status.top - layout.combat.bottom <= 17,
+      'Conditions directly follow the counters'
+    );
+    assert.ok(layout.abilities.top >= layout.status.bottom, 'Ability tabs follow conditions');
     assert.ok(layout.slots.left >= layout.abilities.right, 'Spell slots stay beside ability tabs');
-    assert.ok(Math.abs(layout.slots.top - layout.abilities.top) <= 1);
+    assert.ok(layout.slots.top >= layout.display.bottom);
+    assert.ok(
+      layout.slots.top - layout.display.bottom <= 17,
+      'Spell slots follow the display without a blank grid row'
+    );
+    assert.ok(
+      layout.abilities.top - layout.status.bottom <= 17,
+      'Ability tabs follow conditions without a blank grid row'
+    );
     assert.ok(layout.resources.top >= layout.slots.bottom, 'Custom resources follow spell slots');
     assert.ok(layout.controlsFit, 'Counter controls stay inside their tiles');
     assert.ok(layout.noHorizontalScroll, 'The character workspace fits the window');
@@ -171,7 +198,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     results.push('Sidebar drag-and-drop changes the saved party sequence.');
     await click(`[data-action="select"][data-id="${a}"]`);
     await run(
-      `commit(()=>{const c=selected();c.items=[];for(const economy of ['action','bonus','reaction','free'])for(const kind of ['action','spell','feature'])c.items.push(TL.item({name:economy+' '+kind,kind,economy,level:kind==='spell'?0:null,description:('Long description test. ').repeat(80)}));for(let i=0;i<4;i++)c.items.push(TL.item({name:'Extra action '+i,economy:'action'}));c.hud.expanded=true;c.hud.rotation=90;c.hud.x=50;c.hud.y=50;c.hud.panel='action';state.characters.slice(1).forEach(x=>x.hud.expanded=false);state.settings.displayId=${JSON.stringify(String(screen.getPrimaryDisplay().id))};tab='action';});await saveQueue;`
+      `commit(()=>{const c=selected();c.items=[];for(const economy of ['action','bonus','reaction','free'])for(const kind of ['action','spell','feature'])c.items.push(TL.item({name:economy+' '+kind,kind,economy,level:kind==='spell'?0:null,description:('Long description test. ').repeat(80)}));for(let i=0;i<14;i++)c.items.push(TL.item({name:'Extra action '+i,economy:'action'}));c.hud.expanded=true;c.hud.rotation=90;c.hud.x=50;c.hud.y=50;c.hud.panel='action';state.characters.slice(1).forEach(x=>x.hud.expanded=false);state.settings.displayId=${JSON.stringify(String(screen.getPrimaryDisplay().id))};tab='action';});await saveQueue;`
     );
     setOverlay(true);
     await wait(() => getOverlay() && !getOverlay().webContents.isLoading());
@@ -208,7 +235,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(() => getState().characters[0].hud.page === 1);
     await wait(() =>
       overlayRun(
-        `return document.querySelector(${JSON.stringify(root)})?.innerText.includes('Extra action 3');`
+        `return document.querySelector(${JSON.stringify(root)})?.innerText.includes('Extra action 13');`
       )
     );
     results.push('Currently displayed can page through the player’s complete action list.');
@@ -296,7 +323,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await checkCharacterLayout();
     await shot('07-minimum-window');
     results.push(
-      'At wide, laptop, and minimum widths, turn controls lead the character, the display controls sit upper right, Abilities follows all five counters, and spell slots/resources sit beside the ability tabs without clipping.'
+      'At wide, laptop, and minimum widths, turn controls lead the character, character controls sit beside the name, combat counters have equal widths, and both columns stack without blank grid rows or clipping.'
     );
     results.push('New controls fit the small laptop window and preserve overlay rotation.');
     const restored = store.load().state;

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Move DM Concentration & conditions directly below the combat counters, outline overlay Conditions/Spell slots/Custom resources sections, and show resource charge markers up to ten charges with current/maximum above ten.
+
+- Remove overlay scrollbars: panels grow to fit their content; conditions use six-item pages in two rows of three and custom resources use independent three-item pages with matching DM controls for click-through.
+- Add a dedicated Custom resources Add form on the DM screen, preserving full resource editing in Edit character and live changes while the form is open.
+
+- Place character controls beside the portrait and name, move Abilities directly above the combat counters, make Hit points the same width as the other counters, and stack Currently displayed, spell slots, and custom resources without empty grid-row gaps.
+- Show fifteen abilities per page on the player overlay and in Currently displayed, with matching page counts and controls for the correct ability on later pages.
+
 ## 1.12.1 — 2026-09-15
 
 - Reorganize the DM character workspace: put turn/rest controls above the portrait, character controls on the left, and Currently displayed at the upper right. Arrange the five combat counters to fit beside it, rename At a glance to Abilities beneath the counters, and put ability tabs below with spell slots and custom resources stacked on the right. Keep the layout usable at wide, laptop, and minimum window sizes.

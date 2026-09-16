@@ -36,9 +36,9 @@ application ID; the production build contains no such configuration. Builds neve
 
 The Electron main process creates a DM window and one transparent always-on-top TV window. Each player's independently positioned DOM HUD is rendered inside the TV window. Positions are percentages of the selected display, rotation is degrees around the HUD center, and scale is per character. Fitting expanded HUDs to the display does not overwrite their stored position or rotation.
 
-Expanded containers are 880 CSS pixels wide, with a 50px toolbar area and a card at least 600px tall. The 344px summary column determines the card’s natural height so portrait, vitals, conditions, slots, all resources, and size controls remain visible without summary scrolling. The browser uses size containment and internal scrolling so ability text does not stretch the frame. Pending requests add a separate 250px column plus a 20px gap on the far right, making the frame 1150px wide without reducing the browser width. Collapsed portraits retain their existing dimensions.
+Expanded containers are 880 CSS pixels wide, with a 50px toolbar area and a card at least 600px tall. All columns contribute to the card’s natural height, so the summary, ability browser, and pending approvals fit their content without scrollbars. Ability lists use fifteen entries per page. Conditions use six entries per page in two rows of three; custom resources use three entries per page, with independent normalized `hud.conditionPage` and `hud.resourcePage` settings for each character. The summary and Resources browser share the resource page; DM controls can change either list while the overlay is hidden, collapsed, or click-through. Pending requests add a separate 250px column plus a 20px gap on the far right, making the frame 1150px wide without reducing the browser width. Collapsed portraits retain their existing dimensions.
 
-`HUD.mount` applies the stored scale exactly and uses `HUD.fit`/`fitHud` only to adjust position. Oversized axes are centered instead of silently shrinking. Section scroll survives redraws when panel/detail/page are unchanged; pending-column scroll is independent. After transient forms mount, the overlay refits the frame and observes later size changes, including asynchronous picker results, before publishing native hit regions. The DM preview shares the renderer and shows pending-column placement with disabled cancellation buttons; actual DM counters remain unreserved. Currently displayed resizing uses the same bounded placement command as other controls. Section details arrows use DM-authenticated `hud:scroll` messages without writing game state or creating Undo entries.
+`HUD.mount` applies the stored scale exactly and uses `HUD.fit`/`fitHud` only to adjust position. Oversized axes are centered instead of silently shrinking. Page selections survive redraws. Long details and message pages grow vertically instead of scrolling. After transient forms mount, the overlay refits the frame and observes later size changes, including asynchronous picker results, before publishing native hit regions. The DM preview shares the renderer and shows pending-column placement with disabled cancellation buttons; actual DM counters remain unreserved. Currently displayed resizing uses the same bounded placement command as other controls. The obsolete DM scroll buttons are removed; legacy scroll messages remain accepted for compatibility but the expanding panels have no scrollable area.
 
 Custom resource counters retain their IDs and bindings. Additive `icon` and `color` fields normalize to one of six CSS shapes and a six-digit hex color; legacy pools default to a circle in the character color. Reset values are short, long, turn, or manual. `startTurn` restores turn controls and per-turn counters; both next-turn traversal and the TV turn command use it. Rests preserve per-turn and manual counters; short-rest pools also recover on long rest. Manual reset is a bounded command. `resource-ui.js` renders inline resource drafts in the character editor; save uses the existing ID-aware merge so appearance edits preserve concurrent spending. All resources render as stacked rows under slots, with matching counters in the paged Resources section.
 
@@ -109,7 +109,7 @@ Special. The shared section renderer escapes all text. Reference follows all sec
 right-aligned footer; HUD use controls stay above it. Empty fields are hidden.
 `TL.abilityTextPages` splits long sections into 640-character chunks, packs short sections,
 and repeats section labels. Normalization clamps invalid detail pages after resolving shared
-definitions. Stored position, scale, rotation, and independent ability-column scrolling stay intact.
+definitions. Stored position, scale, rotation, and independent page selections stay intact.
 Library search and exact-content matching include every new text field.
 
 `normalize` resolves library definitions into character items in memory. `toBackup` removes
@@ -150,13 +150,13 @@ with approved-use History and targeted reversals by the approval service.
 
 Condition definitions contain `id`, `name`, and `description`. Characters store unique `conditionIds`; normalization resolves `appliedConditions` for rendering. Backups strip these resolved copies and retain definitions once. The overlay receives only active characters' resolved conditions. Shared editing, assignment, removal, and protected deletion work across both player collections. Names and descriptions render as escaped text, with native title tooltips. There are bounds of 5,000 definitions, 500 assignments per character, 300 characters per name, and 40,000 characters per description.
 
-The DM Add dialog searches existing entries or creates and assigns a definition in a single undoable commit. The TV's Add menu uses an overlay-authenticated, read-only `hud:conditions` query while HUD controls are enabled. Queries return at most 100 alphabetical name/description matches, with a total count; they do not include character data. Its bounded `condition-add` command accepts only existing IDs and active party members, preventing creation from the TV. The menu preserves its search and internal scroll during state updates, ignores stale search responses, and closes when its HUD is hidden, collapsed, or made click-through. The summary grows to contain transient forms, and frame positioning and native hit regions refresh after picker results change its height.
+The DM Add dialog searches existing entries or creates and assigns a definition in a single undoable commit. The TV's Add menu uses an overlay-authenticated, read-only `hud:conditions` query while HUD controls are enabled. Queries return at most 100 alphabetical name/description matches, with a total count; they do not include character data. Its bounded `condition-add` command accepts only existing IDs and active party members, preventing creation from the TV. The menu shows five matches per page, uses bounded description excerpts with full hover text, preserves its search and page during state updates, ignores stale search responses, and closes when its HUD is hidden, collapsed, or made click-through. The summary grows to contain transient forms, and frame positioning and native hit regions refresh after picker results change its height.
 
 Formats 1–3 migrate automatically. A legacy character condition note becomes one complete definition, retaining punctuation and qualifiers; identical notes share an entry. Formats 4–5 require a condition library array and reject missing references or duplicate definition IDs.
 
 Ability definitions include a shared `requiresConcentration` boolean, defaulting to false for every kind and economy. The DM and TV selectors filter the character's resolved items by that flag, with name/description search. They include spent or disabled entries because tracking concentration does not itself spend costs. Selecting sends a character-specific item ID; validation rejects unassigned or unflagged abilities and free-text requests.
 
-Concentration uses `concentrating`, `concentrationItemId`, and a resolved `concentration` display name. These are additive fields in save format 4. Normalization resolves the selected binding after applying shared definitions, follows name edits, and ends concentration if the binding is removed or its flag is cleared. Ending concentration and long rest clear all three fields. Legacy active notes without an item ID remain visible until the user ends concentration or selects an ability; migration never guesses flags or matches abilities by name. Picker searches and scroll positions survive unrelated updates. Conditions are never removed automatically by rests or turns.
+Concentration uses `concentrating`, `concentrationItemId`, and a resolved `concentration` display name. These are additive fields in save format 4. Normalization resolves the selected binding after applying shared definitions, follows name edits, and ends concentration if the binding is removed or its flag is cleared. Ending concentration and long rest clear all three fields. Legacy active notes without an item ID remain visible until the user ends concentration or selects an ability; migration never guesses flags or matches abilities by name. Picker searches survive unrelated updates. Conditions are never removed automatically by rests or turns.
 
 The shared `spend` path validates availability, any required slot choice, and acknowledgement of the current concentration warning before changing concentration or costs. A flagged use calls `setConcentration` for the acting character's assigned ability; an invalid assignment fails before spending. DM uses spend immediately; HUD requests spend only when approved. The service saves each use's concentration and costs together. Unflagged uses leave concentration unchanged. Manual concentration selection continues to spend no costs.
 
@@ -280,7 +280,7 @@ the existing changed-field merge; character-only copies retain independent image
 character, detail, and TV views. Images use `object-fit: contain`; the type symbol remains
 visible until an image loads and returns if it fails. Document capture listeners handle
 load/error without inline handlers. Thumbnail dimensions do not depend on image dimensions.
-The existing HUD fitting, scroll areas, rotation, hit regions, and resource icons are unchanged.
+The existing HUD fitting, rotation, hit regions, and resource icons remain in use.
 
 `TL.clone` copies plain JSON containers while retaining immutable strings. Structural equality
 avoids repeatedly serializing image data for comparisons and stale-editor merges. Approval
@@ -329,7 +329,7 @@ Player accent values and portrait rings are untouched; themed initials use reada
 Ability images keep their pixels and neutral backing. Resource shapes retain their stored
 color/clip path inside the same 16-pixel footprint, with a 14-pixel shape on a one-pixel black or
 white backing chosen for contrast. Default removes that frame. Borders, backings and focus
-outlines do not change HUD sizing, scrolling, position, scale, rotation, or hit regions.
+outlines do not change HUD sizing, position, scale, rotation, or hit regions.
 
 `docs/theme-preview.html` renders synthetic expanded/collapsed examples of all 14 choices,
 using the real HUD renderer and styles, with map/opacity/view controls and no app bridge or
@@ -387,7 +387,7 @@ renderers. A late initial snapshot cannot overwrite a newer session event; retir
 be resurrected by delayed responses. Page changes invalidate the presentation/body token while
 retaining read history; new page acknowledgements record the latest display. Scroll commands are
 deduplicated within the current presentation. Reopening retains the selected page; changing
-interaction mode retains both page and scroll. Repeated open requests raise only that card.
+interaction mode retains the current page. Repeated open requests raise only that card.
 
 `message-dm.js` implements the Messages sidebar page. Drafts, confirmation targets, retry request
 IDs, and explicit laptop-review text are separate from party state. Recipient changes retain the
@@ -399,7 +399,7 @@ the selected note's explicit laptop-review request retrieves its body, without a
 through `textContent`. It discards stale body responses and acknowledges the current presentation
 after two animation frames and a visible, connected, on-screen DOM check. Unread badges have a
 five-second pulse with a reduced-motion override. Metadata and party updates do not remount the
-reading area, preserving scroll and keyboard focus. Failed loads remain unread and offer retry.
+reading area, preserving the current page and keyboard focus. Failed loads remain unread and offer retry.
 
 Reading cards use the character palette with an opaque surface, including Default, and inherit the
 character's rotation and scale. They are at most 480 × 320 CSS pixels before scale, reducing their

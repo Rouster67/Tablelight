@@ -125,6 +125,24 @@
           )
       );
     });
+    card.querySelectorAll('[data-hud-list-pages]').forEach((node) => {
+      const kind = node.dataset.hudListPages,
+        list = TL.hudListPage(c, kind);
+      node.insertAdjacentHTML(
+        'afterbegin',
+        control(c, '← Previous', 'list-page', { kind, amount: -1 }, list.page ? '' : 'disabled')
+      );
+      node.insertAdjacentHTML(
+        'beforeend',
+        control(
+          c,
+          'Next →',
+          'list-page',
+          { kind, amount: 1 },
+          list.page < list.total - 1 ? '' : 'disabled'
+        )
+      );
+    });
     const panel = card.querySelector('.hud-panel');
     card.querySelector('.hud-nav').innerHTML = HUD.panelChoices
       .map(([key, name]) =>
@@ -164,7 +182,8 @@
       );
     } else {
       card.querySelectorAll('.hud-option').forEach((node, i) => {
-        const item = TL.panelItems(c)[Math.min(c.hud.page, HUD.countPages(c) - 1) * 5 + i];
+        const item =
+          TL.panelItems(c)[Math.min(c.hud.page, HUD.countPages(c) - 1) * HUD.abilityPageSize + i];
         node.dataset.hudCommand = JSON.stringify({
           type: 'detail',
           characterId: c.id,
@@ -184,7 +203,7 @@
     if (panel && HUD.countPages(c) > 1)
       panel.insertAdjacentHTML(
         'beforeend',
-        `<div class="hud-pagination">${control(c, '← Previous', 'page', { amount: -1 }, c.hud.page > 0 ? '' : 'disabled')}<span>${Math.min(c.hud.page + 1, HUD.countPages(c))} / ${HUD.countPages(c)}</span>${control(c, 'Next →', 'page', { amount: 1 }, c.hud.page < HUD.countPages(c) - 1 ? '' : 'disabled')}</div>`
+        `<div class="hud-pagination">${control(c, '← Previous', 'page', { amount: -1 }, TL.hudPage(c) > 0 ? '' : 'disabled')}<span>${TL.hudPage(c) + 1} / ${HUD.countPages(c)}</span>${control(c, 'Next →', 'page', { amount: 1 }, TL.hudPage(c) < HUD.countPages(c) - 1 ? '' : 'disabled')}</div>`
       );
     const source = panel?.querySelector('.ability-source');
     if (source) panel.appendChild(source);
