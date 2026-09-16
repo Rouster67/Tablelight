@@ -178,10 +178,15 @@ to a newly passive-only ability fails normalization with an instruction to end/c
 first, including for inactive players. Hybrid active use keeps normal costs and approval behavior.
 No automatic statistics, rules, or conditions are derived from either description.
 
-This commit provides data and command support only; visible authoring, Passives sections, and
-hybrid detail navigation are later milestones. Current HUD dimensions/pagination remain unchanged.
-The `passives` desktop scenario verifies real IPC, editor preservation, disk saving, Undo, and
-renderer reload with isolated data. Unit coverage includes formats 1–10, local copies, save failures,
+The shared/local editor exposes Behavior beside Turn cost, below Name and Type. Type never
+restricts detail fields or cost choices. Passive-only hides the turn-cost label without disabling
+or clearing its input, so FormData and changed-field merging preserve dormant values. Other cost
+fields remain editable with an explanation that they apply only to active effects. New entries
+default to Active. Tracking controls, separate hybrid text editing, Passives sections, and hybrid
+detail navigation remain later milestones. Current HUD dimensions/pagination remain unchanged.
+The `passives` desktop scenario verifies real IPC, editor preservation, all Type/Behavior
+combinations, cancel/Undo, concentration conversion errors, minimum-window layout, disk saving,
+and renderer reload with isolated data. Unit coverage includes formats 1–10, local copies, save failures,
 pending requests, targeted refunds, dormant state, invalid inputs, and previous-save recovery.
 
 ## Conditions and concentration

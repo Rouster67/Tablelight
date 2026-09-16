@@ -216,6 +216,23 @@ function bindAbilityIconEditor(form, draft) {
   refresh();
 }
 
+function bindAbilityBehaviorEditor(form) {
+  const behavior = form.elements.namedItem('behavior'),
+    turnCost = form.elements.namedItem('economy').closest('label'),
+    hint = form.querySelector('[data-behavior-hint]');
+  const refresh = () => {
+    turnCost.hidden = behavior.value === 'passive';
+    hint.textContent =
+      behavior.value === 'passive'
+        ? 'Passive: no action, slot, or resource is spent. Saved cost settings are kept if you change back to an active effect.'
+        : behavior.value === 'hybrid'
+          ? 'Passive + active: turn cost, spell slots, resources, and concentration apply only to the active effect.'
+          : 'Active: choose Action, Bonus action, Reaction, or Free / other under Turn cost. Casting Time is descriptive text.';
+  };
+  behavior.addEventListener('change', refresh);
+  refresh();
+}
+
 function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false) {
   const entry = state.library.find((e) => e.id === id),
     c = TL.findCharacter(state, characterId);
@@ -255,10 +272,15 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
       ],
       draft.kind
     )}</select></label>
-    ${textField('Trigger', 'trigger')}${textField('Duration', 'duration')}${textField('Range', 'range')}${textField('Area', 'area')}
-    ${textField('Casting Time', 'castingTime')}<label class="form-field"><span>Spell Level</span><select name="level">${options([['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])], draft.level ?? '')}</select></label>
-    ${textField('Components', 'components')}${textField('School', 'school')}${textField('Attack', 'attack')}${textField('Save', 'save')}${textField('On Save', 'onSave')}
-    <label class="form-field"><span>Turn cost</span><select name="economy">${options(
+    <label class="form-field"><span>Behavior</span><select name="behavior" aria-describedby="ability-behavior-hint">${options(
+      [
+        ['active', 'Active'],
+        ['passive', 'Passive'],
+        ['hybrid', 'Passive + active'],
+      ],
+      draft.behavior
+    )}</select></label>
+    <label class="form-field ability-turn-cost"><span>Turn cost</span><select name="economy" aria-describedby="ability-behavior-hint">${options(
       [
         ['action', 'Action'],
         ['bonus', 'Bonus action'],
@@ -267,6 +289,11 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
       ],
       draft.economy
     )}</select></label>
+    <p class="hint full">Type chooses where this ability is listed; every type can use any cost or detail. <span id="ability-behavior-hint" data-behavior-hint aria-live="polite"></span></p>
+    <div class="full">${abilityIconEditor(local)}</div>
+    ${textField('Trigger', 'trigger')}${textField('Duration', 'duration')}${textField('Range', 'range')}${textField('Area', 'area')}
+    ${textField('Casting Time', 'castingTime')}<label class="form-field"><span>Spell Level</span><select name="level">${options([['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])], draft.level ?? '')}</select></label>
+    ${textField('Components', 'components')}${textField('School', 'school')}${textField('Attack', 'attack')}${textField('Save', 'save')}${textField('On Save', 'onSave')}
     <label class="row hint"><input type="checkbox" name="usesSlot" ${draft.usesSlot ? 'checked' : ''}>Spend a standard spell slot</label><label class="row hint"><input type="checkbox" name="requiresConcentration" ${draft.requiresConcentration ? 'checked' : ''}>Concentration</label>
     ${textField('Damage / Healing', 'damage', true)}${textArea('Upcast / Upgrades', 'upgrades', 4)}
     ${textArea('Requirements', 'requirements', 3, false)}${textArea('Special', 'special', 3, false)}
@@ -276,8 +303,8 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
     `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${local ? (binding ? 'Save character ability' : 'Save to character') : entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
   );
   const form = document.getElementById('item-form');
-  form.querySelector('.note').insertAdjacentHTML('afterend', abilityIconEditor(local));
   bindAbilityIconEditor(form, draft);
+  bindAbilityBehaviorEditor(form);
   const initialFields = new FormData(form);
   submitForm('item-form', async (data) => {
     for (const key of TL.definitionFields) {

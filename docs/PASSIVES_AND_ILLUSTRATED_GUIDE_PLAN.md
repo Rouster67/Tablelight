@@ -1,8 +1,9 @@
 # Passive abilities and illustrated user guide — implementation plan
 
-Status: the user authorized the first implementation commit on September 15, 2026.
-Milestone 1 is implemented and verified locally. Later milestones remain
-planned. The user will publish the branch. No release version has been chosen.
+Status: milestone 1 was committed and published by the user as `5953c11`. The user then
+approved a focused editor follow-up: Behavior plus a nearby Turn cost, with Type used only
+for grouping. That part of milestone 2 is implemented locally; the rest remains planned.
+Branch and publishing decisions stay with the user. No release version has been chosen.
 
 Originally prepared September 13 against Tablelight 1.10.2. Updated for the user's branch at
 `2c583f9` (package 1.12.1 plus the latest merged HUD/DM layout changes).
@@ -13,8 +14,9 @@ Originally prepared September 13 against Tablelight 1.10.2. Updated for the user
    record is historical and does not describe the current branch. Branch changes require the
    user's approval; the user created `codex/passives-and-illustrated-guide` themselves.
 2. On September 15, verified that branch was active in `D:\Repos\Tablelight-source`, the
-   working tree was clean, and the starting commit was `2c583f9`. No branch was created,
-   switched, fetched, or published during this implementation step; the commit stays local.
+   working tree was clean, and the starting commit was `2c583f9`. The user subsequently
+   committed and published milestone 1 as `5953c11`. The editor follow-up starts there and
+   leaves the same branch active, with local changes ready for the user's review and commit.
 3. This one branch will contain all work in this plan, divided into focused commits. The first
    commit implements passive behavior/state, compatible persistence, command safeguards and
    tests, plus the guide coverage outline. The visible editor/Passives sections and PDF follow.
@@ -73,7 +75,7 @@ every remaining roadmap idea.
 ### Milestone 1 — passive behavior, shared data, and save compatibility
 
 Implemented and verified in the first commit. This milestone adds data/command support; the
-visible editor and Passives sections are not exposed yet.
+editor follow-up below exposes Behavior. Passives sections are not exposed yet.
 
 Add a shared Behavior choice: **Active**, **Passive**, or **Passive + active**. Keep the existing
 Type choice for action/ability, spell, and class/species/other feature. Recommend a separate
@@ -126,6 +128,24 @@ Completion and tests:
 - Confirm the agreed schema and migration can coexist with any already-merged new ability fields.
 
 ### Milestone 2 — shared authoring and the DM Passives section
+
+**Approved editor follow-up, September 15:** Add Behavior (Active / Passive / Passive + active)
+to shared and character-only editors, with Turn cost beside it below Name and Type. Type is
+grouping only: it never restricts fields or costs. A feature may spend spell slots, and a spell
+may use a bonus action or reaction. Hide Turn cost for Passive while retaining its value;
+other cost fields stay available with a clear explanation that passive-only entries cannot
+spend them. Keep text, shared links, personal resource settings, and HUD placement unchanged.
+Move the image editor below these choices so they remain visible near the top.
+
+This focused step does not complete milestone 2: conditional reminder controls, separate hybrid
+effect text, Passives lists, and player presentation still need implementation. The regression
+captures of the editor are for development review; final guide screenshots still wait until
+the interface and release version are settled. The `passives` desktop scenario covers all nine
+Type/Behavior combinations, independent character settings, cancel/Undo, retained draft values,
+blocked concentration conversion, disk/reload persistence, and the minimum 940 × 660 window.
+Verification passed: 211 unit tests, all 30 desktop scenarios (260 checks), syntax and formatting.
+Editor screenshots were inspected at 1440 × 950 and 940 × 660 window sizes. No installed program
+files were updated.
 
 Expose Behavior and the conditional-tracking choice in the shared library editor. Label shared
 fields and character-specific active state clearly. Starting Create new from Passives defaults

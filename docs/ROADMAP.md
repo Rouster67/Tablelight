@@ -25,7 +25,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 | ID  | Idea                                          | Status                |
 | --- | --------------------------------------------- | --------------------- |
-| F01 | Passive abilities section                     | Foundation ready      |
+| F01 | Passive abilities section                     | Editor in progress    |
 | F02 | Messages sent to individual player overlays   | Implemented on branch |
 | F03 | Visible application version on the DM screen  | Released              |
 | F04 | Launch update prompt and Windows installer    | Released              |
@@ -46,9 +46,15 @@ The data foundation uses Active / Passive / Passive + active independently of Ty
 manual tracking, and separate per-character reminder state. Format 11 imports formats 1–10 and
 preserves the now-merged local-copy, image, theme, and approval behavior. Passive-only use and
 concentration selection are rejected; conditional reminders never calculate statistics or spend
-costs. The visible editor controls, DM/HUD Passives sections, and PDF remain later milestones in
+costs. The DM/HUD Passives sections and PDF remain later milestones in
 [the updated plan](PASSIVES_AND_ILLUSTRATED_GUIDE_PLAN.md). Existing HUD pagination and natural
 height remain unchanged.
+
+**Editor follow-up:** Behavior now offers Active / Passive / Passive + active in shared and
+character-only editors, with Turn cost beside it near the top. Type only groups entries; no
+type limits detail fields, slots, or resource costs. Passive hides Turn cost and retains its
+saved value. Conditional tracking, separate hybrid text editing, and passive list presentation
+remain planned. This is partial milestone 2 work, not the completed F01 section.
 
 **Requested:** Give characters a section for abilities that work passively, rather than being used
 as an action. The presentation and behavior need brainstorming.

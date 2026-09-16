@@ -135,6 +135,24 @@ Open **Ability library** in the sidebar to create, search, filter, or edit your 
 
 On a character, **+ Add → Create new** saves a new entry to the library and adds it to that character. **+ Add → Choose existing** searches the library and links an entry you already wrote. You can also use **Add to character** from the library.
 
+At the top of a shared or character-only ability editor:
+
+- **Type** chooses how the ability is grouped. Every type keeps all detail and cost options;
+  a class feature can spend a spell slot, for example.
+- **Behavior** chooses **Active**, **Passive**, or **Passive + active**. To flag an ability as
+  passive, choose **Passive**, write its effect in **Description**, and save. Shared changes
+  apply to every character linked to that entry.
+- **Turn cost** chooses **Action**, **Bonus action**, **Reaction**, or **Free / other** for
+  active use. It sits beside Behavior and disappears for Passive. Previously entered costs
+  and text are retained when switching behavior; passive-only entries cannot spend them.
+  For Passive + active, costs apply only to the active effect. **Casting Time** remains
+  descriptive text and does not set Turn cost.
+
+This development step adds the editor choices. Dedicated DM/HUD Passives sections, conditional
+reminder switches, and separate hybrid-effect editing are still planned. Existing ability lists
+have not yet been adapted for passive presentation. If a character is concentrating on an ability,
+end or change that concentration before saving it as passive-only.
+
 **Ability images:** In an ability editor, choose **Upload image** to add artwork, **Replace image**
 to change it, or **Remove image** to return to the usual spell, action, or feature symbol.
 The preview shows the complete picture. Choose **Save shared entry** (or the character-only Save
@@ -413,7 +431,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-This development branch writes save format 11 and imports formats 1–10. The new format preserves passive ability definitions and individual reminder states; their visible controls are still being developed. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before using a development build if you may need to return to a released version. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
+This development branch writes save format 11 and imports formats 1–10. The new format preserves passive ability definitions and individual reminder states; Behavior is editable, while reminder controls and Passives sections are still being developed. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before using a development build if you may need to return to a released version. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
 
 ## Keyboard shortcuts
 

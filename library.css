@@ -116,3 +116,6 @@
 .ability-source-field > span {
   text-align: right;
 }
+.ability-turn-cost[hidden] {
+  display: none;
+}
