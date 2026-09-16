@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+## 2.0.0 — 2026-09-16
+
+- Finalize the 2.0.0 app and illustrated guide. Record the owner's explicit decision to proceed without installer, offline-reader and physical-TV checks; preserve their untested status and bind the release waiver to this version and PDF. Publication remains a separate step.
+- Make the guide-packaging regression cover both Draft and Final review states, and wait for the DM preview's first painted frame in the HUD geometry test.
+- Export a party backup before upgrading. Version 2.0.0 imports save formats 1–10 and writes format 11; Tablelight 1.12.1 and earlier cannot open a format-11 save. Keep a pre-upgrade backup if you need to return to an older release.
+
+- Extend the installer regression to cover passive/hybrid definitions, independent character reminders and HUD settings, and replacement/removal of the bundled PDF in a custom folder with spaces and a non-ASCII name. Record remaining Windows installer, PDF-reader and physical TV release checks separately from automated results.
+
+- Run the same saved-party fixture through a standalone save/restart check, including passive reminder Undo, spending rejection, guide handoff, update preferences and session-message clearing. Report installer-test app launch errors immediately instead of hiding them until the update timeout.
+
+- Replace the seven-page PDF prototype with a complete 17-chapter illustrated manual for the current development interface: guided first session, every character/ability field, shared/local definitions, passive and mixed effects, resources, turns, approvals/History, conditions, player HUDs, messages, backup/recovery, updates/uninstall and troubleshooting. Add original real-app captures and verified worked examples. Keep final release/version and two-viewer certification separate from content completion; ordinary release packaging remains gated.
+
+- Preserve the DM Read license control in installed builds by explicitly including the application license at its expected path.
+
+- Add the offline PDF opening link in Setup & help, replacing the three HUD/concentration/rest paragraphs while retaining other help controls. Resolve the bundled PDF from the running installation, with recoverable file/viewer errors and no save changes. Add a repeatable guide generator, linked contents/bookmarks, embedded fonts, original screenshot capture and packaging checks. Ordinary release builds require a matching final review record.
+
+- Add Passives beside Features on expanded player HUDs and in the DM's Currently displayed controls. Players can read passive effects, page long descriptions, switch conditional reminders, and navigate both sides of mixed abilities. Passive views have no Use or cost controls; click-through retains readable status with DM controls. Preserve individual reading pages, saved placement/rotation/scale, and existing 880px/1150px HUD widths.
+
+- Add a DM Passives tab, shared-library passive search/filter, optional per-character Active / Inactive reminders, and separate passive/active descriptions for mixed abilities. Passive views show no Use or cost controls, and pure passives leave ordinary action lists. DM reading links for either effect do not spend or change a HUD; shared/local definitions, saved costs, and individual reminder states remain intact. Explicit Show on TV controls display the selected list or effect for players.
+
+- Add Behavior (Active, Passive, or Passive + active) to shared and character-only ability editors and place Turn cost beside it near the top. Type continues to control grouping without limiting fields, spell slots, or resource costs. Passive hides Turn cost while retaining its saved setting; hybrid costs apply only to the active effect.
+
+- Add the passive-ability data foundation: Active, Passive, and Passive + active behaviors, shared passive text, and independent manual reminder states. Save format 11 imports formats 1–10 and preserves shared/local abilities, icons, themes, and character settings. Passive-only entries cannot spend costs or start concentration; hybrid reminders stay independent of approval requests and active spending.
+
 - Move DM Concentration & conditions directly below the combat counters, outline overlay Conditions/Spell slots/Custom resources sections, and show resource charge markers up to ten charges with current/maximum above ten.
 
 - Remove overlay scrollbars: panels grow to fit their content; conditions use six-item pages in two rows of three and custom resources use independent three-item pages with matching DM controls for click-through.

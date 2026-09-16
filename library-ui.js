@@ -8,6 +8,7 @@ const libraryTypes = [
   ['action', 'Actions'],
   ['spell', 'Spells'],
   ['feature', 'Features'],
+  ['passive', 'Passives (including mixed abilities)'],
   ['bonus', 'Bonus actions'],
   ['reaction', 'Reactions'],
   ['free', 'Free / other'],
@@ -22,6 +23,7 @@ function matchingLibrary(query, filter) {
       const text = [
         entry.name,
         entry.description,
+        entry.passiveDescription,
         entry.upgrades,
         entry.trigger,
         entry.duration,
@@ -44,9 +46,11 @@ function matchingLibrary(query, filter) {
         .toLowerCase();
       return (
         (filter === 'all' ||
-          (['action', 'spell', 'feature'].includes(filter)
-            ? entry.kind === filter
-            : entry.economy === filter)) &&
+          (filter === 'passive'
+            ? TL.hasPassiveEffect(entry)
+            : ['action', 'spell', 'feature'].includes(filter)
+              ? entry.kind === filter
+              : TL.hasActiveEffect(entry) && entry.economy === filter)) &&
         words.every((word) => text.includes(word))
       );
     })
@@ -64,7 +68,16 @@ function libraryRows(query, filter, characterId = '', localCopy = false) {
       .map((entry) => {
         const users = libraryUsers(entry.id),
           attached = c?.items.some((it) => it.libraryId === entry.id);
-        return `<div class="ability-row library-row">${HUD.abilityThumbnail(entry)}<div class="ability-main"><b>${esc(entry.name)}</b><small>${esc(entry.kind)} · ${esc(labels[entry.economy])}${entry.kind === 'spell' ? ' · ' + TL.levelLabel(entry) : ''}</small><p class="library-excerpt">${esc(entry.description || 'No description yet.')}</p><small>${users.length ? 'Used by ' + users.map((c) => esc(c.name)).join(', ') : 'Ready to add to a character'}</small></div><div class="ability-controls">${c && localCopy ? button('Copy locally', 'copy-library-locally', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}"`) : c ? button(attached ? 'Already added' : 'Choose', 'attach-library-entry', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}" ${attached ? 'disabled' : ''}`) : button('Add to character', 'assign-library-entry', 'small', `data-id="${esc(entry.id)}" ${TL.allCharacters(state).length ? '' : 'disabled'}`)}${!c ? button('Duplicate', 'duplicate-library-entry', 'small subtle', `data-id="${esc(entry.id)}" aria-label="Duplicate ${esc(entry.name)} in library"`) : ''}<span class="library-edit-controls">${!localCopy ? button('Edit', 'edit-library-entry', 'small subtle', `data-id="${esc(entry.id)}"`) : ''}${!c ? button('Delete', 'delete-library-entry', 'small subtle danger', `data-id="${esc(entry.id)}" aria-label="Delete ${esc(entry.name)} from library"`) : ''}</span></div></div>`;
+        const passiveView = filter === 'passive' || !TL.hasActiveEffect(entry);
+        const summary = [
+          entry.kind,
+          entry.behavior === 'hybrid' ? 'Passive + active' : passiveView ? 'Passive' : '',
+          passiveView ? '' : labels[entry.economy],
+          !passiveView && entry.kind === 'spell' ? TL.levelLabel(entry) : '',
+        ]
+          .filter(Boolean)
+          .join(' · ');
+        return `<div class="ability-row library-row">${HUD.abilityThumbnail(entry, '', passiveView ? 'passive' : '')}<div class="ability-main"><b>${esc(entry.name)}</b><small>${esc(summary)}</small><p class="library-excerpt">${esc(passiveView ? TL.passiveText(entry) : entry.description || 'No description yet.')}</p><small>${users.length ? 'Used by ' + users.map((c) => esc(c.name)).join(', ') : 'Ready to add to a character'}</small></div><div class="ability-controls">${c && localCopy ? button('Copy locally', 'copy-library-locally', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}"`) : c ? button(attached ? 'Already added' : 'Choose', 'attach-library-entry', 'small primary', `data-id="${esc(entry.id)}" data-character="${esc(c.id)}" ${attached ? 'disabled' : ''}`) : button('Add to character', 'assign-library-entry', 'small', `data-id="${esc(entry.id)}" ${TL.allCharacters(state).length ? '' : 'disabled'}`)}${!c ? button('Duplicate', 'duplicate-library-entry', 'small subtle', `data-id="${esc(entry.id)}" aria-label="Duplicate ${esc(entry.name)} in library"`) : ''}<span class="library-edit-controls">${!localCopy ? button('Edit', 'edit-library-entry', 'small subtle', `data-id="${esc(entry.id)}"`) : ''}${!c ? button('Delete', 'delete-library-entry', 'small subtle danger', `data-id="${esc(entry.id)}" aria-label="Delete ${esc(entry.name)} from library"`) : ''}</span></div></div>`;
       })
       .join('') +
     (entries.length > 100
@@ -91,9 +104,10 @@ function addItemChoice() {
 function chooseLibraryEntry(characterId, localCopy = false) {
   const c = TL.allCharacters(state).find((c) => c.id === characterId);
   if (!c) return;
+  const filter = view === 'character' && tab === 'passive' ? 'passive' : 'all';
   modal(
     (localCopy ? 'Copy an ability for ' : 'Choose an ability for ') + esc(c.name),
-    `<div class="list-toolbar library-toolbar"><input id="library-picker-search" aria-label="Search existing abilities" placeholder="Search your library…"><select id="library-picker-filter" aria-label="Filter existing abilities">${options(libraryTypes, 'all')}</select></div><div id="library-picker-list" class="ability-list" data-character="${esc(c.id)}" data-local-copy="${localCopy}">${libraryRows('', 'all', c.id, localCopy)}</div>`,
+    `<div class="list-toolbar library-toolbar"><input id="library-picker-search" aria-label="Search existing abilities" placeholder="Search your library…"><select id="library-picker-filter" aria-label="Filter existing abilities">${options(libraryTypes, filter)}</select></div><div id="library-picker-list" class="ability-list" data-character="${esc(c.id)}" data-local-copy="${localCopy}">${libraryRows('', filter, c.id, localCopy)}</div>`,
     `<span class="hint">${localCopy ? 'Copies belong only to this character.' : 'Each character keeps their own resource charges.'}</span><div class="row">${button(localCopy ? 'Create new local ability' : 'Create new', localCopy ? 'new-local-item' : 'new-library-entry', 'subtle', `data-character="${esc(c.id)}"`)}${button('Cancel', 'close-modal', 'subtle')}</div>`
   );
 }
@@ -116,13 +130,19 @@ function attachLibraryEntry(libraryId, characterId) {
   if (!entry || !c) return;
   modal(
     'Add ' + esc(entry.name),
-    `<form id="attach-form"><div class="eyebrow">${esc(entry.kind)} · ${esc(labels[entry.economy])}</div>${HUD.renderAbilityDetails(entry, c)}${characterBindingFields(c)}</form>`,
+    `<form id="attach-form"><div class="eyebrow">${esc(entry.kind)} · ${!TL.hasActiveEffect(entry) ? 'Passive' : esc(labels[entry.economy])}</div>${entry.behavior === 'hybrid' ? HUD.renderAbilityDetails(entry, c, 'passive') : ''}${HUD.renderAbilityDetails(entry, c)}${TL.hasActiveEffect(entry) ? characterBindingFields(c) : '<p class="hint space-top">This passive does not spend actions, slots, or resources.' + (entry.trackPassive ? ' Its reminder starts Inactive for this character.' : ' It always applies.') + '</p>'}</form>`,
     `<span class="hint">Linked to the shared library.</span><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="attach-form" type="submit" class="primary">Add to ${esc(c.name)}</button></div>`
   );
   submitForm('attach-form', async (data) => {
     if (
       await commit(
-        () => TL.attachItem(state, c.id, entry.id, readCharacterBinding(data)),
+        () =>
+          TL.attachItem(
+            state,
+            c.id,
+            entry.id,
+            TL.hasActiveEffect(entry) ? readCharacterBinding(data) : {}
+          ),
         'Ability added to ' + c.name
       )
     )
@@ -165,7 +185,10 @@ function bindAbilityIconEditor(form, draft) {
     error = form.querySelector('[data-icon-error]');
   let busy = false;
   function refresh() {
-    preview.innerHTML = HUD.abilityThumbnail({ ...draft, kind: form.elements.kind.value }, 'large');
+    preview.innerHTML = HUD.abilityThumbnail(
+      { ...draft, kind: form.elements.kind.value, behavior: form.elements.behavior.value },
+      'large'
+    );
     upload.textContent = draft.icon ? 'Replace image' : 'Upload image';
     upload.disabled = busy;
     remove.disabled = busy || !draft.icon;
@@ -213,6 +236,33 @@ function bindAbilityIconEditor(form, draft) {
     refresh();
   };
   form.elements.kind.addEventListener('change', refresh);
+  form.elements.behavior.addEventListener('change', refresh);
+  refresh();
+}
+
+function bindAbilityBehaviorEditor(form) {
+  const behavior = form.elements.namedItem('behavior'),
+    turnCost = form.elements.namedItem('economy').closest('label'),
+    hint = form.querySelector('[data-behavior-hint]');
+  const refresh = () => {
+    turnCost.hidden = behavior.value === 'passive';
+    form.querySelector('[data-passive-tracking]').hidden = behavior.value === 'active';
+    form.elements.namedItem('passiveDescription').closest('label').hidden =
+      behavior.value !== 'hybrid';
+    form.elements.namedItem('description').closest('label').querySelector('span').textContent =
+      behavior.value === 'hybrid'
+        ? 'Active effect'
+        : behavior.value === 'passive'
+          ? 'Passive effect'
+          : 'Description';
+    hint.textContent =
+      behavior.value === 'passive'
+        ? 'Passive: no action, slot, or resource is spent. Saved cost settings are kept if you change back to an active effect.'
+        : behavior.value === 'hybrid'
+          ? 'Passive + active: turn cost, spell slots, resources, and concentration apply only to the active effect.'
+          : 'Active: choose Action, Bonus action, Reaction, or Free / other under Turn cost. Casting Time is descriptive text.';
+  };
+  behavior.addEventListener('change', refresh);
   refresh();
 }
 
@@ -227,6 +277,7 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
     (binding?.local ? TL.libraryEntry(binding) : entry) ||
       TL.libraryEntry({
         name: '',
+        behavior: c && view === 'character' && tab === 'passive' ? 'passive' : 'active',
         kind: c && ['spell', 'feature'].includes(tab) ? tab : 'action',
         economy: c && ['bonus', 'reaction', 'free'].includes(tab) ? tab : 'action',
       })
@@ -255,10 +306,15 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
       ],
       draft.kind
     )}</select></label>
-    ${textField('Trigger', 'trigger')}${textField('Duration', 'duration')}${textField('Range', 'range')}${textField('Area', 'area')}
-    ${textField('Casting Time', 'castingTime')}<label class="form-field"><span>Spell Level</span><select name="level">${options([['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])], draft.level ?? '')}</select></label>
-    ${textField('Components', 'components')}${textField('School', 'school')}${textField('Attack', 'attack')}${textField('Save', 'save')}${textField('On Save', 'onSave')}
-    <label class="form-field"><span>Turn cost</span><select name="economy">${options(
+    <label class="form-field"><span>Behavior</span><select name="behavior" aria-describedby="ability-behavior-hint">${options(
+      [
+        ['active', 'Active'],
+        ['passive', 'Passive'],
+        ['hybrid', 'Passive + active'],
+      ],
+      draft.behavior
+    )}</select></label>
+    <label class="form-field ability-turn-cost"><span>Turn cost</span><select name="economy" aria-describedby="ability-behavior-hint">${options(
       [
         ['action', 'Action'],
         ['bonus', 'Bonus action'],
@@ -267,26 +323,34 @@ function editLibraryEntry(id, characterId = '', itemId = '', localDraft = false)
       ],
       draft.economy
     )}</select></label>
+    <p class="hint full">Type chooses where this ability is listed; every type can use any cost or detail. <span id="ability-behavior-hint" data-behavior-hint aria-live="polite"></span></p>
+    <div class="full passive-editor-field" data-passive-tracking><label class="row hint"><input type="checkbox" name="trackPassive" ${draft.trackPassive ? 'checked' : ''}>Track whether the passive applies</label><p class="hint space-top">Off: always applies. On: each character gets their own Active / Inactive reminder, starting Inactive. This does not change statistics or conditions.</p></div>
+    <div class="full">${abilityIconEditor(local)}</div>
+    ${textField('Trigger', 'trigger')}${textField('Duration', 'duration')}${textField('Range', 'range')}${textField('Area', 'area')}
+    ${textField('Casting Time', 'castingTime')}<label class="form-field"><span>Spell Level</span><select name="level">${options([['', 'None'], ...Array.from({ length: 10 }, (_, i) => [i, i ? 'Level ' + i : 'Cantrip'])], draft.level ?? '')}</select></label>
+    ${textField('Components', 'components')}${textField('School', 'school')}${textField('Attack', 'attack')}${textField('Save', 'save')}${textField('On Save', 'onSave')}
     <label class="row hint"><input type="checkbox" name="usesSlot" ${draft.usesSlot ? 'checked' : ''}>Spend a standard spell slot</label><label class="row hint"><input type="checkbox" name="requiresConcentration" ${draft.requiresConcentration ? 'checked' : ''}>Concentration</label>
     ${textField('Damage / Healing', 'damage', true)}${textArea('Upcast / Upgrades', 'upgrades', 4)}
     ${textArea('Requirements', 'requirements', 3, false)}${textArea('Special', 'special', 3, false)}
-    ${characterBindingFields(c, binding)}${textArea('Description', 'description', 9)}
+    ${characterBindingFields(c, binding)}${textArea('Passive effect', 'passiveDescription', 6)}${textArea('Description', 'description', 9)}
     <label class="form-field full ability-source-field"><span>Reference</span><input name="source" maxlength="300" value="${esc(draft.source)}"></label>
     </div></form>`,
     `<div>${binding ? button('Remove from character', 'delete-item', 'danger subtle', `data-id="${esc(binding.id)}"`) : entry ? button('Delete from library', 'delete-library-entry', 'danger subtle', `data-id="${esc(id)}"`) : '<span class="hint">Your text. Your rules.</span>'}</div><div class="row">${button('Cancel', 'close-modal', 'subtle')}<button form="item-form" type="submit" class="primary">${local ? (binding ? 'Save character ability' : 'Save to character') : entry ? 'Save shared entry' : c ? 'Save & add to character' : 'Save to library'}</button></div>`
   );
   const form = document.getElementById('item-form');
-  form.querySelector('.note').insertAdjacentHTML('afterend', abilityIconEditor(local));
   bindAbilityIconEditor(form, draft);
+  bindAbilityBehaviorEditor(form);
   const initialFields = new FormData(form);
   submitForm('item-form', async (data) => {
     for (const key of TL.definitionFields) {
-      if (['level', 'usesSlot', 'requiresConcentration', 'icon'].includes(key)) continue;
+      if (['level', 'usesSlot', 'requiresConcentration', 'icon', 'trackPassive'].includes(key))
+        continue;
       draft[key] = data.get(key) === initialFields.get(key) ? original[key] : data.get(key);
     }
     draft.level = data.get('level') === '' ? null : Number(data.get('level'));
     draft.usesSlot = data.has('usesSlot');
     draft.requiresConcentration = data.has('requiresConcentration');
+    draft.trackPassive = data.has('trackPassive');
     const success = await commit(
       () => {
         if (local) {

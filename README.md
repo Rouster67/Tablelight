@@ -6,6 +6,8 @@ A local Dungeon Master console and transparent player HUD for a TV battle mat. R
 
 ## What it does
 
+- Gives the DM and expanded player HUD a Passives section, including mixed passive/active abilities and independent per-character reminders. Passive effects never spend actions or resources or automatically change statistics.
+- Opens a complete illustrated offline PDF from Setup & help, with worked examples, screenshots, linked contents and bookmarks for every app section.
 - Shows the running application version in the DM window title bar and sidebar.
 - Keeps a searchable saved player roster with no fixed player limit. Choose up to eight for the active party; only they appear in the session console and TV overlay. The left sidebar shows Party in your initiative order, then All characters for saved characters outside the party in alphabetical order. Each entry has add/remove and Delete character controls, with session Undo available.
 - Saves character portraits, HP, temporary HP, AC, ability scores, skills, and spell-slot totals. Skills and saves have separate proficiency and expertise bubbles.
@@ -32,7 +34,9 @@ Download **Tablelight-Setup-[version]-x64.exe** from this repository's GitHub Re
 
 Connect the TV and choose **Windows + P → Extend**. Keep your DM browser and Tablelight on the laptop, and put your player map browser on the TV. In Tablelight, add characters, arrange their bubbles under **TV & layout**, and choose **Show TV overlay**.
 
-See [the user guide](docs/USER_GUIDE.md) for setup, library use, shortcuts, and backups.
+See [the user guide](docs/USER_GUIDE.md) for setup, library use, shortcuts, and backups. The
+current 2.0.0 release preparation and recorded owner waivers are in
+[release readiness](docs/RELEASE_2.0.0.md); it has not been published.
 
 ## Run from source
 
@@ -57,7 +61,7 @@ npm run test:installed-update
 
 `check` validates JavaScript syntax and runs the unit tests. Native checks open temporary test windows on the available displays, use synthetic characters, and save results under ignored `test-results/`. They do not use your actual party. Run them outside a game session.
 
-The Windows build writes a versioned installer, its blockmap, and `latest.yml` to `dist/`, with an unpacked inspection copy under `dist/win-unpacked/`. It includes editable app source, production dependencies and their licenses, and the user guide. It never publishes a release. GitHub Actions checks formatting, runs unit tests, and builds downloadable artifacts; native GUI checks run on a Windows desktop separately. `test:installed-update` builds two isolated versions, installs a dedicated test app, exercises an actual update/relaunch, verifies saved data, and uninstalls only that test app. It uses a loopback server, separate application identity, and synthetic saves under `test-results/`.
+The Windows build writes a versioned installer, its blockmap, and `latest.yml` to `dist/`, with an unpacked inspection copy under `dist/win-unpacked/`. It includes editable app source, production dependencies and their licenses, and the user guide. It never publishes a release. GitHub Actions checks formatting and unit tests, and builds downloadable artifacts only after the guide is Final and its release review passes. Native GUI checks run on a Windows desktop separately. `test:installed-update` builds two isolated versions, installs a dedicated test app, exercises an actual update/relaunch, verifies saved data, and uninstalls only that test app. It uses a loopback server, separate application identity, and synthetic saves under `test-results/`.
 
 ## Languages and structure
 
@@ -82,7 +86,7 @@ Installed copies check GitHub for a newer stable release in the background on ea
 
 Character data, portraits, and the shared library stay on your laptop in `%APPDATA%\Tablelight\party.json`. A previous-save backup is kept alongside it. All saved players, active party membership, and the library are included in the same atomic save and exported backup. Deleting a player does not delete library entries. Restoring a complete backup replaces the entire roster, party, and library after confirmation.
 
-Version 1.12.0 migrates older saves automatically and writes save format 10, including ability images and independent character themes. It imports formats 1–9 and preserves manual ability details, shared and local-only abilities, active and inactive characters, both libraries, independent resource settings, concentration, party membership, and HUD choices. Version 1.11.0 and earlier cannot read format 10; keep an exported pre-update backup if you need to return to one. Pending approvals, History, player messages and message drafts are session-only and are not exported. Saved players have no fixed count limit; available memory and storage still determine practical capacity. Roster management renders twelve rows per page, and the TV receives only the active party.
+Version 2.0.0 migrates older saves automatically and writes save format 11, including passive definitions and independent character reminders. It imports formats 1–10 and preserves manual ability details, shared and local-only abilities and images, character themes, active and inactive characters, both libraries, independent resource settings, concentration, party membership, and HUD choices. Version 1.12.1 and earlier cannot read format 11; keep an exported pre-update backup if you need to return to one. Pending approvals, History, player messages and message drafts are session-only and are not exported. Saved players have no fixed count limit; available memory and storage still determine practical capacity. Roster management renders twelve rows per page, and the TV receives only the active party.
 
 Do not commit saved parties, private portraits, or rulebook text to a public repository. The included `.gitignore` excludes standard save files, backups, dependencies, test output, and Windows binaries.
 

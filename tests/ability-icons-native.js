@@ -136,7 +136,7 @@ module.exports = async ({ app, controller, getOverlay, getState, setOverlay, sto
       before.characters.map((c) => c.hud)
     );
     const saved = JSON.parse(fs.readFileSync(store.file, 'utf8'));
-    assert.equal(saved.version, 10);
+    assert.equal(saved.version, 11);
     assert.equal(saved.library[0].icon, imported);
     assert.equal(saved.characters[0].items[0].icon, undefined);
     assert.equal(saved.roster[0].items[0].icon, undefined);

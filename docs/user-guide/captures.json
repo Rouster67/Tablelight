@@ -1,0 +1,437 @@
+{
+  "fixture": "guide-manual-v1",
+  "appVersion": "2.0.0",
+  "sourceRevision": "827c03e03bae4aee492c659b4ac2d796d8f35127",
+  "workingTree": "Documentation and capture harness changes; application UI unchanged.",
+  "window": {
+    "width": 1440,
+    "height": 1000
+  },
+  "displays": [
+    {
+      "width": 1440,
+      "height": 2560,
+      "scaleFactor": 1
+    },
+    {
+      "width": 2560,
+      "height": 1440,
+      "scaleFactor": 1
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "scaleFactor": 1
+    }
+  ],
+  "images": [
+    {
+      "file": "character-identity.png",
+      "selector": "#character-form .form-grid",
+      "window": "DM",
+      "pixels": {
+        "width": 809,
+        "height": 452
+      }
+    },
+    {
+      "file": "character-training.png",
+      "selector": "#character-form .form-section",
+      "window": "DM",
+      "pixels": {
+        "width": 809,
+        "height": 376
+      }
+    },
+    {
+      "file": "character-spells.png",
+      "selector": "[name=\"spellAbility\"]",
+      "window": "DM",
+      "pixels": {
+        "width": 263,
+        "height": 48
+      }
+    },
+    {
+      "file": "spell-fields.png",
+      "selector": "#guide-spell-fields",
+      "window": "DM",
+      "pixels": {
+        "width": 809,
+        "height": 259
+      }
+    },
+    {
+      "file": "players-party.png",
+      "selector": ".content",
+      "window": "DM",
+      "pixels": {
+        "width": 1187,
+        "height": 816
+      }
+    },
+    {
+      "file": "resource-editor.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 663
+      }
+    },
+    {
+      "file": "add-choices.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 445
+      }
+    },
+    {
+      "file": "ability-editor-top.png",
+      "selector": "#item-form > .form-grid > label:nth-child(-n+4),#item-form [data-behavior-hint]",
+      "window": "DM",
+      "pixels": {
+        "width": 810,
+        "height": 205
+      }
+    },
+    {
+      "file": "ability-editor-costs.png",
+      "selector": "#item-form .form-section.full",
+      "window": "DM",
+      "pixels": {
+        "width": 810,
+        "height": 242
+      }
+    },
+    {
+      "file": "passive-editor.png",
+      "selector": "#item-form > .form-grid > label:nth-child(-n+3),#item-form [data-passive-tracking]",
+      "window": "DM",
+      "pixels": {
+        "width": 810,
+        "height": 279
+      }
+    },
+    {
+      "file": "ability-library.png",
+      "selector": ".content",
+      "window": "DM",
+      "pixels": {
+        "width": 1187,
+        "height": 637
+      }
+    },
+    {
+      "file": "dm-passives.png",
+      "selector": ".character-abilities",
+      "window": "DM",
+      "pixels": {
+        "width": 775,
+        "height": 310
+      }
+    },
+    {
+      "file": "passive-detail.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 301
+      }
+    },
+    {
+      "file": "dm-console.png",
+      "selector": "whole window",
+      "window": "DM",
+      "pixels": {
+        "width": 1424,
+        "height": 961
+      }
+    },
+    {
+      "file": "combat-controls.png",
+      "selector": ".combat-strip",
+      "window": "DM",
+      "pixels": {
+        "width": 775,
+        "height": 190
+      }
+    },
+    {
+      "file": "currently-displayed.png",
+      "selector": ".current-display",
+      "window": "DM",
+      "pixels": {
+        "width": 326,
+        "height": 820
+      }
+    },
+    {
+      "file": "initiative.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 429
+      }
+    },
+    {
+      "file": "tv-layout.png",
+      "selector": "whole window",
+      "window": "DM",
+      "pixels": {
+        "width": 1424,
+        "height": 961
+      }
+    },
+    {
+      "file": "placement.png",
+      "selector": ".display-controls > .card:first-child",
+      "window": "DM",
+      "pixels": {
+        "width": 291,
+        "height": 787
+      }
+    },
+    {
+      "file": "player-overview.png",
+      "selector": ".hud-position",
+      "window": "TV",
+      "pixels": {
+        "width": 886,
+        "height": 934
+      }
+    },
+    {
+      "file": "player-sheet.png",
+      "selector": ".hud-nav, .hud-panel > div, .hud-panel b",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 494
+      }
+    },
+    {
+      "file": "condition-editor.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 579
+      }
+    },
+    {
+      "file": "condition-library.png",
+      "selector": ".content",
+      "window": "DM",
+      "pixels": {
+        "width": 1187,
+        "height": 475
+      }
+    },
+    {
+      "file": "concentration-picker.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 383
+      }
+    },
+    {
+      "file": "cast-slot.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 341
+      }
+    },
+    {
+      "file": "conditions-concentration.png",
+      "selector": ".character-status",
+      "window": "DM",
+      "pixels": {
+        "width": 775,
+        "height": 243
+      }
+    },
+    {
+      "file": "damage.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 305
+      }
+    },
+    {
+      "file": "active-detail.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 428
+      }
+    },
+    {
+      "file": "hybrid-passive.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 245
+      }
+    },
+    {
+      "file": "hybrid-active.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 242
+      }
+    },
+    {
+      "file": "rotated-player.png",
+      "selector": ".hud-position",
+      "window": "TV",
+      "pixels": {
+        "width": 948,
+        "height": 886
+      }
+    },
+    {
+      "file": "approval-review.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 801
+      }
+    },
+    {
+      "file": "player-pending.png",
+      "selector": ".hud-pending-requests > b, .hud-pending-requests > .hud-pending-use, .hud-pending-requests > small",
+      "window": "TV",
+      "pixels": {
+        "width": 230,
+        "height": 85
+      }
+    },
+    {
+      "file": "history.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 333
+      }
+    },
+    {
+      "file": "long-rest.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 379
+      }
+    },
+    {
+      "file": "messages.png",
+      "selector": ".message-compose-grid",
+      "window": "DM",
+      "pixels": {
+        "width": 1115,
+        "height": 667
+      }
+    },
+    {
+      "file": "player-message.png",
+      "selector": ".message-position",
+      "window": "TV",
+      "pixels": {
+        "width": 486,
+        "height": 326
+      }
+    },
+    {
+      "file": "help-link.png",
+      "selector": "#guide-link",
+      "window": "DM",
+      "pixels": {
+        "width": 763,
+        "height": 46
+      }
+    },
+    {
+      "file": "backup-controls.png",
+      "selector": "#guide-link + .separator + h3",
+      "window": "DM",
+      "pixels": {
+        "width": 763,
+        "height": 31
+      }
+    },
+    {
+      "file": "updates.png",
+      "selector": "#updates-panel",
+      "window": "DM",
+      "pixels": {
+        "width": 294,
+        "height": 239
+      }
+    }
+  ],
+  "uiInputs": {
+    "ability-icon.js": "d9af3bf60042a5aa02625afa8ca9293b9eb5402d4c2b729974f2ac25460bde0b",
+    "approval-service.js": "c5c1a10e3a77dd467e36b21307855556674a87386a3130d22b9bf5af1a5fdea6",
+    "approval-session.js": "3afe49e5d701a390cefe72d07034c1ec5137829e230f432de38a3bf4ce6a5341",
+    "approval-ui.js": "dc178b82cda0a8e74ed71ff724b4fa171b1cd26f3a3c0695588bdd673f0654bd",
+    "approval.css": "2987dc9e9063db08dba944e00e448e3b7519d6b34e507822c6a9282f0d330481",
+    "condition-ui.js": "dbf6b791c1bea4d447dec492b52dca00567697758af6d126df6315c6300624f2",
+    "controller.js": "831d3c055777d5fae39f613549c5cfe2e8cf080d706f490157a77222c3e9ede9",
+    "core.js": "c5f228f57c889c642a473fa4c780d8c35ae7d35a7cd2a4de2e8520994503935a",
+    "guide-service.js": "d5273a5d11a0cea0a03d605e38afb18d573328ce67353ebe34f1faec0aad4078",
+    "guide-ui.js": "ab73bc3676db1024ebc390518f5cc12b55107ce0a89cd4f3721cdb47ec3e0813",
+    "history-ui.js": "1afdafc866aac4faf2e9ba6d1e1d871d97eaf2450e07764b8cb40f7563b6c9fa",
+    "hud-controls.js": "321d2264efc31d8522ce7a5fc2fe53553c07a6306108a10c851d4cafc8b4e529",
+    "hud-themes.css": "1eb020fb05f59f550b7ddbb6b12c730715d71aaab30927935d13f0a807a5b62f",
+    "hud-themes.js": "0a56d0b06e9826e1925bcce7ca1a8c949365daf958973b5a29c37e8e2c6d2681",
+    "hud.js": "19dbadcc5d62b6bfe53bba09ecb1bed2d77ff1c03c55843dcb28b7358ce82db0",
+    "image-import-renderer.js": "c6db92f9af8c66fc3795b9b25830c3b5977884473d1b0a42b3a6e75e9387a3c1",
+    "image-import.html": "fa7108788393535b3763d7398c438054d20d05f1b118a9015ec77eb96f05781d",
+    "image-import.js": "7c9eea672068cb7c5d754a9099e9294e6a4b166e0c1e13f89bcf80bd99357734",
+    "index.html": "b2e67da25b19d4fc686a7353b7d18058eabceef0e25f4cd11ab40d7afdc18139",
+    "interaction.css": "900e67482fcd0e7d71672a42967c7057bfe1c9cd1745ee829590b4020aeaf1f8",
+    "library-ui.js": "27947fce37abbd31d740a553c719161f3ea4a3569ff91937461c1d14888867e9",
+    "library.css": "23d38116b165c720ec4301185296f67a2bf6327a7aa45a640273902dbb0eca4e",
+    "main.js": "53f9561025b119e922a7683ad9531f92974ed23ba92bc96095619e2853c278fe",
+    "message-client.js": "48267598ebee3b3fce48fa1de3b64fd50db659cc7592c39fb22a628243cfcb21",
+    "message-dm.js": "e997eb2d9def4c5647b7991a5e34416b978652dc0b3df9d448e8b6f79515e6eb",
+    "message-overlay.js": "e16ea026397b5e2ba59c7cdd6d1537e16bc5b8dc024ec4e764e72b87bc3c8e7f",
+    "message-service.js": "13f91061972d13075be1190cf318aa574b3130ea6cf3e6afd41e31b7165004ec",
+    "messages.css": "b157b0d1a5810b4618bff0b3af027dccd5749f17d1a54535da0a75050a9b78fd",
+    "overlay.html": "c4f695509e639407f74da588a87c7c4146aaf8cbce909a7ffb56df3bd155e9b6",
+    "overlay.js": "1093f93c82e1f6a3bd07c825af04fcf683e65834a01a66e59744aa248c49cd35",
+    "passives-ui.js": "b2a55facfef7e4ffb9bf33fddfb478ab4f71bab942ea706aebf0cfca6aed45e5",
+    "preload.js": "303ce240184fe1b55133c8300a609231e5fd03b1a97ca02b1e02c0ef30801724",
+    "resource-ui.js": "9fabbc42548cd72cd131e81481851dacd0229f37a893f93cca9269797880ef98",
+    "roster-ui.js": "2dd012a70348c4d8cb1185ecb0100f4258da3237d5bef54747a81fcfac628a0f",
+    "roster.css": "05631d9092a29fcb5498d9300af921103762ed3ee385c53e0478ef3a78373d42",
+    "session-ui.js": "c4968efadd856230c20f2c8331a23fa632e72067f56b06fd03a76b5a5850ba63",
+    "session.css": "7b80fe030433ceb65c01c49cf7e7433ddc2b71f050fb70ac418c8db1e57372af",
+    "sidebar-ui.js": "76c37a50b94761f3ff829a7e1ec6a00fb28f4e88a005e95e89015beaf0b687e2",
+    "sidebar.css": "09cd269a761095236fd46baf493cd5c63c5ea84860ca733dc0540221bce6155c",
+    "storage.js": "68fa10d397426ca3b51e8023994af5613cf688bdb37822714d3533cdbf25cf1b",
+    "styles.css": "792d61ecabe3f14a7c06e5c63ff8ba432608714ad636f01967fb37dfd509660a",
+    "update-adapter.js": "9f225979d19e1d2c92aaedff8c75370f6b6e0e5ceba64ff7557d8251611f39e1",
+    "update-service.js": "1d09a84b12d645d498f24b453e641fdd1e5697987aaa4b10405788bfb869147f",
+    "updates-ui.js": "f79c8ca0ea86de90a13b5e0914c29b065c315785f455f017454b754bdb0ea3f1",
+    "updates.css": "dd1c49df76a8ffd079ce2326b419faa1338bd002f4df9257fa6f63c407dfb621",
+    "window-shape.js": "98238116b11e958ba996ff940e528f30bdd34effa960a274c58780d0bb7c2f31"
+  }
+}

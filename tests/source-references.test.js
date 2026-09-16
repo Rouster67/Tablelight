@@ -27,7 +27,7 @@ test('formats 1–4 migrate with blank sources and preserve legacy text, IDs, an
     c.hud.rotation = 270;
     const raw = { version, characters: [c], roster: [], conditionLibrary: [] };
     const state = TL.normalize(raw);
-    assert.equal(state.version, 10);
+    assert.equal(state.version, 11);
     assert.equal(state.library[0].source, '');
     for (const key of ['id', 'attack', 'save', 'description'])
       assert.equal(state.characters[0].items[0][key], c.items[0][key]);
@@ -39,7 +39,7 @@ test('formats 1–4 migrate with blank sources and preserve legacy text, IDs, an
     () => TL.normalize({ version: 5, characters: [], roster: [] }),
     /condition library/
   );
-  assert.throws(() => TL.normalize({ ...TL.empty(), version: 11 }), /supported/);
+  assert.throws(() => TL.normalize({ ...TL.empty(), version: 12 }), /supported/);
 });
 
 test('source references distinguish legacy definitions without combining different editions', () => {

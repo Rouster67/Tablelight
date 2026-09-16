@@ -27,6 +27,9 @@ const { Store } = require('./storage');
 const { readIcon, decodeInWindow } = require('./image-import');
 const { UpdatePreferences, UpdateService } = require('./update-service');
 const packageInfo = require('./package.json');
+const guide = new (require('./guide-service').GuideService)(__dirname, (file) =>
+  shell.openPath(file)
+);
 const updateFixture = packageInfo.name === 'tablelight-update-test' ? packageInfo.updateTest : null;
 const selfTest = process.argv.includes('--self-test') || Boolean(updateFixture);
 app.setName(updateFixture ? 'Tablelight Update Test' : 'Tablelight');
@@ -161,6 +164,7 @@ else {
           updates,
           updateAdapter,
           updateFixture,
+          guide,
         })
       );
   });
@@ -387,6 +391,12 @@ function auth(event) {
     throw new Error('This control is only available in the DM window.');
 }
 function registerIPC() {
+  ipcMain.handle('guide:open', (event, ...args) => {
+    auth(event);
+    if (event.senderFrame !== controller.webContents.mainFrame)
+      throw Error('The guide can only be opened from the main DM page.');
+    return guide.open(...args);
+  });
   ipcMain.handle('messages:snapshot', (event) => {
     messageActor(event);
     syncMessageOverlay();

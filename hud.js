@@ -13,6 +13,7 @@
     free: '✦',
     spell: '✧',
     feature: '◈',
+    passive: '◇',
     sheet: '▤',
     resources: '◉',
   };
@@ -23,6 +24,7 @@
     free: 'Free / other',
     spell: 'Spells',
     feature: 'Class features',
+    passive: 'Passives',
     sheet: 'Character sheet',
     resources: 'Resources',
   };
@@ -34,6 +36,7 @@
     ['free', 'Free / other'],
     ['spell', 'Spells'],
     ['feature', 'Features'],
+    ['passive', 'Passives'],
     ['sheet', 'Sheet'],
     ['resources', 'Resources'],
   ];
@@ -75,14 +78,18 @@
     `<div class="portrait" style="--accent:${c.accent};--hp:${Math.max(0, c.hp / c.maxHp) * 100}%">${c.avatar ? `<img src="${c.avatar}" alt="${esc(c.name)}">` : `<span>${esc(initial(c))}</span>`}</div>`;
   const pages = TL.textPages;
   const abilityPageSize = TL.abilityPageSize;
-  function abilityThumbnail(it, size = '') {
+  function abilityThumbnail(it, size = '', effect = '') {
     let icon = '';
     try {
       icon = TL.abilityIcon(it.icon);
     } catch {
       // A damaged image must never hide the ability or change its reserved space.
     }
-    return `<span class="ability-symbol ability-thumbnail ${size === 'large' ? 'ability-thumbnail-large' : ''}" aria-hidden="true"><span>${symbols[it.kind] || symbols[it.economy] || symbols.action}</span>${icon ? `<img src="${icon}" alt="" decoding="async">` : ''}</span>`;
+    const symbol =
+      effect === 'passive' || !TL.hasActiveEffect(it)
+        ? symbols.passive
+        : symbols[it.kind] || symbols[it.economy] || symbols.action;
+    return `<span class="ability-symbol ability-thumbnail ${size === 'large' ? 'ability-thumbnail-large' : ''}" aria-hidden="true"><span>${symbol}</span>${icon ? `<img src="${icon}" alt="" decoding="async">` : ''}</span>`;
   }
   if (typeof document !== 'undefined') {
     document.addEventListener(
@@ -118,7 +125,32 @@
       ? `<span class="pips">${Array.from({ length: max }, (_, i) => `<i class="${i < current ? 'filled' : ''}"></i>`).join('')}</span>`
       : `<b>${current} / ${max}</b>`;
   }
-  function abilityDetails(it, c) {
+  const passiveStatus = (it) =>
+    !it.trackPassive ? 'Always applies' : it.passiveActive ? 'Active' : 'Inactive';
+  const passiveReminder = (it) =>
+    `<span class="hud-passive-status" data-passive-item="${esc(it.id)}">${passiveStatus(it)}</span>`;
+  function abilityDetails(it, c, effect = '') {
+    if (effect === 'passive' || !TL.hasActiveEffect(it))
+      return {
+        metadata:
+          it.behavior === 'hybrid'
+            ? []
+            : [
+                ['Trigger', it.trigger],
+                ['Duration', it.duration],
+                ['Range', it.range],
+                ['Area', it.area],
+                ['Components', it.components],
+                ['School', it.school],
+                ['Attack', it.attack],
+                ['Save', it.save],
+                ['On Save', it.onSave],
+                ['Damage / Healing', it.damage],
+              ].filter((x) => x[1]),
+        description: TL.passiveText(it),
+        sections: TL.abilityTextSections(it, 'passive'),
+        source: it.source || '',
+      };
     const pool = c?.resources.find((r) => r.id === it.resourceId);
     return {
       metadata: [
@@ -155,9 +187,9 @@
       )
       .join('');
   }
-  function renderAbilityDetails(it, c) {
-    const details = abilityDetails(it, c);
-    return `<div class="ability-detail-heading">${abilityThumbnail(it, 'large')}<b>${abilityName(it)}</b></div><div class="detail-meta">${details.metadata
+  function renderAbilityDetails(it, c, effect = '') {
+    const details = abilityDetails(it, c, effect);
+    return `<div class="ability-detail-heading">${abilityThumbnail(it, 'large', effect)}<b>${abilityName(it)}</b></div><div class="detail-meta">${details.metadata
       .map(([label, value]) => `<div><small>${esc(label)}</small>${esc(value)}</div>`)
       .join(
         ''
@@ -222,15 +254,17 @@
     if (!c.hud.expanded)
       return `<div class="hud-collapsed" title="${esc(c.name)}">${portrait(c)}</div>`;
     const detail = c.items.find((i) => i.id === c.hud.detailId),
-      details = detail && abilityDetails(detail, c);
+      effect = TL.hudDetailEffect(c),
+      passive = effect === 'passive',
+      details = detail && abilityDetails(detail, c, effect);
     const page = TL.hudPage(c);
     let panel = overviewPanel(c);
     if (detail)
-      panel = `<section class="hud-panel"><div class="eyebrow">${esc(detail.kind)} · ${esc(labels[detail.economy] || detail.economy)}${detail.kind === 'spell' ? ` · ${TL.levelLabel(detail)}` : ''}</div><div class="ability-detail-heading">${abilityThumbnail(detail, 'large')}<h3>${abilityName(detail)}</h3></div><div class="hud-metadata">${details.metadata
+      panel = `<section class="hud-panel"><div class="eyebrow">${passive ? 'Passive effect' : `${esc(detail.kind)} · ${esc(labels[detail.economy] || detail.economy)}${detail.kind === 'spell' ? ` · ${TL.levelLabel(detail)}` : ''}`}</div><div class="ability-detail-heading">${abilityThumbnail(detail, 'large', effect)}<h3>${abilityName(detail)}</h3></div>${passive ? passiveReminder(detail) : ''}<div class="hud-metadata">${details.metadata
         .map(([k, v]) => `<span><small>${k}</small>${esc(v)}</span>`)
         .join(
           ''
-        )}</div>${renderTextSections(TL.abilityTextPages(detail)[page], 'hud-description')}${countPages(c) > 1 ? `<div class="hud-page">Details ${page + 1} / ${countPages(c)}</div>` : ''}${sourceReference(details.source)}</section>`;
+        )}</div>${renderTextSections(TL.abilityTextPages(detail, effect)[page], 'hud-description')}${passive ? '<p class="hud-passive-note">Reminder only · adjust statistics yourself. Conditions are separate.</p>' : ''}${countPages(c) > 1 ? `<div class="hud-page">Details ${page + 1} / ${countPages(c)}</div>` : ''}${sourceReference(details.source)}</section>`;
     else if (c.hud.panel === 'sheet') panel = sheetPanel(c);
     else if (c.hud.panel === 'resources')
       panel = `<section class="hud-panel hud-section-box"><div class="eyebrow">Custom resources</div>${
@@ -241,11 +275,13 @@
       panel = `<section class="hud-panel"><div class="eyebrow">${labels[c.hud.panel]}</div><div class="hud-options">${
         TL.panelItems(c)
           .slice(page * abilityPageSize, (page + 1) * abilityPageSize)
-          .map(
-            (it) =>
-              `<div class="hud-option ${TL.availability(c, it) ? 'spent' : ''}">${abilityThumbnail(it)}<div><b>${abilityName(it)}</b><small>${esc(it.kind === 'spell' ? TL.levelLabel(it) : labels[it.economy])}${it.resourceId ? ' · ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small></div><span>${TL.availability(c, it) ? 'Spent' : 'Ready'}</span></div>`
+          .map((it) =>
+            passive
+              ? `<div class="hud-option hud-passive-option">${abilityThumbnail(it, '', 'passive')}<div><b>${abilityName(it)}</b><small>${it.behavior === 'hybrid' ? 'Passive + active' : 'Passive'}</small></div>${passiveReminder(it)}</div>`
+              : `<div class="hud-option ${TL.availability(c, it) ? 'spent' : ''}">${abilityThumbnail(it)}<div><b>${abilityName(it)}</b><small>${esc(it.kind === 'spell' ? TL.levelLabel(it) : labels[it.economy])}${it.resourceId ? ' · ' + esc(c.resources.find((r) => r.id === it.resourceId)?.name) : ''}</small></div><span>${TL.availability(c, it) ? 'Spent' : 'Ready'}</span></div>`
           )
-          .join('') || '<p class="muted">No options entered here yet.</p>'
+          .join('') ||
+        `<p class="muted">${passive ? 'No passives assigned yet.' : 'No options entered here yet.'}</p>`
       }</div>${countPages(c) > 1 ? `<div class="hud-page">Options ${page + 1} / ${countPages(c)}</div>` : ''}</section>`;
     return `<div class="hud-card" style="--accent:${c.accent};--panel-opacity:${opacity}"><div class="hud-summary"><header class="hud-header">${portrait(c)}<div class="hud-identity"><h2>${esc(c.name)}</h2><span>${esc(c.className || 'Adventurer')} · Level ${c.level}</span><div class="hud-health"><strong>${c.hp}</strong><span>/ ${c.maxHp} HP</span></div><div class="hud-temp-hp">Temp HP <b>${c.tempHp}</b></div></div><div class="hud-ac"><b>${c.ac}</b><small>AC</small></div></header><div class="hp-track"><i style="width:${(c.hp / c.maxHp) * 100}%"></i></div><div class="hud-economy">${['action', 'bonus', 'reaction'].map((k) => `<div class="${c.turn[k] ? '' : 'spent'}"><b>${symbols[k]}</b><small>${k === 'bonus' ? 'Bonus' : k[0].toUpperCase() + k.slice(1)}</small><i>${c.turn[k] ? 'Ready' : 'Spent'}</i></div>`).join('')}<div class="${c.turn.movement ? '' : 'spent'}"><b>${c.turn.movement}<em>ft</em></b><small>Movement</small><i>of ${c.speed} ft</i></div></div><div class="hud-stats">${TL.abilities.map((a) => `<div><small>${a.toUpperCase()}</small><b>${TL.signed(TL.mod(c.abilities[a]))}</b><span>${c.abilities[a]}</span></div>`).join('')}</div>${characterStatus(c)}${
       c.slots.some((s) => s.max)
@@ -345,6 +381,8 @@
     abilityName,
     abilityThumbnail,
     renderAbilityDetails,
+    passiveStatus,
+    renderTextSections,
     render,
     mount,
     fit,

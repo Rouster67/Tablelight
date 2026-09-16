@@ -83,7 +83,8 @@ function paintUseWarning(focus) {
     !root ||
     !c.hud.expanded ||
     !state.settings.overlayInteractive ||
-    c.hud.detailId !== it.id
+    c.hud.detailId !== it.id ||
+    TL.hudDetailEffect(c) !== 'active'
   ) {
     useWarning = null;
     return;

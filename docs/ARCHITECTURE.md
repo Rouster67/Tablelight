@@ -50,14 +50,15 @@ Only the main process accesses the file system. `storage.js` writes a temporary 
 
 ## Shared library
 
-Save format version 10 keeps `library` and `conditionLibrary` alongside `characters` (active
+Save format version 11 keeps `library` and `conditionLibrary` alongside `characters` (active
 party), `roster` (inactive saved players), `settings`, and `activeId`. Library entries own
 `name`, `kind`, `economy`, `level`, `usesSlot`, `requiresConcentration`, and the manual text
 fields: `trigger`, `duration`, `range`, `area`, `castingTime`, `components`, `school`,
 `attack`, `save`, `onSave`, `damage`, `upgrades`, `requirements`, `special`, `description`,
 and `source`. The visible Reference label retains the existing `source` storage key.
 The optional `icon` contains a validated, embedded PNG, defaulting to an empty string.
-Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
+Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`,
+`disabled`, and `passiveActive`.
 Slots, resources, HP, turn state, and HUD settings belong to each character.
 
 Character-only items have `local: true` and an empty `libraryId`. They store their complete
@@ -118,11 +119,12 @@ changed-field merging preserves concurrent HUD spending. Untouched inputs retain
 text, including legacy whitespace or line breaks that a single-line input cannot display.
 DM details refresh when shared text changes.
 
-Formats 1–9 import into format 10. Older missing fields become blank; legacy unlinked items match
+Formats 1–10 import into format 11. Older missing text fields become blank; legacy unlinked items match
 by their full normalized definition content. Different same-name definitions remain separate.
 Missing references and duplicate definition IDs remain errors. IDs, selections, resources, and
-all character state are preserved. Older readers reject format 10 rather than silently discard
-ability icons; format 9 originally introduced character-only copies. Inactive roster, overlay rendering, resource spending, concentration,
+all character state are preserved. Format-10 readers reject format 11 rather than silently discard
+passive behavior/state; format 10 introduced icons and format 9 introduced character-only copies.
+Inactive roster, overlay rendering, resource spending, concentration,
 backup recovery, and session Undo all retain local items by their own stable IDs.
 
 The uncommitted calculation preview wrote format 7. Its migration preserves explicitly entered
@@ -145,6 +147,108 @@ The lower-level `removeLibraryEntry` remains restricted to unassigned definition
 Removing a character or assignment leaves the library intact. A confirmed backup restore replaces
 the party, roster, and both libraries. Ordinary Undo remains a chronological stack, now coordinated
 with approved-use History and targeted reversals by the approval service.
+
+## Offline illustrated guide
+
+`guide-ui.js` renders the single Setup & help PDF action and persistent, accessible feedback.
+It coalesces repeated clicks while opening, restores keyboard focus, and explains browser-preview
+limitations. Only the three requested help sections were replaced; setup, license, backup,
+updates, shortcuts and display tips remain. The PDF draft contains those removed topics.
+
+The no-argument `guide:open` bridge checks the DM sender and main frame. `GuideService` resolves
+`docs/Tablelight-User-Guide.pdf` relative to main's `__dirname`, checks readable PDF bytes, then
+uses `shell.openPath`. No user path, URL, working-directory assumption or data-folder lookup is
+accepted. Missing/unreadable/damaged files and both viewer-error forms yield recoverable messages.
+The route never saves, imports a party, creates Undo entries or changes gameplay state.
+
+`scripts/build-guide.py` renders the editable Markdown, local screenshots and licensed fonts using
+ReportLab. It checks version/source records, PDF navigation and embedded fonts with pypdf, then
+writes a manifest of inputs and output bytes. Python is an authoring dependency only. The existing
+docs allowlist includes the PDF and source; QA logs/renders remain in ignored output directories.
+`build/before-pack.cjs` verifies the manifest, version and hashes for every builder entry point.
+Drafts cannot enter ordinary release output; the explicit no-publish testing exception is confined
+to testing folders. Final guides require an all-page, coverage, walkthrough, navigation, two-viewer
+and offline-install review bound to that exact PDF. Named manual checks may instead carry an
+explicit owner waiver bound to the app version and PDF hash; unperformed checks stay false.
+The gate still requires coverage, core walkthroughs, navigation, every page and input integrity.
+CI skips release artifacts while it is Draft.
+
+The `guide` native scenario tests the real bridge/UI, keyboard and duplicate activation, faults,
+retry, sender/argument rejection, license and backup controls using isolated data. `guide-capture`
+creates synthetic screenshot assets and records source hashes/version/scaling for author review.
+The full illustrated manuscript and final installation/viewer certification are later milestones.
+
+## Passive ability foundation
+
+Format 11 adds shared `behavior` (`active`, `passive`, or `hybrid`), `trackPassive` (boolean),
+and `passiveDescription` (plain text, at most 40,000 characters). These fields also belong to
+character-only definitions. The primary `description` retains its text through behavior changes;
+it describes the passive for passive-only entries and the active effect for hybrids. Existing
+entries default to Active, no manual tracking, and blank passive text; normalization never infers
+behavior from names, Type, free turn cost, or descriptive rules. Invalid supplied values fail
+validation before saving, while omitted fields receive defaults.
+
+`passiveActive` belongs to the assignment and defaults false. Shared definition edits never
+overwrite it; it remains stored when behavior or tracking changes. Creating or duplicating an
+assignment starts Inactive. The existing Make local copies and delete operation retains the
+assignment and its state. Rests, turns, concentration changes, remove/rejoin, and backup round
+trips preserve the reminder. Shared definitions do not contain any character's reminder state.
+
+`setPassiveActive` accepts an explicit boolean for an assigned passive/hybrid with tracking on.
+It changes no statistics, turn controls, costs, conditions, or concentration. The checked HUD
+`passive` command additionally requires an active-party character and a visible, expanded,
+interactive HUD. The existing main-process approval service owns serialization, deduplication,
+saving, failures, stale-editor merging, and ordinary Undo. This assignment field is deliberately
+outside the approval definition fingerprint, so switching a hybrid reminder does not invalidate
+its pending active use or targeted refund.
+
+`hasActiveEffect` guards availability/spending and concentration selection. Passive-only abilities
+cannot request or perform use, even with dormant cost/concentration settings. An existing binding
+to a newly passive-only ability fails normalization with an instruction to end/change concentration
+first, including for inactive players. Hybrid active use keeps normal costs and approval behavior.
+No automatic statistics, rules, or conditions are derived from either description.
+
+The shared/local editor exposes Behavior beside Turn cost, below Name and Type. Type never
+restricts detail fields or cost choices. Passive-only hides the turn-cost label without disabling
+or clearing its input, so FormData and changed-field merging preserve dormant values. Other cost
+fields remain editable with an explanation that they apply only to active effects. New entries
+default to Active, except Create new from the DM Passives tab defaults to Passive. Shared/local
+editors expose `trackPassive` for passive and hybrid entries and `passiveDescription` for hybrids.
+Hidden inputs keep their values, and the boolean tracking field is saved separately from text.
+
+`passives-ui.js` implements the DM tab, independent reminder switches, and passive details.
+The DM uses `setPassiveActive` through ordinary `commit`, so hidden/collapsed/click-through HUDs
+do not prevent DM reminder edits. Passive views have no Use, availability, or cost controls;
+hybrid text navigation is read-only and leaves every HUD alone. Active views retain their normal
+spending path. Passive-only metadata omits casting/slot/concentration/resource costs; hybrid
+passive views show their separate text and reference. User text is escaped throughout.
+
+The library Passives filter includes hybrids and searches their passive text. Pure-passive
+assignment omits spending controls. Character Type/cost lists exclude pure passives; `panelItems`
+includes passive/hybrid assignments only when `hud.panel` is `passive`. This existing saved panel
+also selects the effect for `hud.detailId`; `hudDetailEffect` supplies it consistently to the shared
+`abilityTextPages`, HUD renderer and DM Currently displayed preview. No extra saved effect field
+or format change beyond 11 is needed. `detail` accepts an explicit `effect`, validates it before
+showing a HUD, and selects Passives or the hybrid's active economy when switching effects.
+Normalization clears detail selection if its effect is removed and clamps invalid pages after
+text/list edits, preserving other players, valid reading pages, placement, scale and rotation.
+
+The expanded HUD adds Passives next to Features without changing its fixed width or introducing
+scrollbars. Passive views omit ordinary Use controls and cost labels. Interactive HUDs decorate
+conditional reminder text with explicit desired-state commands; click-through and layout previews
+keep readable status text. The DM can explicitly show a passive on TV or navigate its pages and
+effects through Currently displayed, including when player interaction is disabled. DM modal
+View passive/active effect links remain read-only. Stale concentration-use prompts close when
+the player switches to the passive side of the same hybrid.
+The `passives` desktop scenario verifies real IPC, editor preservation, all Type/Behavior
+combinations, cancel/Undo, concentration conversion errors, minimum-window layout, disk saving,
+and renderer reload with isolated data. Unit coverage includes formats 1–10, local copies, save failures,
+pending requests, targeted refunds, dormant state, invalid inputs, and previous-save recovery.
+The `passives-dm` scenario covers creation, assignment, search, reminders, mixed-effect text,
+stale edits, local copies, remove/delete/Undo, backups/reload, and long text at minimum size.
+The `passives-hud` scenario exercises actual player/DM controls, matching effect pages, reminders
+alongside pending requests, click-through controls, maximum text, zero/one/many assignments,
+reload, and 30 combinations of rotation/scale/interaction with fixed widths and no scrollbars.
 
 ## Conditions and concentration
 
@@ -285,7 +389,7 @@ The existing HUD fitting, rotation, hit regions, and resource icons remain in us
 `TL.clone` copies plain JSON containers while retaining immutable strings. Structural equality
 avoids repeatedly serializing image data for comparisons and stale-editor merges. Approval
 definition snapshots and Undo replay signatures also retain strings instead of embedding PNGs
-inside generated JSON keys. Saves still serialize each shared definition only once in format 10.
+inside generated JSON keys. Saves serialize each shared definition only once, now in format 11.
 
 The shared codec in `preload.js` boxes each distinct PNG string once per outgoing message;
 Electron's structured-clone reference table then transmits repeated image references cheaply.
@@ -308,8 +412,8 @@ character's theme after decorating controls. Missing/unknown themes add no styli
 returning to Default removes only the module's variables, attribute, and resource-icon frames.
 `TL.character` defaults `theme` to `default`. Character normalization preserves nonblank string
 identifiers (up to 300 characters), including unknown choices; missing, blank, or malformed
-values use Default. The optional field travels in both character collections and the existing
-unreleased format 10 backups. There is no new format bump within this unreleased feature branch.
+values use Default. The optional field travels in both character collections; it first shipped
+with format 10 and is retained in format 11 alongside the passive foundation.
 
 Create and Edit use the same palette registry for the Theme dropdown. An unknown identifier
 gets an escaped selected option labeled "Default (saved theme unavailable)" so saving unrelated
@@ -419,6 +523,21 @@ All players share one renderer and TV: recipient targeting is not a private-devi
 An opened message is visible to nearby people; the composer states this next to Force open.
 
 ## Tests
+
+The installed-update harness additionally checks format 11 passive/hybrid definitions,
+independent reminder and personal cost settings, local/unused passives, and HUD scale/rotation.
+It verifies replacement of an intentionally different old PDF and the installed Help-to-guide
+path before and after the update. Its viewer callback is simulated; interactive reader and
+offline installer checks are tracked separately in
+[the passive/guide release check record](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md).
+
+`installed-party-fixture.js` shares the synthetic party and its assertions between the real
+installer harness and `upgrade-data-native.js`. The latter uses two separate Electron processes
+to check save/restart independently of installer availability. It also verifies personal reminder
+changes/Undo, passive-use rejection, the guide bridge and cleared transient messages. It does not
+pretend that restarting the app proves an installation. `wait-installed-result.cjs` retains an
+early process-launch rejection and distinguishes it from a normal old-process exit; focused
+tests cover that failure, successful restart reporting and missing-result timeout.
 
 Unit tests cover cost spending, migration, linked definitions, independent bindings, save recovery, geometry, command validation, and stale-editor merging. Native scenarios exercise the real renderer and Electron windows using synthetic state, capture screenshots, and verify persistence. Run them with `npm run test:native` in a Windows desktop session. The native harness creates a unique user-data directory per scenario and never reads the normal party file.
 

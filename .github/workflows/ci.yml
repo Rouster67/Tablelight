@@ -17,8 +17,17 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run format:check
-      - run: npm run build:windows
+      - run: npm run guide:check -- --allow-draft
+      - id: guide
+        shell: pwsh
+        run: |
+          $guide = Get-Content docs/user-guide/manifest.json | ConvertFrom-Json
+          "ready=$($guide.status -eq 'final')" >> $env:GITHUB_OUTPUT
+          if ($guide.status -ne 'final') { Write-Output 'Draft guide: checks passed; release artifacts remain disabled until the full guide is reviewed.' }
+      - if: steps.guide.outputs.ready == 'True'
+        run: npm run build:windows
       - uses: actions/upload-artifact@v4
+        if: steps.guide.outputs.ready == 'True'
         with:
           name: Tablelight-Windows
           path: |

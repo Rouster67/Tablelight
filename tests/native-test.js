@@ -13,7 +13,60 @@ module.exports = async function ({
   store,
   updates,
   updateAdapter,
+  guide,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'upgrade-data')
+    return require('./upgrade-data-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+      updates,
+      guide,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'guide-manual')
+    return require('./guide-manual-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
+  if (['guide', 'guide-capture'].includes(process.env.TABLELIGHT_TEST_SCENARIO))
+    return require('./guide-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+      guide,
+      screen,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'passives-hud')
+    return require('./passives-hud-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'passives-dm')
+    return require('./passives-dm-native')({ app, controller, getState, store });
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'passives')
+    return require('./passives-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'visual-improvements')
     return require('./visual-improvements-native')({
       app,

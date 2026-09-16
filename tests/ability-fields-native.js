@@ -246,7 +246,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     assert.equal(saved.library[0].onSave, 'No damage');
     assert.equal(saved.characters[1].resources[0].current, 3);
     const raw = JSON.parse(fs.readFileSync(store.file, 'utf8'));
-    assert.equal(raw.version, 10);
+    assert.equal(raw.version, 11);
     assert.equal(raw.characters[0].items[0].onSave, undefined);
     assert.deepEqual(errors, []);
     results.push(

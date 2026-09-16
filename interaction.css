@@ -191,7 +191,8 @@
   background: #54603b !important;
   border-color: #b2a174 !important;
 }
-.hud-use-controls {
+.hud-use-controls,
+.hud-effect-controls {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;

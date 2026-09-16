@@ -1,7 +1,7 @@
 {
   "name": "tablelight",
   "productName": "Tablelight",
-  "version": "1.12.1",
+  "version": "2.0.0",
   "description": "A local dungeon master console and transparent tabletop HUD.",
   "main": "main.js",
   "private": true,
@@ -25,6 +25,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build:windows": "node scripts/build-windows.cjs",
+    "guide:build": "python scripts/build-guide.py",
+    "guide:check": "node scripts/check-guide.cjs",
     "test:installed-update": "node scripts/test-installed-update.cjs"
   },
   "devDependencies": {

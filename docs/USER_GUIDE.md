@@ -1,4 +1,4 @@
-# Tablelight 1.12.1
+# Tablelight 2.0.0
 
 A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many players as you need and choose up to eight for the active party. All spells, actions, and features are entered by you; no rulebook content is bundled.
 
@@ -53,6 +53,14 @@ portable/source copies are not removed.
 6. Open **TV & layout** and select the TV. Choose **Arrange around TV**, then drag and rotate each player’s portrait as needed.
 7. Click **Show TV overlay**. Each player’s bubble appears above the player browser. With HUD controls on, you can interact with the bubbles directly. Empty space passes clicks through to the map.
 
+**Offline illustrated guide:** In **Setup & help**, choose **Open illustrated user guide (PDF,
+offline)**. Windows opens the PDF bundled with that installation using your default PDF viewer.
+It does not need internet or change your saved party. If a viewer is unavailable, choose a default
+PDF app in Windows and retry. If the guide is missing/unreadable, repair or reinstall this app
+version. The complete illustrated manual covers all app sections with worked examples,
+screenshots, linked contents and bookmarks. This Markdown companion remains available as
+`START HERE.md` in the installation folder.
+
 ## Saved players and the active party
 
 The left sidebar has two lists. **Party** shows active members in your chosen initiative order. **All characters**, underneath it, shows only saved characters outside the party in alphabetical order. Each list scrolls separately. The saved list includes search and page arrows for larger rosters, with twelve characters per page. Click a saved character's name to edit them without joining the party.
@@ -85,7 +93,7 @@ Only active party members participate in **Next turn**, whole-party rests, and a
 the note appears; it cannot make an opened message private from other people at the table.
 
 The DM's **Force open** reveals the selected player's note. **Previous page**, **Next page**,
-**Scroll up**, **Scroll down**, and **Close on TV** also work in click-through mode, without turning
+and **Close on TV** also work in click-through mode, without turning
 player controls back on. If cards overlap, Force open brings the selected message to the front.
 The reading panel fits within an expanded HUD, or appears as a temporary card for a collapsed
 player. Closing restores access to the same bubble/HUD without changing its saved settings.
@@ -134,6 +142,64 @@ the original choice when you edit other fields. Choose Default or a class theme 
 Open **Ability library** in the sidebar to create, search, filter, or edit your spells, actions, and features. You can build the library before adding characters. It starts empty; all text comes from you.
 
 On a character, **+ Add → Create new** saves a new entry to the library and adds it to that character. **+ Add → Choose existing** searches the library and links an entry you already wrote. You can also use **Add to character** from the library.
+
+At the top of a shared or character-only ability editor:
+
+- **Type** chooses how the ability is grouped. Every type keeps all detail and cost options;
+  a class feature can spend a spell slot, for example.
+- **Behavior** chooses **Active**, **Passive**, or **Passive + active**. To flag an ability as
+  passive, choose **Passive**, write its **Passive effect**, and save. Shared changes
+  apply to every character linked to that entry.
+- **Turn cost** chooses **Action**, **Bonus action**, **Reaction**, or **Free / other** for
+  active use. It sits beside Behavior and disappears for Passive. Previously entered costs
+  and text are retained when switching behavior; passive-only entries cannot spend them.
+  For Passive + active, costs apply only to the active effect. **Casting Time** remains
+  descriptive text and does not set Turn cost.
+
+**Passives on the DM screen:** Select a character, then choose **Passives** beside Features.
+Use **+ Add → Create new** to start a passive, or **Choose existing** to open the shared library
+filtered to passives and mixed abilities. The filter searches passive descriptions too. Local
+creation and local-copy options work here as they do for other abilities. Pure passives appear
+in this tab, with no Use button or spending summary, and are excluded from ordinary action lists.
+
+Leave **Track whether the passive applies** off for an **Always applies** reminder. Turn it on
+for a conditional passive: every new character assignment starts **Inactive**. Click its
+**Inactive / Active** switch in the list or View window when the written circumstance changes.
+For example, write “Read this reminder while carrying a lantern,” then mark it Active for the
+character carrying that lantern. This setting is independent for every character and works
+from the DM screen even when the TV is hidden or click-through is on. It never spends anything
+or changes HP, AC, movement, statistics, or conditions. Make any numerical corrections yourself.
+Conditions remain a separate shared library for statuses you apply and remove.
+
+For **Passive + active**, enter separate **Passive effect** and **Active effect** descriptions.
+The ability appears in Passives for its passive part and in the usual active lists for its active
+part. **View active effect / View passive effect** switches between their text without spending
+or changing a HUD. Only the active view offers **Use ability** and **Show active effect on TV**.
+Both views refer to one ability assignment; shared edits reach every linked character.
+
+Rests do not decide whether a passive applies. Switching tracking off retains the previous
+reminder state if you turn it back on; switching behavior keeps both descriptions and existing
+cost settings. Cancel discards a draft; Undo can reverse a saved change during the session.
+Removing an assignment keeps the shared definition, and deleting a shared definition still
+offers the existing option to keep local copies. If someone is concentrating on an ability,
+end or change that concentration before saving it as passive-only.
+
+**Passives on the player overlay:** Expand a player's portrait and choose **Passives**, beside
+Features. Choose **View** to read an effect, use **Previous / Next** for long text, and
+**Back to list** to return. Conditional entries have an **Active / Inactive** switch in both
+the list and detail view; it records a reminder for this character only. **Always applies**
+entries have no switch. A passive view has no Use button or action, slot, or resource cost.
+For a mixed ability, **View active effect** opens its ordinary use controls; **View passive
+effect** returns to the reminder. Changing views does not spend anything.
+
+The DM can choose **Passives → Show on TV**, or open a passive and choose **Show passive effect
+on TV**. **Currently displayed** also offers Passives, matching text pages, reminder switches,
+and navigation between effects. With click-through enabled, the overlay still shows the selected
+passive and its status; use these DM controls to change what players see. Collapsed HUDs remain
+portrait bubbles; expand one to read its passives.
+
+Unrelated updates preserve the selected effect and page. Shortening text clamps an invalid page;
+removing an effect returns its HUD to the existing list. Placement, scale, and rotation stay saved.
 
 **Ability images:** In an ability editor, choose **Upload image** to add artwork, **Replace image**
 to change it, or **Remove image** to return to the usual spell, action, or feature symbol.
@@ -298,7 +364,7 @@ Every character has their own position, rotation, size, and visibility. Moving o
 
 ## Use the TV overlay directly
 
-Expanded HUDs use a wide layout. Portrait, character name, HP, AC, actions, movement, ability scores, conditions, slots, custom resource counters, and Smaller/Larger controls are on the left. Conditions show six entries per page in two rows of three. Custom resources show three entries per page. Both have Previous/Next controls. Resources sit below slots; long names wrap. **Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Sheet, and Resources** are at the top of the right column, with the selected section's data directly underneath. Sheet shows skills and saves beside the main character controls instead of adding them below. Descriptions, resource controls, and page buttons stay in that same right column.
+Expanded HUDs use a wide layout. Portrait, character name, HP, AC, actions, movement, ability scores, conditions, slots, custom resource counters, and Smaller/Larger controls are on the left. Conditions show six entries per page in two rows of three. Custom resources show three entries per page. Both have Previous/Next controls. Resources sit below slots; long names wrap. **Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Passives, Sheet, and Resources** are at the top of the right column, with the selected section's data directly underneath. Sheet shows skills and saves beside the main character controls instead of adding them below. Descriptions, resource controls, and page buttons stay in that same right column.
 
 The overlay never uses scrollbars. The HUD and message panels grow taller to show their current page in full, including ability lists, descriptions, and resource counters. Pending DM approvals add a separate column on the far right, keeping the ability browser’s width unchanged. All columns move, rotate, and resize together at your chosen scale. Collapsing still returns to the small portrait bubble. The laptop’s TV preview shows the same arrangement.
 
@@ -333,7 +399,7 @@ above the matching compact tiles for hit points, action, bonus action, reaction,
 
 ## Currently displayed
 
-The DM’s character page has a **Currently displayed** panel at the top of the right column. Its tabs match the expanded TV overlay: Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Sheet, and Resources.
+The DM’s character page has a **Currently displayed** panel at the top of the right column. Its tabs match the expanded TV overlay: Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Passives, Sheet, and Resources.
 
 Ability lists show up to **fifteen entries per page** on both screens. Longer lists use Previous/Next.
 The frame grows downward to fit each page. In click-through mode, use the DM page controls.
@@ -413,7 +479,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-Tablelight 1.12.0 writes save format 10 and imports formats 1–9. Backups retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Tablelight 1.11.0 and earlier cannot read format 10; keep a backup from before updating if you may need to return to an older release. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
+Tablelight 2.0.0 writes save format 11 and imports formats 1–10. The new format preserves passive ability definitions and individual reminder states; the DM editor and Passives controls are available, and the player HUD Passives section is available. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before upgrading if you may need to return to an older release. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
 
 ## Keyboard shortcuts
 

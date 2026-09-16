@@ -41,6 +41,7 @@ module.exports = {
     { from: 'THIRD_PARTY_NOTICES.md', to: 'THIRD_PARTY_NOTICES.md' },
   ],
   afterPack: 'build/after-pack.cjs',
+  beforePack: 'build/before-pack.cjs',
   win: { target: 'nsis', icon: 'icon.png', requestedExecutionLevel: 'asInvoker' },
   nsis: {
     oneClick: false,

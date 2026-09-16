@@ -2,8 +2,9 @@
 'use strict';
 const fs = require('node:fs'),
   path = require('node:path'),
-  assert = require('node:assert/strict');
-module.exports = async ({ app, controller, store, updates, updateFixture }) => {
+  assert = require('node:assert/strict'),
+  crypto = require('node:crypto');
+module.exports = async ({ app, controller, store, updates, updateFixture, guide }) => {
   const root = updateFixture.root;
   const run = (code) => controller.webContents.executeJavaScript(`(async()=>{${code}})()`);
   const wait = async (fn) => {
@@ -18,6 +19,36 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
     await wait(() => run("return Boolean(document.querySelector('[data-action=add-character]'));"));
     assert.equal(updates.snapshot().supported, true);
     controller.showInactive();
+    const guideHashes = JSON.parse(fs.readFileSync(path.join(root, 'expected-guide.json')));
+    const expectedGuide = path.join(
+      process.resourcesPath,
+      'app',
+      'docs',
+      'Tablelight-User-Guide.pdf'
+    );
+    assert.equal(guide.file, expectedGuide);
+    assert.equal(
+      crypto.createHash('sha256').update(fs.readFileSync(guide.file)).digest('hex'),
+      app.getVersion() === '0.0.1' ? guideHashes.oldGuideHash : guideHashes.newGuideHash
+    );
+    const beforeGuide = fs.readFileSync(store.file);
+    const openPath = guide.openPath;
+    const opened = [];
+    try {
+      // Exercise the real Help control and bridge, recording the OS handoff.
+      // Interactive PDF-reader checks remain a separate release requirement.
+      guide.openPath = async (file) => {
+        opened.push(file);
+        return '';
+      };
+      await run("view='help';render();document.querySelector('[data-action=open-guide]').click();");
+      await wait(() => run('return !guideOpening;'));
+      assert.deepEqual(opened, [expectedGuide]);
+      assert.match(await run('return guideFeedback;'), /sent to your PDF viewer/);
+      assert.deepEqual(fs.readFileSync(store.file), beforeGuide);
+    } finally {
+      guide.openPath = openPath;
+    }
     if (app.getVersion() === '0.0.1') {
       await run('commit(()=>{selected().hp=22;});await saveQueue;');
       await run(
@@ -65,24 +96,7 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
         fs.readFileSync(path.join(root, 'before-install-data', 'party.json'))
       ).settings.displayId;
       assert.deepEqual(saved, expected);
-      assert.equal(saved.characters[0].hp, 22);
-      assert.equal(saved.characters[0].notes, 'Private synthetic note survives the update.');
-      assert.equal(saved.roster[0].name, 'Synthetic saved player');
-      assert.equal(saved.library.length, 4);
-      assert.equal(saved.conditionLibrary.length, 3);
-      assert.equal(saved.characters[0].items.length, 3);
-      assert.equal(saved.roster[0].items.length, 1);
-      assert.equal(saved.characters[0].conditionIds.length, 1);
-      assert.equal(saved.roster[0].conditionIds.length, 1);
-      assert.ok(saved.characters[0].avatar.startsWith('data:image/png;base64,'));
-      assert.equal(saved.version, 10);
-      assert.equal(saved.characters[0].theme, 'artificer');
-      assert.equal(saved.roster[0].theme, 'wizard');
-      assert.ok(saved.library[0].icon.startsWith('data:image/png;base64,'));
-      assert.ok(saved.library[2].icon.startsWith('data:image/png;base64,'));
-      assert.ok(saved.library[3].icon.startsWith('data:image/png;base64,'));
-      assert.ok(saved.characters[0].items[2].icon.startsWith('data:image/png;base64,'));
-      assert.equal(saved.characters[0].items[0].icon, undefined);
+      require('./installed-party-fixture').assertInstalledParty(saved);
       assert.deepEqual(await run('return (await api.messages()).messages;'), []);
       assert.equal(updates.preferences.enabled, false);
       assert.equal(await run('return overlayStatus.visible;'), false);
@@ -98,7 +112,9 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
               'Active and saved players, assigned and unused abilities and conditions, portraits, resources, slots, concentration, notes, and settings match the expected saved party.',
               'The party, previous save, and update preference are byte-for-byte identical across installation.',
               'The automatic-check preference survives; the new title shows the installed version and the TV overlay starts hidden.',
-              'Format 10 shared/local artwork and active/inactive themes survive the actual installer update; the previous session message is absent from saves and clears on relaunch.',
+              'Shared/local artwork and active/inactive themes survive the actual installer update; the previous session message is absent from saves and clears on relaunch.',
+              'Format 11 passive/hybrid definitions, local and unused passives, independent reminder states, personal costs, unavailable flags and individual HUD scale/rotation survive the update.',
+              'The installer replaces a deliberately different old guide with the exact new PDF. Before and after updating, the real Help control hands off its own installed guide path without changing the save (PDF viewer handoff is simulated).',
             ],
           },
           null,

@@ -9,6 +9,12 @@ Tablelight's application code is GPL-3.0-or-later. Its desktop runtime is Electr
 
 The app uses system fonts and an original Tablelight icon. It bundles no spells, class feature descriptions, rulebook passages, character portraits, or external artwork. Tablelight is an independent project and is not affiliated with Wizards of the Coast, D&D Beyond, Larian Studios, or Baldur's Gate 3. Those names identify compatibility or inspiration only.
 
+The offline PDF embeds Bitstream Vera fonts, redistributed with their full license in
+`docs/user-guide/fonts/bitstream-vera-license.txt`. Its screenshots use original synthetic example
+text, not preloaded game content. The editable fonts/source accompany the PDF. ReportLab and
+pypdf are pinned development-only authoring tools in `docs/user-guide/requirements.txt`; they
+are not required or installed when users open the guide.
+
 ## Updater runtime dependencies
 
 The installer includes the following production packages and their license files in

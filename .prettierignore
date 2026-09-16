@@ -10,3 +10,6 @@ backups/
 .npm-cache/
 work/
 outputs/
+docs/user-guide/fonts/
+docs/user-guide/captures.json
+docs/user-guide/manifest.json

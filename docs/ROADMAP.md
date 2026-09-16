@@ -4,6 +4,10 @@ The initial ideas were collected on September 11, 2026; class overlay themes and
 PDF guide were added on September 13, 2026. This document tracks planning and agreed implementation
 progress; entries do not assign a release version or authorize implementation.
 
+The user has since requested preparation of **2.0.0** for the implemented passive abilities and
+complete illustrated guide. The versioned candidate, checks and outstanding release requirements
+are recorded in [RELEASE_2.0.0.md](RELEASE_2.0.0.md). Publication remains a separate user decision.
+
 - **Planned candidate:** The requested direction is clear enough to outline. Details and priority
   still need agreement before development.
 - **Considering:** The idea needs more design discussion before choosing an approach.
@@ -25,7 +29,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 | ID  | Idea                                          | Status                |
 | --- | --------------------------------------------- | --------------------- |
-| F01 | Passive abilities section                     | Considering           |
+| F01 | Passive abilities section                     | Implemented on branch |
 | F02 | Messages sent to individual player overlays   | Implemented on branch |
 | F03 | Visible application version on the DM screen  | Released              |
 | F04 | Launch update prompt and Windows installer    | Released              |
@@ -36,9 +40,41 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F09 | Uploaded icons for abilities                  | Implemented on branch |
 | F10 | DM approval queue, History, and targeted undo | Released              |
 | F12 | Class overlay color themes                    | Implemented on branch |
-| F13 | Bundled illustrated PDF user guide            | Planned candidate     |
+| F13 | Bundled illustrated PDF user guide            | Implemented on branch |
 
 ## F01 — Passive abilities section
+
+**September 15, 2026 — first implementation commit:** The user created
+`codex/passives-and-illustrated-guide` and authorized the first commit; publishing remains theirs.
+The data foundation uses Active / Passive / Passive + active independently of Type, optional shared
+manual tracking, and separate per-character reminder state. Format 11 imports formats 1–10 and
+preserves the now-merged local-copy, image, theme, and approval behavior. Passive-only use and
+concentration selection are rejected; conditional reminders never calculate statistics or spend
+costs. The player HUD and PDF milestones are tracked in
+[the updated plan](PASSIVES_AND_ILLUSTRATED_GUIDE_PLAN.md). Existing HUD pagination and natural
+height remain unchanged.
+
+**Editor follow-up:** Behavior now offers Active / Passive / Passive + active in shared and
+character-only editors, with Turn cost beside it near the top. Type only groups entries; no
+type limits detail fields, slots, or resource costs. Passive hides Turn cost and retains its
+saved value.
+
+**DM milestone:** A Passives tab now shows passive and mixed abilities with readable text,
+Always applies or independent Active / Inactive reminders, and View/Edit/removal controls.
+The editor supports conditional tracking and separate mixed-effect descriptions; the library
+has a Passives filter. Passive views have no spending controls, and pure passives leave ordinary
+action lists. Hybrid effect navigation does not spend or move a HUD. Existing shared/local
+copying, deletion choices, saves, and individual settings are preserved.
+
+**Player HUD milestone:** Expanded player overlays now include Passives beside Features, with
+readable always/conditional reminder states, passive details without Use/cost controls, and
+back/page navigation between mixed effects. Interactive players can change their own assignment's
+reminder; click-through leaves status visible and navigation to the DM. Currently displayed shows
+the same effect pages and reminder state. Existing save format, independent HUD placement, scale,
+rotation, natural height, and base/pending-column widths are preserved. Automated desktop checks
+cover both screens and modes, long text, list paging, mixed effects, pending uses and rotated HUDs.
+F01 is implemented for this branch; the user's physical-table review, commit and release remain
+separate. F13's guide work follows.
 
 **Requested:** Give characters a section for abilities that work passively, rather than being used
 as an action. The presentation and behavior need brainstorming.
@@ -193,7 +229,7 @@ Links remain outside this first milestone.
 
 **Status:** Merged in [PR #10](https://github.com/Rouster67/Tablelight/pull/10) and released in
 1.11.0. Reference retains the original source data and stays below Description at the bottom
-right. Current saves use format 10 and accept formats 1–9. Regression checks cover migration,
+right. The current development branch writes format 11 and accepts formats 1–10. Regression checks cover migration,
 active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
 saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 
@@ -408,6 +444,24 @@ themes on several characters, matching previews, save/backup round trips, older 
 controls in collapsed, expanded, rotated, and click-through HUDs without changing their geometry.
 
 ## F13 — Bundled illustrated PDF user guide
+
+**Guide integration milestone:** Setup & help now has the offline PDF link in place of the
+three requested help sections. A DM-only fixed-path operation opens the running installation's
+guide and reports file/viewer failures without changing saves. The generation pipeline includes
+local screenshots, embedded fonts, linked contents/bookmarks and version/source checks. The
+original seven-page prototype has been replaced by a 17-chapter full-program manual with
+worked examples, field references, real screenshots, troubleshooting and a control coverage
+record. It covers the current 1.12.1 development interface, including player Passives.
+Release-version selection, two-viewer certification and the final release installation matrix
+remain the release milestone. Release packaging rejects a draft review status, and CI withholds
+installer artifacts until a Final guide passes review.
+
+**Final verification (September 16):** The current source passes 225 core and 288 desktop
+checks. The upgrade regression now includes passive/hybrid data, personal reminders and
+HUD settings, plus replacement of the bundled guide. Windows Application Control blocks
+the unsigned installer, so the new real-install assertions remain unexecuted. Interactive
+reader/offline installation checks and the unavailable physical TV review remain open in
+[the release check record](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md). F13 is still In progress.
 
 **Requested (September 13, 2026):** In Setup & help on the DM console, remove the following
 three headings and their explanatory paragraphs:

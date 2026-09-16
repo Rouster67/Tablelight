@@ -9,6 +9,11 @@ const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
 const scenarios = [
+  'upgrade-data',
+  'guide',
+  'passives-hud',
+  'passives-dm',
+  'passives',
   'visual-improvements',
   'player-messages-ui',
   'player-messages',
@@ -40,7 +45,9 @@ const scenarios = [
   'concentration-use',
 ];
 const requested = process.argv.slice(2);
-if (requested.some((scenario) => !scenarios.includes(scenario)))
+if (
+  requested.some((scenario) => ![...scenarios, 'guide-capture', 'guide-manual'].includes(scenario))
+)
   throw new Error('Unknown native test scenario.');
 for (const scenario of requested.length ? requested : scenarios) {
   const dir = fs.mkdtempSync(path.join(resultsRoot, scenario + '-'));
@@ -53,12 +60,12 @@ for (const scenario of requested.length ? requested : scenarios) {
     cwd: root,
     encoding: 'utf8',
     windowsHide: true,
-    timeout: 120000,
+    timeout: scenario === 'guide-manual' ? 240000 : 120000,
   });
   fs.writeFileSync(path.join(dir, 'process.log'), (child.stdout || '') + (child.stderr || ''));
   if (child.error || child.status !== 0)
     throw child.error || new Error(scenario + ' test process failed. See ' + dir);
-  if (['character-themes', 'player-messages'].includes(scenario)) {
+  if (['character-themes', 'player-messages', 'upgrade-data'].includes(scenario)) {
     const first = JSON.parse(fs.readFileSync(path.join(dir, scenario + '-results.json'), 'utf8'));
     if (!first.passed) throw new Error(first.error + '\nSee ' + dir);
     const restart = spawnSync(electron, [root, '--self-test'], {

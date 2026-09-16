@@ -159,7 +159,26 @@
       )
       .join('');
     const detail = c.items.find((i) => i.id === c.hud.detailId);
+    const passive = TL.hudDetailEffect(c) === 'passive';
+    card.querySelectorAll('[data-passive-item]').forEach((node) => {
+      const it = c.items.find((it) => it.id === node.dataset.passiveItem);
+      if (it?.trackPassive)
+        node.outerHTML = control(
+          c,
+          HUD.passiveStatus(it),
+          'passive',
+          { itemId: it.id, active: !it.passiveActive },
+          `class="hud-passive-status" role="switch" aria-checked="${it.passiveActive}" aria-label="Applies now: ${HUD.esc(it.name)}"`
+        );
+    });
     if (detail) {
+      const other = passive ? 'active' : 'passive';
+      panel.insertAdjacentHTML(
+        'beforeend',
+        `<div class="hud-effect-controls">${control(c, '← Back to list', 'panel', { panel: c.hud.panel })}${detail.behavior === 'hybrid' ? control(c, `View ${other} effect`, 'detail', { itemId: detail.id, effect: other }) : ''}</div>`
+      );
+    }
+    if (detail && !passive) {
       const reason = TL.availability(c, detail);
       let use;
       if (detail.level > 0 && detail.usesSlot)
@@ -180,7 +199,7 @@
         'beforeend',
         `<div class="hud-use-controls">${use || '<span>No suitable slots remaining</span>'}${reason ? `<small>${HUD.esc(reason)}</small>` : ''}</div>`
       );
-    } else {
+    } else if (!detail) {
       card.querySelectorAll('.hud-option').forEach((node, i) => {
         const item =
           TL.panelItems(c)[Math.min(c.hud.page, HUD.countPages(c) - 1) * HUD.abilityPageSize + i];
@@ -188,9 +207,13 @@
           type: 'detail',
           characterId: c.id,
           itemId: item.id,
+          effect: passive ? 'passive' : 'active',
         });
         node.title = 'Show ' + item.name;
-        node.insertAdjacentHTML('beforeend', control(c, 'View', 'detail', { itemId: item.id }));
+        node.insertAdjacentHTML(
+          'beforeend',
+          control(c, 'View', 'detail', { itemId: item.id, effect: passive ? 'passive' : 'active' })
+        );
       });
     }
     card.querySelectorAll('.hud-resource').forEach((node) => {

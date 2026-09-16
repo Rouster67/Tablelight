@@ -1,5 +1,10 @@
 # Publishing Tablelight releases
 
+For the current 2.0.0 candidate, consult [release readiness](RELEASE_2.0.0.md) and
+[prepared release notes](RELEASE_NOTES_2.0.0.md). Its final guide review includes the owner's
+explicit waiver of installer, offline-reader and physical-TV checks. Those checks remain
+untested. Use the final files in `dist/`, not the earlier `dist/testing-*` candidates.
+
 Source changes and app releases are separate. Commit and push through GitHub Desktop, review
 GitHub's checks, and merge the feature PR into `main`. Publishing a GitHub Release is a later,
 deliberate action; neither a push nor a merge installs an update on users' computers.
@@ -13,7 +18,10 @@ deliberate action; neither a push nor a merge installs an update on users' compu
 2. Use Windows, Node.js 24+, and `npm ci`. Run `npm run check`, `npm run format:check`, and
    `npm run test:native`. For updater or packaging changes, also run `npm run test:installed-update`.
    Verify your actual HDMI/TV layout, movement, rotation, and both interaction modes.
-3. Run `npm run build:windows`. It builds a Windows x64 NSIS installer, an `.exe.blockmap`, and
+3. Complete the illustrated guide and its [source/review checklist](user-guide/README.md),
+   regenerate it for this version, inspect every page and walkthrough, then run
+   `npm run guide:check`. A missing, stale, wrong-version or Draft PDF blocks release packaging.
+   Run `npm run build:windows`. It builds a Windows x64 NSIS installer, an `.exe.blockmap`, and
    `latest.yml` in `dist/`. `dist/win-unpacked` is for inspection, not distribution as an updater.
    The build always uses `publish: never`; it cannot publish a release or use a GitHub upload token.
 4. Inspect and test the installer. It installs per user, offers a folder choice, creates
@@ -37,7 +45,9 @@ deliberate action; neither a push nor a merge installs an update on users' compu
 4. Verify the published asset URLs and test an update from the previous installed release.
    Keep a source archive or tagged repository with dependencies and build instructions available.
 
-GitHub Actions creates downloadable build artifacts on pushes and PRs. It does not publish
+GitHub Actions creates downloadable build artifacts on pushes and PRs once the guide is Final
+and its review passes. While it is Draft, CI validates it but skips installer creation/upload.
+It does not publish
 GitHub Releases. Before the first installer-enabled release with `latest.yml` is published,
 checks against older ZIP-only releases may report that update information is unavailable.
 
@@ -80,6 +90,32 @@ specially named test packages; ordinary production packages cannot select a cust
 environment variables or renderer messages. Review test results and installer logs under the
 reported directory.
 
+The custom folder also contains a non-ASCII character (`installed é app`). The fixture includes
+shared passive/hybrid definitions, an unused passive, a local passive, opposite reminder states
+on active and saved players, personal resource links/unavailable flags, and distinct HUD scale
+and rotation. Before updating, the harness appends a harmless trailing comment to only the
+isolated installed PDF. After updating, its hash must match the new build exactly. The real
+Help control and IPC must hand off that copy's own guide path before and after the update.
+The OS viewer handoff is simulated in this automated regression; it does not certify a PDF reader.
+Uninstall checks explicitly require removal of the bundled PDF while preserving synthetic saves.
+The 0.0.1/0.0.2 test package versions are updater fixtures, not release-version guide certification.
+
+Run `npm run test:native -- upgrade-data` to test the same party fixture without an installer.
+This opens two successive Electron processes with one synthetic save directory. It checks the
+complete party and independent passive/HUD settings, reminder changes and Undo, rejected
+passive use, guide handoff before/after restart, update opt-out, and session-message clearing.
+The scenario is also included in the full desktop suite. Passing it verifies saved data across
+an app restart; installer replacement, shortcut/registry handling and uninstall still require
+`test:installed-update`. The installer harness now reports a failed test-app launch promptly
+while allowing a normal old-app exit to wait for the restarted app's result.
+
+If Windows Application Control blocks an unsigned test installer, record the failed launch and
+leave the installer checks pending. Do not disable security controls, change the installer to
+evade the policy, or count a copied unpacked folder as an installation test. Resume the matrix
+on a Windows test environment whose policy permits the installer, or with an appropriately
+signed build. The current passive/guide verification record and manual checklist are in
+[PASSIVES_AND_GUIDE_RELEASE_CHECKS.md](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md).
+
 The regression also checks that command-line data deletion is rejected, including during updates;
 that update uninstalls retain their download cache; and that ordinary silent uninstalls remove
 the app, its unique test shortcuts, registry entries, and cache while preserving saves. A synthetic
@@ -100,7 +136,7 @@ binds cleanup to that run's `test-results` directory; production builds reject t
    uninstall. Compare `data/party.json`, `data/party.previous.json`, and `data/updates.json` with
    `before-install-data/`; all must be byte-for-byte identical. The installed app and cache must be
    gone, and `external-backup.json` must remain.
-3. Reinstall the same isolated `build-0.0.2` installer into that run's `installed app` folder.
+3. Reinstall the same isolated `build-0.0.2` installer into that run's `installed é app` folder.
    Reopen the test uninstaller, select Remove all saved data, and confirm Yes. Complete uninstall.
    Verify the entire `data` folder is gone, along with the installed app and cache. The exported
    backup outside `data` must remain. Never run these deletion tests on real saved content.

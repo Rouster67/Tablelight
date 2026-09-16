@@ -245,7 +245,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await new Promise((resolve) => setTimeout(resolve, 200));
     await shot('03-condition-library', controller);
     const disk = JSON.parse(fs.readFileSync(store.file, 'utf8'));
-    assert.equal(disk.version, 10);
+    assert.equal(disk.version, 11);
     assert.equal(disk.conditionLibrary.length, 1);
     assert.equal(disk.characters[0].appliedConditions, undefined);
     results.push(

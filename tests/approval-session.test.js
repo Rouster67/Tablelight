@@ -515,7 +515,7 @@ test('pending and recent history remain separate from backups; restart releases 
     assert.equal(saved.characters[0].resources[0].current, 3);
     assert.equal(s.projectCharacter('c0').resources[0].current, 1);
     assert.deepEqual(raw, TL.toBackup(saved));
-    assert.equal(raw.version, 10);
+    assert.equal(raw.version, 11);
     assert.equal(raw.session, undefined);
     const restarted = new Session(saved);
     assert.deepEqual(restarted.snapshot().session.pending, []);
@@ -578,5 +578,5 @@ test('browser module loads with the shared rules engine without enabling or chan
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../approval-session.js'), 'utf8'), context);
   assert.equal(context.TLApproval.ABILITY_LIMIT, 3);
   assert.equal(context.TLApproval.HISTORY_LIMIT, 5);
-  assert.equal(new context.TLApproval.Session(context.TL.empty()).snapshot().state.version, 10);
+  assert.equal(new context.TLApproval.Session(context.TL.empty()).snapshot().state.version, 11);
 });
