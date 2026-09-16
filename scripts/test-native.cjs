@@ -9,6 +9,7 @@ const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
 const scenarios = [
+  'guide',
   'passives-hud',
   'passives-dm',
   'passives',
@@ -43,7 +44,7 @@ const scenarios = [
   'concentration-use',
 ];
 const requested = process.argv.slice(2);
-if (requested.some((scenario) => !scenarios.includes(scenario)))
+if (requested.some((scenario) => ![...scenarios, 'guide-capture'].includes(scenario)))
   throw new Error('Unknown native test scenario.');
 for (const scenario of requested.length ? requested : scenarios) {
   const dir = fs.mkdtempSync(path.join(resultsRoot, scenario + '-'));

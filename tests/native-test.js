@@ -13,7 +13,19 @@ module.exports = async function ({
   store,
   updates,
   updateAdapter,
+  guide,
 }) {
+  if (['guide', 'guide-capture'].includes(process.env.TABLELIGHT_TEST_SCENARIO))
+    return require('./guide-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+      guide,
+      screen,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'passives-hud')
     return require('./passives-hud-native')({
       app,

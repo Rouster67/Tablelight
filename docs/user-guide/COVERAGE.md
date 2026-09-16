@@ -32,7 +32,7 @@ control when writing each chapter; these topic groups are not a substitute for t
       attack/DC calculations: that proposal was replaced by manual ability fields.
 - [ ] Passives after UI completion: Active/Passive/Hybrid, always versus conditional, personal
       reminder state, mixed-effect navigation, absence of passive use/costs, manual statistics,
-      and differences from conditions/concentration. Current commit supplies only the foundation.
+      and differences from conditions/concentration. The passive feature is implemented.
 - [ ] Resources: standalone Add and full editing, maximum/current counts, icon/color, every reset
       rule, links/costs, removal guards, manual correction, slots and custom spell pools.
 - [ ] Session: initiative, Start/Next turn, movement, action/bonus/reaction, damage/temp HP/healing,
@@ -74,5 +74,9 @@ control when writing each chapter; these topic groups are not a substitute for t
 - [ ] Verify missing/unreadable guide and viewer errors are recoverable; reconcile the Markdown
       companion; record tests and guide source/build instructions with the release checklist.
 
-No final screenshots have been captured. The PDF, packaging/link work and installation tests
-remain later milestones; this checklist does not change Setup & help or the installed app.
+Milestone 4 adds the guide link, authoring pipeline and packaging checks. The seven-page Draft
+proves linked contents/bookmarks, embedded fonts and local opening; its two screenshots use the
+real finished help/passive interfaces with synthetic data. All prototype pages were inspected.
+These are prototype assets, not the final screenshot freeze. The full manuscript, per-control
+inventory, every walkthrough, two-viewer review and full ordinary/custom installation matrix
+remain milestones 5/6. The guide is explicitly blocked from ordinary release packaging.

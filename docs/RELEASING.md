@@ -13,7 +13,10 @@ deliberate action; neither a push nor a merge installs an update on users' compu
 2. Use Windows, Node.js 24+, and `npm ci`. Run `npm run check`, `npm run format:check`, and
    `npm run test:native`. For updater or packaging changes, also run `npm run test:installed-update`.
    Verify your actual HDMI/TV layout, movement, rotation, and both interaction modes.
-3. Run `npm run build:windows`. It builds a Windows x64 NSIS installer, an `.exe.blockmap`, and
+3. Complete the illustrated guide and its [source/review checklist](user-guide/README.md),
+   regenerate it for this version, inspect every page and walkthrough, then run
+   `npm run guide:check`. A missing, stale, wrong-version or Draft PDF blocks release packaging.
+   Run `npm run build:windows`. It builds a Windows x64 NSIS installer, an `.exe.blockmap`, and
    `latest.yml` in `dist/`. `dist/win-unpacked` is for inspection, not distribution as an updater.
    The build always uses `publish: never`; it cannot publish a release or use a GitHub upload token.
 4. Inspect and test the installer. It installs per user, offers a folder choice, creates
@@ -37,7 +40,9 @@ deliberate action; neither a push nor a merge installs an update on users' compu
 4. Verify the published asset URLs and test an update from the previous installed release.
    Keep a source archive or tagged repository with dependencies and build instructions available.
 
-GitHub Actions creates downloadable build artifacts on pushes and PRs. It does not publish
+GitHub Actions creates downloadable build artifacts on pushes and PRs once the guide is Final
+and its review passes. While it is Draft, CI validates it but skips installer creation/upload.
+It does not publish
 GitHub Releases. Before the first installer-enabled release with `latest.yml` is published,
 checks against older ZIP-only releases may report that update information is unavailable.
 

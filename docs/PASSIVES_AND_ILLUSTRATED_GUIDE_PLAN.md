@@ -3,7 +3,8 @@
 Status: milestone 1 was published by the user as `5953c11`, followed by the Behavior/Turn cost
 editor in `eb06b48` and milestone 2's DM Passives in `aee73e9` (including `AGENTS.md`). The local
 and published branch were verified at `aee73e9` before the user-authorized next change. Milestone 3's
-player HUD and DM display controls are now implemented locally. F13 remains planned. Branch,
+player HUD and DM display controls were published as `9f5996c`. The next authorized change is
+milestone 4: offline guide link, authoring setup, packaging and an explicitly Draft prototype. Branch,
 commit, and publishing decisions stay with the user. No release version has been chosen.
 
 Originally prepared September 13 against Tablelight 1.10.2. Updated for the user's branch at
@@ -245,6 +246,15 @@ Completion and tests:
   scenarios with synthetic data. Verify the behavior policy below, including rests and Undo.
 
 ### Milestone 4 — guide authoring setup, help link, and packaging
+
+**Current implementation:** The help link, DM-only fixed-path opening service and recoverable
+error feedback are connected. A repeatable ReportLab/Python build produces the seven-page Draft
+with embedded fonts, original real-app screenshots, linked contents and 13 bookmarks. Its 28
+internal links and destinations are checked; all seven pages were visually inspected. The three
+removed help topics remain readable in the draft. Source/capture/version hashes and a final
+review gate reject stale or unreviewed PDFs. CI checks the prototype but skips release artifacts;
+only isolated, explicitly no-publish testing builds accept it. The complete illustrated manual
+and final walkthrough/screenshots are still milestone 5, not completed by this prototype.
 
 Create editable guide source and approved example assets under `docs/user-guide/`, with a
 repeatable documented generation command. Recommend Markdown content plus a local PDF generator,

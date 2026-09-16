@@ -25,6 +25,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build:windows": "node scripts/build-windows.cjs",
+    "guide:build": "python scripts/build-guide.py",
+    "guide:check": "node scripts/check-guide.cjs",
     "test:installed-update": "node scripts/test-installed-update.cjs"
   },
   "devDependencies": {

@@ -25,6 +25,11 @@ else {
   const invokeState = (channel, ...args) =>
     ipcRenderer.invoke(channel, ...args.map((v) => packImages(v))).then(unpackImages);
   contextBridge.exposeInMainWorld('tablelight', {
+    openGuide: (...args) => {
+      if (args.length)
+        return Promise.reject(new Error('The user guide control does not accept arguments.'));
+      return ipcRenderer.invoke('guide:open');
+    },
     license: () => ipcRenderer.invoke('app:license'),
     updateStatus: () => ipcRenderer.invoke('updates:status'),
     setUpdateChecks: (enabled) => ipcRenderer.invoke('updates:enabled', enabled),

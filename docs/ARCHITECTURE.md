@@ -148,6 +148,33 @@ Removing a character or assignment leaves the library intact. A confirmed backup
 the party, roster, and both libraries. Ordinary Undo remains a chronological stack, now coordinated
 with approved-use History and targeted reversals by the approval service.
 
+## Offline illustrated guide
+
+`guide-ui.js` renders the single Setup & help PDF action and persistent, accessible feedback.
+It coalesces repeated clicks while opening, restores keyboard focus, and explains browser-preview
+limitations. Only the three requested help sections were replaced; setup, license, backup,
+updates, shortcuts and display tips remain. The PDF draft contains those removed topics.
+
+The no-argument `guide:open` bridge checks the DM sender and main frame. `GuideService` resolves
+`docs/Tablelight-User-Guide.pdf` relative to main's `__dirname`, checks readable PDF bytes, then
+uses `shell.openPath`. No user path, URL, working-directory assumption or data-folder lookup is
+accepted. Missing/unreadable/damaged files and both viewer-error forms yield recoverable messages.
+The route never saves, imports a party, creates Undo entries or changes gameplay state.
+
+`scripts/build-guide.py` renders the editable Markdown, local screenshots and licensed fonts using
+ReportLab. It checks version/source records, PDF navigation and embedded fonts with pypdf, then
+writes a manifest of inputs and output bytes. Python is an authoring dependency only. The existing
+docs allowlist includes the PDF and source; QA logs/renders remain in ignored output directories.
+`build/before-pack.cjs` verifies the manifest, version and hashes for every builder entry point.
+Drafts cannot enter ordinary release output; the explicit no-publish testing exception is confined
+to testing folders. Final guides require an all-page, coverage, walkthrough, navigation, two-viewer
+and offline-install review bound to that exact PDF. CI skips release artifacts while it is Draft.
+
+The `guide` native scenario tests the real bridge/UI, keyboard and duplicate activation, faults,
+retry, sender/argument rejection, license and backup controls using isolated data. `guide-capture`
+creates synthetic screenshot assets and records source hashes/version/scaling for author review.
+The full illustrated manuscript and final installation/viewer certification are later milestones.
+
 ## Passive ability foundation
 
 Format 11 adds shared `behavior` (`active`, `passive`, or `hybrid`), `trackPassive` (boolean),

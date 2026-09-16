@@ -116,7 +116,8 @@ async function buildVersion(version, feed) {
       '--publish',
       'never',
     ],
-    path.join(testRoot, 'build-' + version + '.log')
+    path.join(testRoot, 'build-' + version + '.log'),
+    { env: { ...process.env, TABLELIGHT_ALLOW_DRAFT_GUIDE: '1' } }
   );
   assert.ok(fs.existsSync(path.join(output, `Tablelight-Setup-${version}-x64.exe`)));
   return output;

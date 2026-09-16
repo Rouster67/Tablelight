@@ -53,6 +53,14 @@ portable/source copies are not removed.
 6. Open **TV & layout** and select the TV. Choose **Arrange around TV**, then drag and rotate each player’s portrait as needed.
 7. Click **Show TV overlay**. Each player’s bubble appears above the player browser. With HUD controls on, you can interact with the bubbles directly. Empty space passes clicks through to the map.
 
+**Offline illustrated guide:** In **Setup & help**, choose **Open illustrated user guide (PDF,
+offline)**. Windows opens the PDF bundled with that installation using your default PDF viewer.
+It does not need internet or change your saved party. If a viewer is unavailable, choose a default
+PDF app in Windows and retry. If the guide is missing/unreadable, repair or reinstall this app
+version. This development build includes a clearly marked layout prototype; the complete
+illustrated guide is still being prepared. This Markdown companion remains available as
+`START HERE.md` in the installation folder.
+
 ## Saved players and the active party
 
 The left sidebar has two lists. **Party** shows active members in your chosen initiative order. **All characters**, underneath it, shows only saved characters outside the party in alphabetical order. Each list scrolls separately. The saved list includes search and page arrows for larger rosters, with twelve characters per page. Click a saved character's name to edit them without joining the party.

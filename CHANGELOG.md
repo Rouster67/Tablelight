@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Preserve the DM Read license control in installed builds by explicitly including the application license at its expected path.
+
+- Add the offline PDF opening link in Setup & help, replacing the three HUD/concentration/rest paragraphs while retaining other help controls. Resolve the bundled PDF from the running installation, with recoverable file/viewer errors and no save changes. Add a repeatable guide generator, linked contents/bookmarks, embedded fonts, original screenshot capture and packaging checks. The included seven-page development draft is a prototype; the complete illustrated guide remains pending and ordinary release builds reject the draft.
+
 - Add Passives beside Features on expanded player HUDs and in the DM's Currently displayed controls. Players can read passive effects, page long descriptions, switch conditional reminders, and navigate both sides of mixed abilities. Passive views have no Use or cost controls; click-through retains readable status with DM controls. Preserve individual reading pages, saved placement/rotation/scale, and existing 880px/1150px HUD widths.
 
 - Add a DM Passives tab, shared-library passive search/filter, optional per-character Active / Inactive reminders, and separate passive/active descriptions for mixed abilities. Passive views show no Use or cost controls, and pure passives leave ordinary action lists. DM reading links for either effect do not spend or change a HUD; shared/local definitions, saved costs, and individual reminder states remain intact. Explicit Show on TV controls display the selected list or effect for players.

@@ -36,7 +36,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F09 | Uploaded icons for abilities                  | Implemented on branch |
 | F10 | DM approval queue, History, and targeted undo | Released              |
 | F12 | Class overlay color themes                    | Implemented on branch |
-| F13 | Bundled illustrated PDF user guide            | Planned candidate     |
+| F13 | Bundled illustrated PDF user guide            | In progress           |
 
 ## F01 — Passive abilities section
 
@@ -440,6 +440,14 @@ themes on several characters, matching previews, save/backup round trips, older 
 controls in collapsed, expanded, rotated, and click-through HUDs without changing their geometry.
 
 ## F13 — Bundled illustrated PDF user guide
+
+**Guide integration milestone:** Setup & help now has the offline PDF link in place of the
+three requested help sections. A DM-only fixed-path operation opens the running installation's
+guide and reports file/viewer failures without changing saves. The generation pipeline includes
+local screenshots, embedded fonts, linked contents/bookmarks and version/source checks. The
+seven-page Draft is a layout/navigation prototype, with the removed help topics included;
+the extensive final guide and complete walkthrough review remain next. Release packaging
+rejects the draft, and CI withholds installer artifacts until a Final guide passes review.
 
 **Requested (September 13, 2026):** In Setup & help on the DM console, remove the following
 three headings and their explanatory paragraphs:
