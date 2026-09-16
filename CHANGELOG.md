@@ -2,9 +2,11 @@
 
 ## Unreleased
 
+- Replace the seven-page PDF prototype with a complete 17-chapter illustrated manual for the current development interface: guided first session, every character/ability field, shared/local definitions, passive and mixed effects, resources, turns, approvals/History, conditions, player HUDs, messages, backup/recovery, updates/uninstall and troubleshooting. Add original real-app captures and verified worked examples. Keep final release/version and two-viewer certification separate from content completion; ordinary release packaging remains gated.
+
 - Preserve the DM Read license control in installed builds by explicitly including the application license at its expected path.
 
-- Add the offline PDF opening link in Setup & help, replacing the three HUD/concentration/rest paragraphs while retaining other help controls. Resolve the bundled PDF from the running installation, with recoverable file/viewer errors and no save changes. Add a repeatable guide generator, linked contents/bookmarks, embedded fonts, original screenshot capture and packaging checks. The included seven-page development draft is a prototype; the complete illustrated guide remains pending and ordinary release builds reject the draft.
+- Add the offline PDF opening link in Setup & help, replacing the three HUD/concentration/rest paragraphs while retaining other help controls. Resolve the bundled PDF from the running installation, with recoverable file/viewer errors and no save changes. Add a repeatable guide generator, linked contents/bookmarks, embedded fonts, original screenshot capture and packaging checks. Ordinary release builds require a matching final review record.
 
 - Add Passives beside Features on expanded player HUDs and in the DM's Currently displayed controls. Players can read passive effects, page long descriptions, switch conditional reminders, and navigate both sides of mixed abilities. Passive views have no Use or cost controls; click-through retains readable status with DM controls. Preserve individual reading pages, saved placement/rotation/scale, and existing 880px/1150px HUD widths.
 

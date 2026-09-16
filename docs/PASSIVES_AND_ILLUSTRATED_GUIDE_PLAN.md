@@ -3,8 +3,9 @@
 Status: milestone 1 was published by the user as `5953c11`, followed by the Behavior/Turn cost
 editor in `eb06b48` and milestone 2's DM Passives in `aee73e9` (including `AGENTS.md`). The local
 and published branch were verified at `aee73e9` before the user-authorized next change. Milestone 3's
-player HUD and DM display controls were published as `9f5996c`. The next authorized change is
-milestone 4: offline guide link, authoring setup, packaging and an explicitly Draft prototype. Branch,
+player HUD and DM display controls were published as `9f5996c`. Milestone 4's offline guide link,
+authoring pipeline and draft were published as `0b140ba`. The current authorized work replaces
+the prototype with milestone 5's complete illustrated manual for the whole program. Branch,
 commit, and publishing decisions stay with the user. No release version has been chosen.
 
 Originally prepared September 13 against Tablelight 1.10.2. Updated for the user's branch at
@@ -305,6 +306,15 @@ Completion and tests:
   and the completed guide as one deliverable: do not merge/release an incomplete PDF substitute.
 
 ### Milestone 5 — full manuscript, final screenshots, and PDF inspection
+
+**Content implementation:** The seven-page prototype is replaced by a 17-chapter manual with
+about 15,000 words, original Mira/Rowan/Ash walkthroughs, complete editor field references,
+library and session workflows, and real DM/player captures. `docs/user-guide/COVERAGE.md`
+maps current controls and examples to chapters, screenshot IDs and verification. The new
+`guide-manual` native scenario exercises the original examples and records capture provenance.
+This is the current development interface, not a claim of a newly published 1.12.1 release.
+The exact final PDF inspection record is in `docs/user-guide/review.json`; release-version and
+two-viewer certification remain part of milestone 6.
 
 Freeze the intended release feature list, visible labels, layout, and version before final
 capture. Write the manuscript from the coverage inventory below, then run each example in an

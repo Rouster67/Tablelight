@@ -15,6 +15,16 @@ module.exports = async function ({
   updateAdapter,
   guide,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'guide-manual')
+    return require('./guide-manual-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      screen,
+      setOverlay,
+      store,
+    });
   if (['guide', 'guide-capture'].includes(process.env.TABLELIGHT_TEST_SCENARIO))
     return require('./guide-native')({
       app,

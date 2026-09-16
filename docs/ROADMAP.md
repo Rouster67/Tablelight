@@ -445,9 +445,12 @@ controls in collapsed, expanded, rotated, and click-through HUDs without changin
 three requested help sections. A DM-only fixed-path operation opens the running installation's
 guide and reports file/viewer failures without changing saves. The generation pipeline includes
 local screenshots, embedded fonts, linked contents/bookmarks and version/source checks. The
-seven-page Draft is a layout/navigation prototype, with the removed help topics included;
-the extensive final guide and complete walkthrough review remain next. Release packaging
-rejects the draft, and CI withholds installer artifacts until a Final guide passes review.
+original seven-page prototype has been replaced by a 17-chapter full-program manual with
+worked examples, field references, real screenshots, troubleshooting and a control coverage
+record. It covers the current 1.12.1 development interface, including player Passives.
+Release-version selection, two-viewer certification and the final release installation matrix
+remain the release milestone. Release packaging rejects a draft review status, and CI withholds
+installer artifacts until a Final guide passes review.
 
 **Requested (September 13, 2026):** In Setup & help on the DM console, remove the following
 three headings and their explanatory paragraphs:

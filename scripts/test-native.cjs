@@ -44,7 +44,9 @@ const scenarios = [
   'concentration-use',
 ];
 const requested = process.argv.slice(2);
-if (requested.some((scenario) => ![...scenarios, 'guide-capture'].includes(scenario)))
+if (
+  requested.some((scenario) => ![...scenarios, 'guide-capture', 'guide-manual'].includes(scenario))
+)
   throw new Error('Unknown native test scenario.');
 for (const scenario of requested.length ? requested : scenarios) {
   const dir = fs.mkdtempSync(path.join(resultsRoot, scenario + '-'));
@@ -57,7 +59,7 @@ for (const scenario of requested.length ? requested : scenarios) {
     cwd: root,
     encoding: 'utf8',
     windowsHide: true,
-    timeout: 120000,
+    timeout: scenario === 'guide-manual' ? 240000 : 120000,
   });
   fs.writeFileSync(path.join(dir, 'process.log'), (child.stdout || '') + (child.stderr || ''));
   if (child.error || child.status !== 0)

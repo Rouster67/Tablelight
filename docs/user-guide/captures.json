@@ -1,8 +1,8 @@
 {
-  "fixture": "guide-native-v1",
+  "fixture": "guide-manual-v1",
   "appVersion": "1.12.1",
-  "sourceRevision": "9f5996c8644b7ebdfa1c4c8ec0769e6c083dfaac",
-  "workingTree": "Milestone 4 guide UI changes; exact source hashes below",
+  "sourceRevision": "0b140ba735cdbd297a7df97b6ed67fc5be81dc67",
+  "workingTree": "Documentation and capture harness changes; application UI unchanged.",
   "window": {
     "width": 1440,
     "height": 1000
@@ -25,8 +25,366 @@
     }
   ],
   "images": [
-    "help-link.png",
-    "passive-detail.png"
+    {
+      "file": "character-identity.png",
+      "selector": "#character-form .form-grid",
+      "window": "DM",
+      "pixels": {
+        "width": 809,
+        "height": 452
+      }
+    },
+    {
+      "file": "character-training.png",
+      "selector": "#character-form .form-section",
+      "window": "DM",
+      "pixels": {
+        "width": 809,
+        "height": 376
+      }
+    },
+    {
+      "file": "character-spells.png",
+      "selector": "[name=\"spellAbility\"]",
+      "window": "DM",
+      "pixels": {
+        "width": 263,
+        "height": 48
+      }
+    },
+    {
+      "file": "spell-fields.png",
+      "selector": "#guide-spell-fields",
+      "window": "DM",
+      "pixels": {
+        "width": 809,
+        "height": 259
+      }
+    },
+    {
+      "file": "players-party.png",
+      "selector": ".content",
+      "window": "DM",
+      "pixels": {
+        "width": 1187,
+        "height": 816
+      }
+    },
+    {
+      "file": "resource-editor.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 663
+      }
+    },
+    {
+      "file": "add-choices.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 445
+      }
+    },
+    {
+      "file": "ability-editor-top.png",
+      "selector": "#item-form > .form-grid > label:nth-child(-n+4),#item-form [data-behavior-hint]",
+      "window": "DM",
+      "pixels": {
+        "width": 810,
+        "height": 205
+      }
+    },
+    {
+      "file": "ability-editor-costs.png",
+      "selector": "#item-form .form-section.full",
+      "window": "DM",
+      "pixels": {
+        "width": 810,
+        "height": 242
+      }
+    },
+    {
+      "file": "passive-editor.png",
+      "selector": "#item-form > .form-grid > label:nth-child(-n+3),#item-form [data-passive-tracking]",
+      "window": "DM",
+      "pixels": {
+        "width": 810,
+        "height": 279
+      }
+    },
+    {
+      "file": "ability-library.png",
+      "selector": ".content",
+      "window": "DM",
+      "pixels": {
+        "width": 1187,
+        "height": 637
+      }
+    },
+    {
+      "file": "dm-passives.png",
+      "selector": ".character-abilities",
+      "window": "DM",
+      "pixels": {
+        "width": 775,
+        "height": 310
+      }
+    },
+    {
+      "file": "passive-detail.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 301
+      }
+    },
+    {
+      "file": "dm-console.png",
+      "selector": "whole window",
+      "window": "DM",
+      "pixels": {
+        "width": 1424,
+        "height": 961
+      }
+    },
+    {
+      "file": "combat-controls.png",
+      "selector": ".combat-strip",
+      "window": "DM",
+      "pixels": {
+        "width": 775,
+        "height": 190
+      }
+    },
+    {
+      "file": "currently-displayed.png",
+      "selector": ".current-display",
+      "window": "DM",
+      "pixels": {
+        "width": 326,
+        "height": 820
+      }
+    },
+    {
+      "file": "initiative.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 429
+      }
+    },
+    {
+      "file": "tv-layout.png",
+      "selector": "whole window",
+      "window": "DM",
+      "pixels": {
+        "width": 1424,
+        "height": 961
+      }
+    },
+    {
+      "file": "placement.png",
+      "selector": ".display-controls > .card:first-child",
+      "window": "DM",
+      "pixels": {
+        "width": 291,
+        "height": 787
+      }
+    },
+    {
+      "file": "player-overview.png",
+      "selector": ".hud-position",
+      "window": "TV",
+      "pixels": {
+        "width": 886,
+        "height": 934
+      }
+    },
+    {
+      "file": "player-sheet.png",
+      "selector": ".hud-nav, .hud-panel > div, .hud-panel b",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 494
+      }
+    },
+    {
+      "file": "condition-editor.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 579
+      }
+    },
+    {
+      "file": "condition-library.png",
+      "selector": ".content",
+      "window": "DM",
+      "pixels": {
+        "width": 1187,
+        "height": 475
+      }
+    },
+    {
+      "file": "concentration-picker.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 383
+      }
+    },
+    {
+      "file": "cast-slot.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 341
+      }
+    },
+    {
+      "file": "conditions-concentration.png",
+      "selector": ".character-status",
+      "window": "DM",
+      "pixels": {
+        "width": 775,
+        "height": 243
+      }
+    },
+    {
+      "file": "damage.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 305
+      }
+    },
+    {
+      "file": "active-detail.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 428
+      }
+    },
+    {
+      "file": "hybrid-passive.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 245
+      }
+    },
+    {
+      "file": "hybrid-active.png",
+      "selector": ".hud-panel",
+      "window": "TV",
+      "pixels": {
+        "width": 463,
+        "height": 242
+      }
+    },
+    {
+      "file": "rotated-player.png",
+      "selector": ".hud-position",
+      "window": "TV",
+      "pixels": {
+        "width": 948,
+        "height": 886
+      }
+    },
+    {
+      "file": "approval-review.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 877,
+        "height": 801
+      }
+    },
+    {
+      "file": "player-pending.png",
+      "selector": ".hud-pending-requests > b, .hud-pending-requests > .hud-pending-use, .hud-pending-requests > small",
+      "window": "TV",
+      "pixels": {
+        "width": 230,
+        "height": 85
+      }
+    },
+    {
+      "file": "history.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 333
+      }
+    },
+    {
+      "file": "long-rest.png",
+      "selector": ".modal",
+      "window": "DM",
+      "pixels": {
+        "width": 517,
+        "height": 379
+      }
+    },
+    {
+      "file": "messages.png",
+      "selector": ".message-compose-grid",
+      "window": "DM",
+      "pixels": {
+        "width": 1115,
+        "height": 667
+      }
+    },
+    {
+      "file": "player-message.png",
+      "selector": ".message-position",
+      "window": "TV",
+      "pixels": {
+        "width": 486,
+        "height": 326
+      }
+    },
+    {
+      "file": "help-link.png",
+      "selector": "#guide-link",
+      "window": "DM",
+      "pixels": {
+        "width": 763,
+        "height": 46
+      }
+    },
+    {
+      "file": "backup-controls.png",
+      "selector": "#guide-link + .separator + h3",
+      "window": "DM",
+      "pixels": {
+        "width": 763,
+        "height": 31
+      }
+    },
+    {
+      "file": "updates.png",
+      "selector": "#updates-panel",
+      "window": "DM",
+      "pixels": {
+        "width": 294,
+        "height": 239
+      }
+    }
   ],
   "uiInputs": {
     "ability-icon.js": "d9af3bf60042a5aa02625afa8ca9293b9eb5402d4c2b729974f2ac25460bde0b",

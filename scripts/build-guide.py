@@ -17,6 +17,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer, PageBreak, Image, KeepTogether,
+    Table, TableStyle,
 )
 from reportlab.platypus.tableofcontents import TableOfContents
 
@@ -55,7 +56,7 @@ def main():
     for suffix, file in [("", "Vera.ttf"), ("Bold", "VeraBd.ttf"), ("Italic", "VeraIt.ttf"), ("BoldItalic", "VeraBI.ttf")]:
         pdfmetrics.registerFont(TTFont("Guide" + suffix, str(SOURCE / "fonts" / file)))
     pdfmetrics.registerFontFamily("Guide", normal="Guide", bold="GuideBold", italic="GuideItalic", boldItalic="GuideBoldItalic")
-    body = ParagraphStyle("Body", fontName="Guide", fontSize=11, leading=16, textColor=colors.HexColor('#243431'), spaceAfter=10)
+    body = ParagraphStyle("Body", fontName="Guide", bulletFontName="Guide", fontSize=11, leading=15, textColor=colors.HexColor('#243431'), spaceAfter=8)
     title = ParagraphStyle("Title", parent=body, fontName="GuideBold", fontSize=30, leading=38, spaceAfter=22)
     heading = ParagraphStyle("Chapter", parent=body, fontName="GuideBold", fontSize=22, leading=28, spaceAfter=17, keepWithNext=True)
     sub = ParagraphStyle("Section", parent=body, fontName="GuideBold", fontSize=14, leading=19, spaceBefore=13, spaceAfter=9, keepWithNext=True)
@@ -87,26 +88,47 @@ def main():
     story = [Spacer(1, 75), Paragraph("TABLELIGHT", title), Paragraph("Illustrated user guide", heading),
              Paragraph(f"App version {version}", sub), Spacer(1, 26),
              Paragraph("DEVELOPMENT DRAFT" if options.draft else "Offline edition", sub),
-             Paragraph("Guide integration and layout prototype. The extensive final manual is still in preparation. This draft is for testing only and is blocked from release packaging." if options.draft else "Read the guide alongside your session. All essential text, images and navigation are bundled locally.", body),
+             Paragraph("The complete manual for this development build: setup, characters, libraries, passives, running a session, player HUDs, messages, saves and recovery. Release certification is pending." if options.draft else "The complete manual: setup, characters, libraries, passives, running a session, player HUDs, messages, saves and recovery.", body),
              Spacer(1, 20), Paragraph("Original examples. Real Tablelight screenshots. Linked contents and bookmarks.", body),
              Spacer(1, 60), Paragraph("Copyright (C) 2026 Tablelight contributors. GPL-3.0-or-later. Font licenses are included with the editable guide source. Tablelight is an independent manual tracker; no game rulebook text is included.", caption), PageBreak(), Paragraph("Contents", heading)]
     toc = TableOfContents()
     toc.tableStyle.add('FONTNAME', (0, 0), (-1, -1), 'Guide')
-    toc.levelStyles = [ParagraphStyle("Contents chapter", parent=body, fontName="GuideBold", fontSize=12, leading=18, spaceBefore=12), ParagraphStyle("Contents section", parent=body, leftIndent=18, fontSize=10, leading=15)]
+    toc.levelStyles = [ParagraphStyle("Contents chapter", parent=body, fontName="GuideBold", fontSize=12, leading=17, spaceBefore=6), ParagraphStyle("Contents section", parent=body, leftIndent=18, fontSize=10, leading=14)]
     story += [toc, PageBreak()]
     lines = (SOURCE / "GUIDE.md").read_text(encoding="utf8").replace('{{version}}', version).splitlines()
     paragraphs = []
     current = []
     for line in lines + ['']:
-        if not line.strip() or line.startswith(('# ', '## ', '![', '1. ', '2. ', '3. ', '4. ', '5. ')):
+        if not line.strip() or line.startswith(('# ', '## ', '![', '- ', '|', '---')) or re.match(r'\d+\. ', line):
             if current:
                 paragraphs.append(' '.join(current))
                 current = []
         if line.strip():
             current.append(line.strip())
+        elif paragraphs and paragraphs[-1].startswith('|'):
+            paragraphs.append('')
     chapters = 0
     destinations = []
+    table_rows = []
+    def flush_table():
+        if not table_rows:
+            return
+        cells = [[Paragraph(inline(cell), ParagraphStyle('Cell', parent=body, fontSize=10, leading=14, spaceAfter=0)) for cell in row] for row in table_rows]
+        count = len(table_rows[0])
+        widths = [170, 346] if count == 2 else [516 / count] * count
+        table = Table(cells, colWidths=widths, repeatRows=1, hAlign='LEFT')
+        table.setStyle(TableStyle([('FONTNAME', (0,0),(-1,-1),'Guide'), ('VALIGN', (0, 0), (-1, -1), 'TOP'), ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#deebe5')), ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f7f5')]), ('LINEBELOW', (0, 0), (-1, 0), .6, colors.HexColor('#78968a')), ('LEFTPADDING', (0,0),(-1,-1),8), ('RIGHTPADDING',(0,0),(-1,-1),8), ('TOPPADDING',(0,0),(-1,-1),8), ('BOTTOMPADDING',(0,0),(-1,-1),8)]))
+        story.extend([table, Spacer(1, 12)])
+        table_rows.clear()
     for text in paragraphs:
+        if text.startswith('|'):
+            row = [c.strip() for c in text.strip('|').split('|')]
+            if not all(re.fullmatch(r'[-: ]+', c) for c in row):
+                table_rows.append(row)
+            continue
+        flush_table()
+        if not text:
+            continue
         if text.startswith('#'):
             depth = 1 if text.startswith('## ') else 0
             label = text[3 if depth else 2:]
@@ -120,6 +142,8 @@ def main():
                 raise ValueError('Duplicate heading: ' + label)
             destinations.append(p.destination)
             story.append(p)
+        elif text == '---':
+            story.append(PageBreak())
         elif text.startswith('!['):
             match = re.fullmatch(r'!\[([^]]+)\]\((images/[^)]+)\)', text)
             if not match:
@@ -129,12 +153,15 @@ def main():
             size = ImageReader(str(image_path)).getSize()
             width = min(516, size[0] * 0.85)
             height = width * size[1] / size[0]
-            if height > 330:
-                width *= 330 / height
-                height = 330
+            if height > 540:
+                width *= 540 / height
+                height = 540
             story.append(KeepTogether([Image(str(image_path), width=width, height=height, hAlign='LEFT'), Paragraph(inline(alt), caption)]))
+        elif text.startswith('- '):
+            story.append(Paragraph(inline(text[2:]), ParagraphStyle('Bullet', parent=body, leftIndent=14, firstLineIndent=-14), bulletText='-'))
         else:
             story.append(Paragraph(inline(text), numbered if re.match(r'\d+\. ', text) else body))
+    flush_table()
     doc.multiBuild(story)
     reader = PdfReader(PDF)
     text = '\n'.join(p.extract_text() for p in reader.pages)
