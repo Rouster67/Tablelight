@@ -15,6 +15,17 @@ module.exports = async function ({
   updateAdapter,
   guide,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'upgrade-data')
+    return require('./upgrade-data-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+      updates,
+      guide,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'guide-manual')
     return require('./guide-manual-native')({
       app,

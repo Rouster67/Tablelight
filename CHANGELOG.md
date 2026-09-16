@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Extend the installer regression to cover passive/hybrid definitions, independent character reminders and HUD settings, and replacement/removal of the bundled PDF in a custom folder with spaces and a non-ASCII name. Record remaining Windows installer, PDF-reader and physical TV release checks separately from automated results.
+
+- Run the same saved-party fixture through a standalone save/restart check, including passive reminder Undo, spending rejection, guide handoff, update preferences and session-message clearing. Report installer-test app launch errors immediately instead of hiding them until the update timeout.
+
 - Replace the seven-page PDF prototype with a complete 17-chapter illustrated manual for the current development interface: guided first session, every character/ability field, shared/local definitions, passive and mixed effects, resources, turns, approvals/History, conditions, player HUDs, messages, backup/recovery, updates/uninstall and troubleshooting. Add original real-app captures and verified worked examples. Keep final release/version and two-viewer certification separate from content completion; ordinary release packaging remains gated.
 
 - Preserve the DM Read license control in installed builds by explicitly including the application license at its expected path.

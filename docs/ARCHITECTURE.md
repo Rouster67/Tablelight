@@ -521,6 +521,21 @@ An opened message is visible to nearby people; the composer states this next to 
 
 ## Tests
 
+The installed-update harness additionally checks format 11 passive/hybrid definitions,
+independent reminder and personal cost settings, local/unused passives, and HUD scale/rotation.
+It verifies replacement of an intentionally different old PDF and the installed Help-to-guide
+path before and after the update. Its viewer callback is simulated; interactive reader and
+offline installer checks are tracked separately in
+[the passive/guide release check record](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md).
+
+`installed-party-fixture.js` shares the synthetic party and its assertions between the real
+installer harness and `upgrade-data-native.js`. The latter uses two separate Electron processes
+to check save/restart independently of installer availability. It also verifies personal reminder
+changes/Undo, passive-use rejection, the guide bridge and cleared transient messages. It does not
+pretend that restarting the app proves an installation. `wait-installed-result.cjs` retains an
+early process-launch rejection and distinguishes it from a normal old-process exit; focused
+tests cover that failure, successful restart reporting and missing-result timeout.
+
 Unit tests cover cost spending, migration, linked definitions, independent bindings, save recovery, geometry, command validation, and stale-editor merging. Native scenarios exercise the real renderer and Electron windows using synthetic state, capture screenshots, and verify persistence. Run them with `npm run test:native` in a Windows desktop session. The native harness creates a unique user-data directory per scenario and never reads the normal party file.
 
 `visual-improvements-native.js` combines artwork, independent themes, message cards and pending

@@ -9,6 +9,7 @@ const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
 const scenarios = [
+  'upgrade-data',
   'guide',
   'passives-hud',
   'passives-dm',
@@ -64,7 +65,7 @@ for (const scenario of requested.length ? requested : scenarios) {
   fs.writeFileSync(path.join(dir, 'process.log'), (child.stdout || '') + (child.stderr || ''));
   if (child.error || child.status !== 0)
     throw child.error || new Error(scenario + ' test process failed. See ' + dir);
-  if (['character-themes', 'player-messages'].includes(scenario)) {
+  if (['character-themes', 'player-messages', 'upgrade-data'].includes(scenario)) {
     const first = JSON.parse(fs.readFileSync(path.join(dir, scenario + '-results.json'), 'utf8'));
     if (!first.passed) throw new Error(first.error + '\nSee ' + dir);
     const restart = spawnSync(electron, [root, '--self-test'], {

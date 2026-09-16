@@ -4,9 +4,12 @@ Status: milestone 1 was published by the user as `5953c11`, followed by the Beha
 editor in `eb06b48` and milestone 2's DM Passives in `aee73e9` (including `AGENTS.md`). The local
 and published branch were verified at `aee73e9` before the user-authorized next change. Milestone 3's
 player HUD and DM display controls were published as `9f5996c`. Milestone 4's offline guide link,
-authoring pipeline and draft were published as `0b140ba`. The current authorized work replaces
-the prototype with milestone 5's complete illustrated manual for the whole program. Branch,
-commit, and publishing decisions stay with the user. No release version has been chosen.
+authoring pipeline and draft were published as `0b140ba`. Milestone 5's complete illustrated
+manual is committed as `8e3b699`, followed by the review record in `e55be28`. The user has
+authorized milestone 6's final verification. See the [release check record](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md)
+for completed checks and remaining blockers. Branch, commit, and publishing decisions stay
+with the user. The user now intends a 2.0 release; applying that version and preparing its final
+guide/build remain outstanding. The current package is still 1.12.1.
 
 Originally prepared September 13 against Tablelight 1.10.2. Updated for the user's branch at
 `2c583f9` (package 1.12.1 plus the latest merged HUD/DM layout changes).
@@ -360,6 +363,21 @@ Completion and tests:
   approved images, build instructions, and manifest with the app's source for future updates.
 
 ### Milestone 6 — combined regression, installations, and review
+
+**September 16 status:** Verification is in progress. The installer regression now includes
+passive/hybrid definitions, independent reminder states and HUD settings, and replacement of
+a deliberately different old guide in a custom folder with spaces and a non-ASCII name.
+Its actual installation run is blocked by Windows Application Control. Interactive PDF-reader,
+offline installation and physical TV checks remain open; the user cannot test the TV now.
+The [release check record](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md) distinguishes automated
+evidence, earlier installed-copy checks, and checks that still need a suitable environment.
+
+**Verification follow-up:** The save fixture and assertions are now shared with the independent
+`upgrade-data` desktop scenario, which passes a real close/reopen cycle without an installer.
+It verifies reminder Undo/spending protection, complete saved content, personal HUD settings,
+guide handoff, update opt-out and cleared messages. The installer harness also reports launch
+failures promptly. The user has no second Windows test PC or signing certificate available;
+the installer and manual reader/TV checks remain separate outstanding requirements.
 
 Run required project checks and the full native suite on the final combined source. Test with
 isolated synthetic saves, including old-format parties through format 10 upgraded to format 11, inactive players,

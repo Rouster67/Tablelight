@@ -5,12 +5,14 @@ const fs = require('node:fs'),
   http = require('node:http'),
   assert = require('node:assert/strict');
 const { spawn, execFileSync } = require('node:child_process');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, createHash } = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 if (process.platform !== 'win32') throw new Error('Installer tests require Windows.');
 fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
 const testRoot = fs.mkdtempSync(path.join(root, 'test-results', 'installed-update-'));
-const installDir = path.join(testRoot, 'installed app');
+const installDir = path.join(testRoot, 'installed é app');
+const guideName = path.join('resources', 'app', 'docs', 'Tablelight-User-Guide.pdf');
+const fileHash = (file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const testInstallerGuid = randomUUID();
 const shortcutName = 'Tablelight Uninstall Test ' + testInstallerGuid;
 const shortcutFolders = JSON.parse(
@@ -128,93 +130,8 @@ async function buildVersion(version, feed) {
   const first = await buildVersion('0.0.1', feed);
   releaseDir = await buildVersion('0.0.2', feed);
   const TL = require('../core');
-  const { png, dataUrl } = require('../tests/icon-fixtures');
-  const sharedIcon = dataUrl(png(32, 16, { pixel: [60, 170, 245, 180] }));
-  const localIcon = dataUrl(png(16, 32, { pixel: [235, 95, 70, 255] }));
-  const state = TL.empty();
-  const c = TL.character(0);
-  c.name = 'Synthetic update player';
-  c.theme = 'artificer';
-  c.maxHp = 42;
-  c.hp = 23;
-  c.notes = 'Private synthetic note survives the update.';
-  c.avatar =
-    'data:image/png;base64,' + fs.readFileSync(path.join(root, 'icon.png')).toString('base64');
-  c.abilities.int = 17;
-  c.slots[0] = { level: 1, max: 3, current: 1 };
-  c.resources = [
-    {
-      id: 'test-pool',
-      name: 'Synthetic pool',
-      max: 5,
-      current: 2,
-      reset: 'long',
-      icon: 'diamond',
-      color: '#123456',
-    },
-  ];
-  state.characters = [c];
-  state.activeId = c.id;
-  state.roster = [
-    { ...TL.character(1), name: 'Synthetic saved player', avatar: c.avatar, theme: 'wizard' },
-  ];
-  state.library = [
-    TL.libraryEntry({
-      name: 'Synthetic spell',
-      kind: 'spell',
-      level: 1,
-      requiresConcentration: true,
-      description: 'Synthetic spell text.',
-      icon: sharedIcon,
-    }),
-    TL.libraryEntry({
-      name: 'Synthetic action',
-      kind: 'action',
-      description: 'Synthetic action text.',
-    }),
-    TL.libraryEntry({
-      name: 'Synthetic feature',
-      kind: 'feature',
-      description: 'Synthetic feature text.',
-      icon: sharedIcon,
-    }),
-    TL.libraryEntry({
-      name: 'Unassigned ability',
-      description: 'Retain unused library entries too.',
-      icon: localIcon,
-    }),
-  ];
-  const concentration = TL.attachItem(state, c.id, state.library[0].id, {
-    resourceId: 'test-pool',
-    resourceCost: 2,
-  });
-  TL.attachItem(state, c.id, state.library[1].id);
-  TL.attachItem(state, state.roster[0].id, state.library[2].id, { disabled: true });
-  TL.createLocalItem(state, c.id, {
-    name: 'Synthetic local ability',
-    icon: localIcon,
-    economy: 'free',
-  });
-  TL.setConcentration(c, true, concentration.id);
-  state.conditionLibrary = [
-    TL.conditionEntry({
-      name: 'Active condition',
-      description: 'Synthetic active condition text.',
-    }),
-    TL.conditionEntry({
-      name: 'Saved-player condition',
-      description: 'Synthetic saved-player condition text.',
-    }),
-    TL.conditionEntry({
-      name: 'Unassigned condition',
-      description: 'Retain unused conditions too.',
-    }),
-  ];
-  TL.assignCondition(state, c.id, state.conditionLibrary[0].id);
-  TL.assignCondition(state, state.roster[0].id, state.conditionLibrary[1].id);
-  state.settings.opacity = 0.81;
-  state.settings.soloExpand = true;
-  state.settings.hudControlsVersion = 1;
+  const state = require('../tests/installed-party-fixture').createInstalledParty();
+  const c = state.characters[0];
   fs.mkdirSync(path.join(testRoot, 'data'), { recursive: true });
   fs.writeFileSync(
     path.join(testRoot, 'data', 'party.json'),
@@ -231,6 +148,18 @@ async function buildVersion(version, feed) {
   );
   const executable = path.join(installDir, 'Tablelight Update Test.exe');
   assert.ok(fs.existsSync(executable));
+  const installedGuide = path.join(installDir, guideName);
+  const newGuideHash = fileHash(path.join(releaseDir, 'win-unpacked', guideName));
+  assert.equal(fileHash(installedGuide), newGuideHash, 'Fresh install contains the bundled guide.');
+  // A valid trailing PDF comment makes this isolated old copy different without
+  // touching the source PDF or either build. The real update must replace it.
+  fs.appendFileSync(installedGuide, '\n% Tablelight synthetic previous guide\n');
+  const oldGuideHash = fileHash(installedGuide);
+  assert.notEqual(oldGuideHash, newGuideHash);
+  fs.writeFileSync(
+    path.join(testRoot, 'expected-guide.json'),
+    JSON.stringify({ oldGuideHash, newGuideHash })
+  );
   for (const shortcut of shortcuts) assert.ok(fs.existsSync(shortcut), 'Test shortcut exists.');
   // Only this run's synthetic app owns this fresh registry key. Remove its path
   // record so the update must preserve the running app's custom folder itself.
@@ -247,20 +176,16 @@ async function buildVersion(version, feed) {
     ['delete', testRegistryKey, '/v', 'InstallLocation', '/f'],
     registryOptions
   );
-  console.log('Testing a custom folder with spaces and no saved installation path.');
+  console.log(
+    'Testing a custom folder with spaces, a non-ASCII name and no saved installation path.'
+  );
   console.log('Running the real update and restart…');
   const oldProcess = run(executable, [], path.join(testRoot, 'application.log'));
-  oldProcess.catch(() => {});
   const resultFile = path.join(testRoot, 'installed-results.json');
-  const started = Date.now();
-  while (!fs.existsSync(resultFile)) {
-    if (Date.now() - started > 150000)
-      throw new Error('Installed update timed out. See ' + testRoot);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  const result = JSON.parse(fs.readFileSync(resultFile));
+  const result = await require('./wait-installed-result.cjs')(resultFile, oldProcess);
   if (!result.passed) throw new Error(result.error);
   assert.equal(result.executable.toLowerCase(), executable.toLowerCase());
+  assert.equal(fileHash(installedGuide), newGuideHash, 'The new installer replaces the old guide.');
   assert.ok(requests.some((request) => request.url.includes('Tablelight-Setup-0.0.2-x64.exe')));
   assert.ok(requests.some((request) => request.url.startsWith('/assets/')));
   for (const request of requests) {
@@ -317,6 +242,7 @@ async function buildVersion(version, feed) {
   console.log('Silent deletion flags are rejected, including during an update.');
   await uninstall(['/S', '--updated'], 'update-uninstall');
   assert.ok(!fs.existsSync(executable));
+  assert.ok(!fs.existsSync(installedGuide), 'Update uninstall removes the old bundled guide.');
   assert.ok(fs.existsSync(path.join(testRoot, 'cache')), 'Updating keeps its download cache.');
   for (const name of ['party.json', 'party.previous.json', 'updates.json'])
     assert.deepEqual(
@@ -359,6 +285,7 @@ async function buildVersion(version, feed) {
     { windowsVerbatimArguments: true }
   );
   await uninstall(['/S'], 'uninstall');
+  assert.ok(!fs.existsSync(installedGuide), 'Ordinary uninstall removes bundled documentation.');
   for (const name of ['party.json', 'party.previous.json', 'updates.json']) {
     assert.deepEqual(
       fs.readFileSync(path.join(testRoot, 'data', name)),

@@ -452,6 +452,13 @@ Release-version selection, two-viewer certification and the final release instal
 remain the release milestone. Release packaging rejects a draft review status, and CI withholds
 installer artifacts until a Final guide passes review.
 
+**Final verification (September 16):** The current source passes 225 core and 288 desktop
+checks. The upgrade regression now includes passive/hybrid data, personal reminders and
+HUD settings, plus replacement of the bundled guide. Windows Application Control blocks
+the unsigned installer, so the new real-install assertions remain unexecuted. Interactive
+reader/offline installation checks and the unavailable physical TV review remain open in
+[the release check record](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md). F13 is still In progress.
+
 **Requested (September 13, 2026):** In Setup & help on the DM console, remove the following
 three headings and their explanatory paragraphs:
 

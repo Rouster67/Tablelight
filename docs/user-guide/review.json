@@ -42,8 +42,59 @@
     },
     "scope": "Core worked examples replayed through real renderer controls with synthetic data; focused variants verified by the feature scenarios mapped in COVERAGE.md. Installation/uninstall walkthroughs are source-checked but await the final release matrix. No real saves used."
   },
+  "finalVerification": {
+    "date": "2026-09-16",
+    "baseCommit": "e55be289d7c6372f88ae3f252c7d880775857a17",
+    "unitChecksPassed": 225,
+    "desktopChecksPassed": 288,
+    "logs": ["work/continued-verification-unit.log", "work/continued-verification-native.log"],
+    "record": "docs/PASSIVES_AND_GUIDE_RELEASE_CHECKS.md",
+    "installerRegression": "Shared data assertions now pass independently through save/restart. Actual installation remains blocked by Windows Application Control; no signing certificate or separate Windows test PC is available.",
+    "interactiveViewers": "Partial user-observed pass: opening the installed guide from Setup & help and following the contents link to Passives both work in Firefox, identified by the user. The user subsequently confirmed that the links they tested work. Browser version, bookmark interaction, search, offline use and a second reader remain unconfirmed. Browser automation remains blocked; no workaround used.",
+    "physicalTv": "Pending; the user cannot test the TV now.",
+    "pdfChanged": false,
+    "independentRestart": {
+      "scenario": "upgrade-data",
+      "checksPassed": 6,
+      "run": "test-results/upgrade-data-PYEYsr",
+      "scope": "Same fixture and assertions as the installer test, exercised through two real Electron processes. Does not certify installation."
+    },
+    "launchFailureChecksPassed": 3
+  },
+  "pdfAudit": {
+    "date": "2026-09-16",
+    "pdfChanged": false,
+    "sourceMatchesInstalled": true,
+    "report": "outputs/pdf-test-20260916/results.json (ignored local evidence)",
+    "structure": "All 67 pages, 83 bookmarks and 183 internal links passed. Every contents label/page-number link resolves to its matching heading. All fonts and image streams are embedded and decode successfully; no external resources, remote actions, JavaScript or launch actions were found. Every page has selectable text, the correct development-edition footer and in-bounds text.",
+    "rendering": "Poppler and PDFium each rendered all 67 pages successfully. Every fresh Poppler page is pixel-identical to its previously inspected final page. PDFium pages with the largest rendering differences and representative contents, screenshot and table pages were individually inspected; no clipping, overlap, missing images or unreadable instructional close-ups found.",
+    "pdfiumPagesInspected": [
+      1, 2, 3, 4, 6, 9, 13, 19, 22, 25, 26, 27, 35, 39, 45, 48, 50, 54, 55, 57, 61, 67
+    ],
+    "textSearch": {
+      "date": "2026-09-16",
+      "query": "bonus action",
+      "passed": true,
+      "matches": 24,
+      "pages": [5, 8, 9, 21, 31, 32, 33, 35, 39, 44, 46, 50, 51, 63, 67],
+      "method": "Read-only PDFium case-insensitive search in the installed PDF, including matches across line breaks. Every match has valid on-page highlight bounds. Independent pypdf text extraction identifies the same pages; the installed PDF hash still matches the reviewed source.",
+      "report": "outputs/pdf-test-20260916/search-results.json (ignored local evidence)",
+      "limits": "Verifies the PDF text and search geometry. Does not exercise Firefox, its on-screen highlighting or its PDF.js search engine. The user is away from the PC; interactive search remains pending."
+    },
+    "userObserved": {
+      "openFromSetupAndHelp": true,
+      "contentsLinkToPassives": true,
+      "testedLinksWork": true,
+      "viewer": "Firefox (user-confirmed); version not yet confirmed",
+      "bookmarks": "pending",
+      "search": "pending",
+      "offlineReopen": "pending",
+      "secondReader": "pending"
+    },
+    "limits": "File structure and two rendering engines do not certify interactive reader behavior, actual disconnected use or installation. Only opening and the links the user explicitly confirmed are counted as user-observed passes; the latest link confirmation does not establish search, bookmark or offline results."
+  },
   "releaseChecksPending": [
-    "Choose the release version, refresh affected screenshots and regenerate the final edition.",
+    "Prepare the user's intended 2.0 release version, refresh affected screenshots and regenerate the final edition.",
     "Open and exercise navigation offline in the Windows default PDF viewer and a second distinct viewer.",
     "Complete the fresh ordinary/custom installer and custom-folder upgrade/uninstall matrix with the release candidate.",
     "Check screenshot/HUD readability from the actual TV seats and target Windows scaling."
