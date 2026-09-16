@@ -59,6 +59,35 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     const firstId = getState().characters[0].id,
       manual = getState().characters[0].resources[3].id;
+    await click('[data-action="add-resource"]');
+    assert.equal(
+      await run(
+        `return !!document.getElementById('resource-form') && !document.getElementById('character-form');`
+      ),
+      true
+    );
+    await run(
+      `document.querySelector('#resource-form [name="resource-name"]').value='Discard new pool';`
+    );
+    await click('[data-action="close-modal"]');
+    assert.equal(getState().characters[0].resources.length, 4);
+    await click('[data-action="add-resource"]');
+    await run(
+      `const form=document.getElementById('resource-form');form.querySelector('[name="resource-name"]').value='New independent pool';const max=form.querySelector('[name="resource-max"]');max.value=5;max.dispatchEvent(new Event('input',{bubbles:true}));form.querySelector('[data-resource-icon="star"]').click();form.querySelector('[name="resource-color"]').value='#123456';await commit(()=>{selected().resources[0].current=1;selected().hp=7;});form.requestSubmit();await saveQueue;`
+    );
+    await wait(() => getState().characters[0].resources.length === 5);
+    const added = getState().characters[0].resources[4];
+    assert.equal(added.name, 'New independent pool');
+    assert.equal(added.current, 5);
+    assert.equal(added.icon, 'star');
+    assert.equal(added.color, '#123456');
+    assert.equal(getState().characters[0].resources[0].current, 1);
+    assert.equal(getState().characters[0].hp, 7);
+    await click('[data-action="undo"]');
+    assert.equal(getState().characters[0].resources.length, 4);
+    results.push(
+      'The dedicated Add resource form supports Cancel, appearance and counts; saving appends only the new pool and preserves live character changes.'
+    );
     await run(
       `commit(()=>{selected().hud={...selected().hud,expanded:true,x:50,y:50,scale:1,rotation:0};state.settings.displayId=${JSON.stringify(String(screen.getPrimaryDisplay().id))};state.settings.overlayInteractive=true;const other=TL.character();other.name='Other player';other.hud.visible=false;state.characters.push(other);});await saveQueue;`
     );
@@ -73,13 +102,13 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       )
     );
     await wait(() =>
-      tv(`return document.querySelectorAll('.hud-summary .hud-resource').length===4;`)
+      tv(`return document.querySelectorAll('.hud-summary .hud-resource').length===3;`)
     );
     let base = await geometry();
     assert.equal(base.width, 880);
     assert.ok(base.height >= 650);
     const stacks = await tv(
-      `const rows=[...document.querySelectorAll('.hud-summary .hud-resource')].map(el=>el.getBoundingClientRect());const slots=document.querySelector('.hud-slots').getBoundingClientRect();return rows.every((r,i)=>r.top>=(i?rows[i-1].bottom:slots.bottom)) && document.querySelectorAll('.hud-summary .resource-icon').length===4;`
+      `const rows=[...document.querySelectorAll('.hud-summary .hud-resource')].map(el=>el.getBoundingClientRect());const slots=document.querySelector('.hud-slots').getBoundingClientRect();return rows.every((r,i)=>r.top>=(i?rows[i-1].bottom:slots.bottom)) && document.querySelectorAll('.hud-summary .resource-icon').length===3;`
     );
     assert.ok(stacks);
     assert.equal(
@@ -88,6 +117,10 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       ),
       1
     );
+    await click('[data-dm-list-pages="resources"] [data-amount="1"]');
+    await wait(() =>
+      tv(`return !!document.querySelector('.hud-summary [data-hud-command*="resource-reset"]');`)
+    );
     assert.equal(
       await tv(
         `return document.querySelectorAll('.hud-summary [data-hud-command*="resource-reset"]').length;`
@@ -95,7 +128,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       1
     );
     results.push(
-      'All resources stack below slots with their icons and counts; only manual counters show Reset on both screens.'
+      'Each page of resources stacks below slots with their icons and counts; only manual counters show Reset on both screens.'
     );
 
     await zero();
@@ -127,6 +160,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     results.push(
       'A real pointer click on the TV manual Reset button refills the pool and saves it to the DM.'
     );
+    await click('[data-dm-list-pages="resources"] [data-amount="-1"]');
     await zero();
     await tv(
       `await window.tablelight.hudCommand({type:'turn',characterId:state.characters[0].id});`
@@ -173,7 +207,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
 
     await run(
-      `commit(()=>{const c=selected();for(let i=0;i<8;i++)c.items.push(TL.item({name:'User action '+i,kind:'spell',economy:i%2?'bonus':'action',description:('A line of user text.\\n').repeat(150),range:'Long user metadata '.repeat(14),duration:'User duration '.repeat(20)}));for(let i=4;i<25;i++)c.resources.push({id:'extra-'+i,name:'A long custom resource name for testing wrapping '.repeat(2),max:999,current:i,reset:'manual',icon:'diamond',color:'#bed479'});});await saveQueue;`
+      `commit(()=>{const c=selected();for(let i=0;i<8;i++)c.items.push(TL.item({name:'User action '+i,kind:'spell',economy:i%2?'bonus':'action',description:('A line of user text.\\n').repeat(150),range:'Long user metadata '.repeat(14),duration:'User duration '.repeat(20)}));c.hud.resourcePage=1;for(let i=4;i<25;i++)c.resources.push({id:'extra-'+i,name:'A long custom resource name for testing wrapping '.repeat(2),max:999,current:i,reset:'manual',icon:'diamond',color:'#bed479'});});await saveQueue;`
     );
     await wait(() => tv('return state.characters[0].resources.length===25;'));
     const shortHeight = base.height;
@@ -185,7 +219,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       )
     );
     results.push(
-      'The frame grows for all 25 resources; the left column and size buttons need no scrolling.'
+      'The resource page grows for wrapping names; three counters and the size buttons need no scrolling.'
     );
     for (const panel of [
       '',
@@ -200,75 +234,52 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     ]) {
       await click(`.current-display [data-panel="${panel}"]`);
       await wait(() => tv(`return state.characters[0].hud.panel===${JSON.stringify(panel)};`));
-      assert.deepEqual(await geometry(), base, 'menu ' + panel);
+      assert.equal((await geometry()).width, base.width);
+      assert.equal(getState().characters[0].hud.scale, 1);
+      assert.ok(
+        await tv(
+          `const area=document.querySelector('.hud-section-content');return area.scrollHeight<=area.clientHeight+1;`
+        )
+      );
     }
     results.push(
-      'Every DM submenu keeps exactly the same position, frame, and scale, even with 25 resources and long names.'
+      'Every DM submenu keeps its width and saved scale while growing enough to show its content.'
     );
     await click('.current-display [data-panel="spell"]');
     await click('.current-display [data-action="hud-detail"]');
     await wait(() => tv(`return !!document.querySelector('.hud-description');`));
-    assert.deepEqual(await geometry(), base);
+    assert.equal((await geometry()).width, base.width);
     await click('.current-display [data-action="hud-page"][data-amount="1"]');
     await wait(() => tv(`return state.characters[0].hud.page===1;`));
-    assert.deepEqual(await geometry(), base);
-    results.push(
-      'Opening long ability text and changing description pages keeps the HUD dimensions unchanged.'
-    );
+    assert.equal((await geometry()).width, base.width);
+    results.push('Long ability text and description pages stay within the chosen HUD width.');
     await run(
-      `commit(()=>{state.settings.overlayInteractive=false;window.tallResourceFixture=TL.clone(selected().resources);selected().resources=selected().resources.slice(0,4);});await saveQueue;`
+      `commit(()=>{state.settings.overlayInteractive=false;window.tallResourceFixture=TL.clone(selected().resources);selected().hud.resourcePage=0;selected().resources=selected().resources.slice(0,3);});await saveQueue;`
     );
     await wait(() =>
-      tv(`return !state.settings.overlayInteractive && state.characters[0].resources.length===4;`)
+      tv(`return !state.settings.overlayInteractive && state.characters[0].resources.length===3;`)
     );
     const tallHeight = base.height;
     base = await geometry();
     assert.ok(base.height < tallHeight);
-    const historyBefore = await run('return history.length;');
-    await click(
-      '.current-display [data-action="current-scroll"][data-area="section"][data-direction="1"]'
-    );
-    await wait(() => tv(`return document.querySelector('.hud-section-content').scrollTop>0;`));
-    const scrollBefore = await tv(
-      `return document.querySelector('.hud-section-content').scrollTop;`
-    );
     assert.equal(
-      await run(`return !!document.querySelector('.current-display [data-area="summary"]');`),
+      await run(
+        `return !!document.querySelector('.current-display [data-action="current-scroll"]');`
+      ),
       false
     );
     assert.ok(
       await tv(
-        "const summary=document.querySelector('.hud-summary');return summary.scrollTop===0 && summary.scrollHeight<=summary.clientHeight+1;"
+        `const area=document.querySelector('.hud-section-content');return area.scrollTop===0 && area.scrollHeight<=area.clientHeight+1;`
       )
     );
-    assert.equal(await run('return history.length;'), historyBefore);
     await run(`commit(()=>selected().hp=5);await saveQueue;`);
     await wait(() => tv(`return state.characters[0].hp===5;`));
-    assert.equal(
-      await tv(`return document.querySelector('.hud-section-content').scrollTop;`),
-      scrollBefore
-    );
-    assert.deepEqual(await geometry(), base);
-    await shot('01-fixed-click-through', overlay);
+    assert.equal((await geometry()).width, base.width);
+    await shot('01-expanded-click-through', overlay);
     results.push(
-      'DM scroll buttons work in click-through mode without Undo entries; HP updates preserve reading position and frame height.'
+      'Ability details grow without scrolling in click-through mode, and live HP updates preserve the frame.'
     );
-    await click('.current-display [data-panel="sheet"]');
-    await wait(() => tv(`return state.characters[0].hud.panel==='sheet';`));
-    assert.equal(await tv(`return document.querySelector('.hud-section-content').scrollTop;`), 0);
-    const blocked = await tv(
-      `try{await window.tablelight.scrollHud({characterId:state.characters[0].id,area:'section',direction:1});return false;}catch{return true;}`
-    );
-    assert.ok(blocked);
-    assert.ok(
-      await run(
-        `try{await api.scrollHud({characterId:'missing',area:'section',direction:1});return false;}catch{return true;}`
-      )
-    );
-    results.push(
-      'Changing sections resets the detail scroll; scroll messages reject non-DM senders and missing players.'
-    );
-
     await run(
       `const el=document.querySelector('[data-current-size]');el.value='75';el.dispatchEvent(new Event('input',{bubbles:true}));if(document.querySelector('.current-size output').textContent!=='75%')throw Error('Size label stale');el.dispatchEvent(new Event('change',{bubbles:true}));await saveQueue;`
     );
@@ -308,12 +319,12 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     const rotated = await geometry();
     await click('.current-display [data-panel="resources"]');
     await wait(() => tv(`return state.characters[0].hud.panel==='resources';`));
-    assert.deepEqual(await geometry(), rotated);
+    assert.equal((await geometry()).width, rotated.width);
     await click('.current-display [data-action="hud-page"][data-amount="1"]');
-    await wait(() => tv(`return state.characters[0].hud.page===1;`));
-    assert.deepEqual(await geometry(), rotated);
+    await wait(() => tv(`return state.characters[0].hud.resourcePage===1;`));
+    assert.equal((await geometry()).width, rotated.width);
     results.push(
-      'Rotated HUDs keep identical geometry when the DM changes sections and resource pages.'
+      'Rotated HUDs retain their width while the DM changes sections and resource pages.'
     );
     await run(`commit(()=>{selected().hud.rotation=0;selected().hud.scale=1;});await saveQueue;`);
     await wait(() => tv(`return state.characters[0].hud.rotation===0;`));
@@ -333,7 +344,41 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await shot('04-resource-editor', controller);
     await click('[data-action="close-modal"]');
     results.push(
-      'The DM resize and scrolling controls fit a smaller laptop window; resource editing remains inside Edit character.'
+      'The DM resize controls fit a smaller laptop window; resource editing remains inside Edit character.'
+    );
+    const chargeDisplays = await run(`
+      const fixture=document.createElement('div');document.body.append(fixture);
+      const c=TL.character();c.hud.expanded=true;
+      c.resources=[{id:'empty',name:'Empty pool',max:1,current:0,reset:'long'}, {id:'ten',name:'Ten charges',max:10,current:7,reset:'manual'}, {id:'large',name:'Large pool',max:11,current:9,reset:'turn'}];
+      fixture.innerHTML=renderCharacterResources(c)+HUD.render(c);
+      const reports=['empty','ten','large'].map(id=>{
+        const dm=fixture.querySelector('[data-dm-resource="'+id+'"] .resource-charges');
+        const tv=fixture.querySelector('[data-resource-id="'+id+'"] .resource-charges');
+        return [dm,tv].map(e=>({markers:e.querySelectorAll('.pips i').length,filled:e.querySelectorAll('.filled').length,text:e.textContent.trim(),label:e.getAttribute('aria-label')}));
+      });fixture.remove();return reports;
+    `);
+    for (const display of chargeDisplays[0]) {
+      assert.equal(display.markers, 1);
+      assert.equal(display.filled, 0);
+      assert.equal(display.text, '');
+    }
+    for (const display of chargeDisplays[1]) {
+      assert.equal(display.markers, 10);
+      assert.equal(display.filled, 7);
+      assert.equal(display.text, '');
+      assert.equal(display.label, '7 of 10 charges available');
+    }
+    for (const display of chargeDisplays[2]) {
+      assert.equal(display.markers, 0);
+      assert.equal(display.text, '9 / 11');
+    }
+    assert.ok(
+      await tv(
+        `return [...document.querySelectorAll('.hud-summary .hud-section-box')].length===3 && [...document.querySelectorAll('.hud-summary .hud-section-box')].every(e=>['Top','Right','Bottom','Left'].every(side=>parseFloat(getComputedStyle(e)['border'+side+'Width'])>=2));`
+      )
+    );
+    results.push(
+      'Empty and ten-charge pools show individual filled/empty markers on both screens; larger pools use current/maximum. Conditions, spell slots, and custom resources have full section borders.'
     );
     const disk = JSON.parse(fs.readFileSync(path.join(store.directory, 'party.json'), 'utf8'));
     const saved = disk.characters.find((c) => c.id === firstId);

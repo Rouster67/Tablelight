@@ -79,7 +79,7 @@ Only active party members participate in **Next turn**, whole-party rests, and a
    preview. It pulses gently for five seconds, then stays steady. Windows reduced-motion settings
    keep it steady from the start. Sending never shows a hidden player or exposes the note automatically.
 4. With HUD controls on, the player clicks the envelope to read the message. It faces the same
-   direction as their character. Use the page arrows and scroll the text when needed, then **Close**.
+   direction as their character. Use the page arrows, then **Close**. The message panel grows to show the current page without scrolling.
 
 **Opened messages are visible to everyone near the shared TV.** Recipient selection controls where
 the note appears; it cannot make an opened message private from other people at the table.
@@ -298,9 +298,9 @@ Every character has their own position, rotation, size, and visibility. Moving o
 
 ## Use the TV overlay directly
 
-Expanded HUDs use a wide layout. Portrait, character name, HP, AC, actions, movement, ability scores, conditions, slots, all custom resource counters, and Smaller/Larger controls are on the left. Resources stack downward below slots; long names wrap. **Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Sheet, and Resources** are at the top of the right column, with the selected section's data directly underneath. Sheet shows skills and saves beside the main character controls instead of adding them below. Descriptions, resource controls, and page buttons stay in that same right column.
+Expanded HUDs use a wide layout. Portrait, character name, HP, AC, actions, movement, ability scores, conditions, slots, custom resource counters, and Smaller/Larger controls are on the left. Conditions show six entries per page in two rows of three. Custom resources show three entries per page. Both have Previous/Next controls. Resources sit below slots; long names wrap. **Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Sheet, and Resources** are at the top of the right column, with the selected section's data directly underneath. Sheet shows skills and saves beside the main character controls instead of adding them below. Descriptions, resource controls, and page buttons stay in that same right column.
 
-The HUD grows taller as needed to keep everything in the left column visible without scrolling. Long ability details scroll inside the ability column. Pending DM approvals add a separate column on the far right, keeping the ability browser’s width unchanged. All columns move, rotate, and resize together at your chosen scale. Collapsing still returns to the small portrait bubble. The laptop’s TV preview shows the same arrangement.
+The overlay never uses scrollbars. The HUD and message panels grow taller to show their current page in full, including ability lists, descriptions, and resource counters. Pending DM approvals add a separate column on the far right, keeping the ability browser’s width unchanged. All columns move, rotate, and resize together at your chosen scale. Collapsing still returns to the small portrait bubble. The laptop’s TV preview shows the same arrangement.
 
 When HUD controls are on, expanded HUDs can show options and full descriptions, spend actions or bonus actions, adjust HP and movement, use spell slots or custom resource pools, and start a new turn. These actions also update your laptop and save to the same party.
 
@@ -323,22 +323,26 @@ The party list on the left is the turn order. Drag players to new positions or u
 ## DM character screen
 
 **Start turn**, **Next turn**, **Short rest**, and **Long rest** sit above the selected player's
-portrait and name. Character controls are on the left, with **Currently displayed** at the upper
-right. Hit points and the four turn counters fit beside the display panel.
+portrait and name. Character controls sit beside the name, with **Currently displayed** at the
+upper right.
 
 **Abilities** shows ability scores, modifiers, armor class, proficiency, and initiative directly
-below the counters. The ability and feature tabs are underneath it. Spell slots sit to their
-right, with custom resources stacked below the slots.
+above the matching compact tiles for hit points, action, bonus action, reaction, and movement.
+**Concentration & conditions** sits directly below those counters, followed by the ability and feature tabs. The right column stacks
+**Currently displayed**, spell slots, and custom resources with no empty space between sections.
 
 ## Currently displayed
 
 The DM’s character page has a **Currently displayed** panel at the top of the right column. Its tabs match the expanded TV overlay: Overview, Action, Bonus action, Reaction, Free / other, Spells, Features, Sheet, and Resources.
 
+Ability lists show up to **fifteen entries per page** on both screens. Longer lists use Previous/Next.
+The frame grows downward to fit each page. In click-through mode, use the DM page controls.
+
 Action-cost tabs include every matching ability, including spells and class features. For example, Bonus action includes your bonus-action spells. Click an ability in the DM panel to open its description on the TV. **Previous / Next** page through longer lists or descriptions. **Back to list** returns from a description. Clicking the TV tabs updates the DM panel too.
 
 **HUD size** changes only this player’s size, from 40% to 250%. Use the slider, Smaller, Larger, or 100%. It stays in sync with TV & layout. The chosen scale stays exactly the same across menus and rotations. If a card is too large for the display, reduce its size yourself.
 
-The **Section details** arrow buttons scroll the ability column on the TV, including in click-through mode. With HUD controls on, you can also scroll directly over that column. Live updates preserve reading position; choosing a different section or description page starts its details at the top. Character vitals and resources need no scrolling: the frame grows to show them all.
+Use **Previous / Next** in Currently displayed for ability lists, details, and the Resources section. The DM’s Conditions and Custom resources cards also have **TV** page controls when there are more than six conditions or three custom resources. Each player keeps independent page selections. These controls work while the overlay is hidden, collapsed, or click-through; changing a list page does not reveal a hidden player.
 
 The panel indicates whether the TV overlay, player, or expanded HUD is hidden. Choosing a tab expands that character’s HUD; the global Show TV overlay button still controls whether the TV window is visible.
 
@@ -390,7 +394,7 @@ Short rest restores short-rest pools and leaves healing to you. Long rest restor
 
 ## Custom resources
 
-Open **Edit character** and scroll to **Custom resources**, immediately below spell slots. Click **+ Add resource**. Give it a name, maximum amount, available amount, reset rule, shape icon, and color. Choose a circle, square, diamond, triangle, hexagon, or star. Raising a maximum adds available charges; lowering it caps the available amount. You can enter an available amount directly.
+Use **Add** in the DM’s **Custom resources** section to open a dedicated form for that character. You can also add and edit counters in **Edit character → Custom resources**, immediately below spell slots, using **+ Add resource**. Give it a name, maximum amount, available amount, reset rule, shape icon, and color. Choose a circle, square, diamond, triangle, hexagon, or star. Raising a maximum adds available charges; lowering it caps the available amount. You can enter an available amount directly.
 
 | Reset rule | What refills it to the maximum                                            |
 | ---------- | ------------------------------------------------------------------------- |
@@ -399,7 +403,7 @@ Open **Edit character** and scroll to **Custom resources**, immediately below sp
 | Per turn   | Start turn for that character, including Next turn when their turn begins |
 | Manual     | Its Reset button on the DM screen or interactive TV HUD                   |
 
-All counters appear in a vertical stack beneath spell slots on the overlay, with their icon, name, remaining/maximum amount, and reset rule. Use **− / +** to spend or restore a charge. Manual counters also have **Reset** beside these controls. The HUD grows taller to show the full list and the Smaller/Larger buttons beneath it. The right-side Resources section also shows these counters with pages.
+Custom resources appear below spell slots in a clearly bordered section. Conditions and spell slots also have their own borders. Pools with a maximum of 10 or fewer show individual filled and empty charge markers, like spell slots; larger pools show current/maximum. This applies on both the DM screen and the overlay. Use **− / +** to spend or restore a charge; manual pools also have **Reset**. Each overlay resource page shows up to three counters, and the frame grows without scrollbars. The right-side Resources section uses the same page.
 
 Edit names, amounts, reset rules, icons, or colors in **Edit character**. **Remove resource** removes a counter when you save the character. A resource linked to an ability must be unlinked from that ability first. **Cancel** discards your draft edits; **Undo** can reverse a saved change. Up to 60 counters can be stored on each character. Existing resource pools keep their counts and ability links after upgrading.
 

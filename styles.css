@@ -474,31 +474,20 @@ p {
 .character-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  grid-template-areas:
-    'overview display'
-    'abilities resources';
   gap: 20px;
   align-items: start;
 }
-.character-overview {
-  grid-area: overview;
-  min-width: 0;
-}
-.character-display {
-  grid-area: display;
-  min-width: 0;
-}
-.character-abilities {
-  grid-area: abilities;
-  min-width: 0;
-}
+.character-main,
+.character-side,
+.character-overview,
+.character-display,
+.character-abilities,
 .character-resources {
-  grid-area: resources;
   min-width: 0;
 }
 .character-workspace .character-hero {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) 240px;
   margin-bottom: 0;
   gap: 16px 20px;
 }
@@ -507,9 +496,10 @@ p {
   overflow-wrap: anywhere;
 }
 .character-workspace .character-hero .hero-tools {
-  grid-column: 1 / -1;
+  grid-column: 3;
+  grid-row: 1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-left: 0;
   max-width: none;
 }
@@ -518,15 +508,20 @@ p {
   font-size: 12px;
 }
 .character-workspace .combat-strip {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
   gap: 10px;
   margin-bottom: 0;
 }
-.character-workspace .combat-tile:first-child {
-  grid-column: span 2;
-}
 .character-workspace .tile-toggle {
   flex-wrap: wrap;
+  gap: 4px;
+}
+.character-workspace .combat-tile {
+  padding: 12px;
+}
+.character-workspace .tile-toggle button {
+  padding: 4px;
+  font-size: 10px;
 }
 .character-workspace .character-turn-tools {
   gap: 8px;
@@ -1222,6 +1217,7 @@ p {
   max-width: none;
 }
 .hud-position.is-expanded {
+  display: grid;
   width: var(--hud-expanded-width);
   padding-top: 50px;
 }
@@ -1238,6 +1234,7 @@ p {
   height: 68px;
 }
 .hud-card {
+  grid-area: 1 / 1;
   min-height: 600px;
   width: var(--hud-expanded-width, 880px);
   display: grid;
@@ -1265,22 +1262,16 @@ p {
   min-width: 0;
 }
 .hud-section-content {
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #6a8274 transparent;
-  scrollbar-gutter: stable;
-  overscroll-behavior: contain;
+  overflow: visible;
 }
 .hud-summary {
   padding-right: 5px;
   overflow: visible;
 }
 .hud-browser {
-  /* The character summary sets the height; ability text scrolls within it. */
-  contain: size;
+  /* Each column contributes its full height so the HUD never needs scrolling. */
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
   border-left: 1px solid #435044;
   padding-left: 20px;
 }
@@ -1485,6 +1476,18 @@ p {
   gap: 9px;
   margin-top: 14px;
 }
+.hud-section-box {
+  min-width: 0;
+  margin-top: 12px;
+  padding: 10px;
+  border: 2px solid #91a597;
+  border-radius: 9px;
+}
+.hud-section-label {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: #b9cabc;
+}
 .hud-conditions {
   font-size: 11px;
   color: #e0bf91;
@@ -1633,10 +1636,21 @@ p {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
   color: #a4b7b0;
 }
-.resource-status .pips {
-  justify-content: flex-end;
+.resource-charges {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--hud-theme-text, #e5ebe3);
+}
+.resource-charges .pips {
+  gap: 3px;
+}
+.resource-charges .pips i {
+  width: 9px;
+  height: 9px;
 }
 .hud-panel > .hud-resource {
   margin-top: 9px;
@@ -1697,8 +1711,20 @@ p {
     grid-template-columns: minmax(0, 1fr) 270px;
     gap: 16px;
   }
+  .character-workspace .character-hero {
+    grid-template-columns: auto minmax(0, 1fr) 150px;
+    gap: 12px;
+  }
   .character-workspace .character-hero .hero-tools {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .character-workspace .character-hero .portrait {
+    width: 64px;
+    height: 64px;
+  }
+  .character-workspace .character-hero h1 {
+    font-size: 25px;
   }
   .character-workspace .combat-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1731,6 +1757,7 @@ p {
     grid-template-columns: minmax(0, 1fr) 250px;
   }
   .character-workspace .character-hero {
+    grid-template-columns: auto minmax(0, 1fr) 132px;
     gap: 12px;
   }
   .character-workspace .character-hero .portrait {

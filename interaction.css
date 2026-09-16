@@ -198,14 +198,9 @@
   margin-top: 12px;
 }
 .hud-pending-requests {
-  contain: size;
   min-height: 0;
   min-width: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: #b2a17466 transparent;
+  overflow: visible;
   padding: 12px;
   border: 1px solid #b2a17466;
   border-radius: 9px;
@@ -235,8 +230,6 @@
   flex-shrink: 0;
 }
 .hud-request-prompt ul {
-  max-height: 150px;
-  overflow-y: auto;
   padding-left: 20px;
 }
 .hud-use-controls small {

@@ -24,15 +24,15 @@ module.exports = async ({ app, controller, getOverlay, getState, setOverlay, sto
     );
     await setOverlay(true);
     await wait(() =>
-      tv(`return document.querySelectorAll('.hud-option .image-ready').length===40;`)
+      tv(`return document.querySelectorAll('.hud-option .image-ready').length===120;`)
     );
     await wait(() =>
       run(
-        `return document.querySelectorAll('#preview-stage .hud-option .image-ready').length===40;`
+        `return document.querySelectorAll('#preview-stage .hud-option .image-ready').length===120;`
       )
     );
     results.push(
-      '5,000 definitions and 100 inactive characters load with eight active HUDs, each resolving 31 near-limit shared images; 40 visible TV thumbnails and 40 DM preview thumbnails decode.'
+      '5,000 definitions and 100 inactive characters load with eight active HUDs, each resolving 31 near-limit shared images; 120 TV thumbnails and 120 DM preview thumbnails decode.'
     );
     const timings = [];
     for (let i = 0; i < 5; i++) {
@@ -42,7 +42,7 @@ module.exports = async ({ app, controller, getOverlay, getState, setOverlay, sto
       );
       await wait(() =>
         tv(
-          `return state.characters[0].hp===${i + 1} && document.querySelectorAll('.hud-option .image-ready').length===40;`
+          `return state.characters[0].hp===${i + 1} && document.querySelectorAll('.hud-option .image-ready').length===120;`
         )
       );
       timings.push(Math.round(performance.now() - start));

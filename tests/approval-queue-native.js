@@ -69,7 +69,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     assert.ok(await hud('return !!document.querySelector("[data-cancel-request]");'));
     assert.ok(
       await hud(
-        `const root=stage.children[0],summary=root.querySelector('.hud-summary'),browser=root.querySelector('.hud-browser'),queue=root.querySelector('.hud-pending-requests');return root.offsetWidth===1150 && root.offsetHeight===${initialLayout.height} && browser.offsetWidth===${initialLayout.browser} && queue.parentElement===browser.parentElement && queue.offsetLeft>=browser.offsetLeft+browser.offsetWidth && !summary.contains(queue) && summary.scrollHeight<=summary.clientHeight+1;`
+        `const root=stage.children[0],summary=root.querySelector('.hud-summary'),browser=root.querySelector('.hud-browser'),queue=root.querySelector('.hud-pending-requests');return root.offsetWidth===1150 && root.offsetHeight>=${initialLayout.height} && browser.offsetWidth===${initialLayout.browser} && queue.parentElement===browser.parentElement && queue.offsetLeft>=browser.offsetLeft+browser.offsetWidth && !summary.contains(queue) && summary.scrollHeight<=summary.clientHeight+1;`
       )
     );
     await run(`view='display';render();`);
@@ -326,15 +326,15 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     for (const layout of layouts) {
       assert.equal(layout.width, 1150);
       assert.ok(layout.height > initialLayout.height);
-      assert.equal(layout.afterText, layout.height);
+      assert.ok(layout.afterText >= layout.height);
       assert.ok(
-        layout.visible && layout.buttons && layout.right && layout.scrolls,
+        layout.visible && layout.buttons && layout.right && !layout.scrolls,
         JSON.stringify(layout)
       );
       assert.ok(layout.transform.includes(`rotate(${layout.angle}deg) scale(${layout.scale})`));
     }
     results.push(
-      'Long names, conditions, all spell slots, resources, and size buttons remain inside the taller frame; the far-right queue and scrolling ability column keep their widths at every tested rotation and scale.'
+      'Long names, conditions, all spell slots, resources, and size buttons remain inside the taller frame; the far-right queue and expanding ability column keep their widths at every tested rotation and scale.'
     );
     assert.deepEqual(errors, []);
     fs.writeFileSync(

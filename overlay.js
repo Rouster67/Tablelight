@@ -132,27 +132,36 @@ function renderConcentrationResults() {
   const list = stage.querySelector('[data-concentration-results]');
   const c = state.characters.find((c) => c.id === concentrationPicker?.id);
   if (!list || !c) return;
-  const scroll = list.scrollTop;
   list.innerHTML = HUD.concentrationOptions(c, concentrationPicker.query, 'overlay');
-  list.scrollTop = scroll;
+}
+function pickerPages(page, total) {
+  return total > 1
+    ? `<div class="hud-pagination"><button type="button" data-condition-picker-page="-1" ${page ? '' : 'disabled'}>← Previous</button><span>${page + 1} / ${total}</span><button type="button" data-condition-picker-page="1" ${page < total - 1 ? '' : 'disabled'}>Next →</button></div>`
+    : '';
 }
 function renderConditionResults() {
   if (!conditionPicker) return;
   const list = stage.querySelector('[data-hud-condition-results]');
   const c = state.characters.find((c) => c.id === conditionPicker.id);
   if (!list || !c) return;
-  const scroll = list.scrollTop;
+  const total = Math.max(
+    1,
+    Math.ceil((conditionPicker.entries?.length || 0) / TL.conditionPickerPageSize)
+  );
+  const page = TL.integer(conditionPicker.page, 0, total - 1);
+  conditionPicker.page = page;
   list.innerHTML = conditionPicker.error
     ? `<p>${HUD.esc(conditionPicker.error)}</p>`
     : !conditionPicker.entries
       ? '<p>Searching…</p>'
       : conditionPicker.entries
+          .slice(page * TL.conditionPickerPageSize, (page + 1) * TL.conditionPickerPageSize)
           .map(
             (e) =>
-              `<div class="condition-choice"><span><b title="${HUD.esc(e.description || 'No description entered.')}">${HUD.esc(e.name)}</b><small>${HUD.esc(e.description || 'No description entered.')}</small></span><button type="button" data-hud-condition-pick="${HUD.esc(e.id)}" ${c.conditionIds.includes(e.id) ? 'disabled' : ''}>${c.conditionIds.includes(e.id) ? 'Added' : 'Add'}</button></div>`
+              `<div class="condition-choice"><span><b title="${HUD.esc(e.description || 'No description entered.')}">${HUD.esc(e.name)}</b><small>${HUD.esc(e.description ? e.description.slice(0, 240) + (e.description.length > 240 ? '…' : '') : 'No description entered.')}</small></span><button type="button" data-hud-condition-pick="${HUD.esc(e.id)}" ${c.conditionIds.includes(e.id) ? 'disabled' : ''}>${c.conditionIds.includes(e.id) ? 'Added' : 'Add'}</button></div>`
           )
           .join('') || '<p>No matching conditions. Create conditions on the DM screen.</p>';
-  list.scrollTop = scroll;
+  if (conditionPicker.entries) list.insertAdjacentHTML('beforeend', pickerPages(page, total));
   if (conditionPicker.reveal && conditionPicker.entries) {
     conditionPicker.reveal = false;
   }
@@ -386,6 +395,12 @@ gesture = HUDControls.gestures(stage, {
   },
 });
 stage.addEventListener('click', async (event) => {
+  const pageButton = event.target.closest('[data-condition-picker-page]');
+  if (pageButton && conditionPicker && !pageButton.disabled) {
+    conditionPicker.page += Number(pageButton.dataset.conditionPickerPage);
+    renderConditionResults();
+    return;
+  }
   if (!state?.settings.overlayInteractive) return;
   const promptControl = event.target.closest(
     '[data-request-prompt-close],[data-request-prompt-continue]'
@@ -490,6 +505,7 @@ stage.addEventListener('input', (event) => {
   }
   if (!event.target.matches('[data-hud-condition-search]') || !conditionPicker) return;
   conditionPicker.query = event.target.value;
+  conditionPicker.page = 0;
   conditionPicker.entries = null;
   conditionPicker.error = '';
   renderConditionResults();

@@ -190,7 +190,7 @@ function economyTile(c, k) {
   return `<div class="combat-tile economy-tile ${c.turn[k] ? '' : 'spent'}"><div class="tile-label">${title}<span>${symbols[k]}</span></div><div class="tile-value">${c.turn[k] ? 'Ready' : 'Spent'}</div><div class="tile-toggle">${button('Show options', 'panel', 'small', `data-panel="${k}"`)}${button(c.turn[k] ? 'Spend' : 'Restore', 'toggle-economy', 'small', `data-key="${k}"`)}</div></div>`;
 }
 function renderCharacter(c) {
-  return `<div class="character-workspace"><div class="character-overview gap"><div class="character-turn-tools spread wrap"><div class="quick-tools">${button('↻ Start turn', 'start-turn')}${button('Next turn →', 'next-turn')}${button('Short rest', 'short-rest', 'subtle')}${button('Long rest', 'long-rest', 'subtle')}</div><span class="hint">${c.hud.expanded ? 'HUD expanded' : 'Portrait only'} · ${c.hud.visible ? 'Visible on TV' : 'Hidden on TV'}</span></div><div class="character-hero" style="--accent:${c.accent}">${portrait(c)}<div><div class="eyebrow">${c.id === state.activeId ? 'Current turn' : 'Party member'}</div><h1>${esc(c.name)}</h1><p class="muted">Level ${c.level} ${esc(c.className || 'adventurer')}${c.species ? ' · ' + esc(c.species) : ''}</p></div><div class="hero-tools">${button(c.hud.visible ? 'Hide this bubble' : 'Show this bubble', 'toggle-character-visible', 'subtle')}${button('Position & rotate', 'position-character', 'subtle')}${button('Edit character', 'edit-character', 'subtle')}${button('Remove from party', 'roster-remove', 'subtle', `data-id="${esc(c.id)}"`)}${button('Delete character', 'roster-delete', 'danger subtle', `data-id="${esc(c.id)}"`)}${button(c.hud.expanded ? 'Collapse to portrait' : 'Expand player HUD', 'toggle-expand', c.hud.expanded ? 'active' : 'primary')}</div></div><div class="combat-strip"><div class="combat-tile"><div class="tile-label">Hit points<span>♡</span></div><div class="tile-value">${c.hp}<small>/ ${c.maxHp}</small></div><div class="tile-toggle hp-controls"><span class="damage-controls">${HUD.damageConcentrationReminder(c)}${button('− Damage', 'hp-damage', 'small')}</span>${button('+ Heal', 'hp-heal', 'small')}</div>${button('Temp HP: ' + c.tempHp, 'temp-hp', 'small temp-hp-button')}</div>${economyTile(c, 'action')}${economyTile(c, 'bonus')}${economyTile(c, 'reaction')}<div class="combat-tile"><div class="tile-label">Movement <span>➝</span></div><div class="tile-value">${c.turn.movement}<small>/ ${c.speed} ft</small></div><div class="tile-toggle">${button('− 5', 'move', 'small', 'data-amount="-5"')}${button('+ 5', 'move', 'small', 'data-amount="5"')}${button('Set', 'move-set', 'small')}</div></div></div><section class="card character-scores"><div class="card-heading spread"><h3>Abilities</h3>${button('Show full sheet', 'panel', 'small', 'data-panel="sheet"')}</div><div class="card-body"><div class="stats-grid">${TL.abilities.map((a) => `<div class="stat-box"><small>${a.toUpperCase()}</small><b>${TL.signed(TL.mod(c.abilities[a]))}</b><span>${c.abilities[a]}</span></div>`).join('')}</div><div class="spread wrap space-top"><span class="hint">AC <b>${c.ac}</b> · Proficiency <b>${TL.signed(c.proficiency)}</b> · Initiative <b>${TL.signed(c.initiative)}</b></span></div></div></section></div><aside class="character-display">${renderHudRemote(c)}</aside><div class="character-abilities gap"><section class="card"><div class="tabs" role="tablist">${[
+  return `<div class="character-workspace"><div class="character-main gap"><div class="character-overview gap"><div class="character-turn-tools spread wrap"><div class="quick-tools">${button('↻ Start turn', 'start-turn')}${button('Next turn →', 'next-turn')}${button('Short rest', 'short-rest', 'subtle')}${button('Long rest', 'long-rest', 'subtle')}</div><span class="hint">${c.hud.expanded ? 'HUD expanded' : 'Portrait only'} · ${c.hud.visible ? 'Visible on TV' : 'Hidden on TV'}</span></div><div class="character-hero" style="--accent:${c.accent}">${portrait(c)}<div><div class="eyebrow">${c.id === state.activeId ? 'Current turn' : 'Party member'}</div><h1>${esc(c.name)}</h1><p class="muted">Level ${c.level} ${esc(c.className || 'adventurer')}${c.species ? ' · ' + esc(c.species) : ''}</p></div><div class="hero-tools">${button(c.hud.visible ? 'Hide this bubble' : 'Show this bubble', 'toggle-character-visible', 'subtle')}${button('Position & rotate', 'position-character', 'subtle')}${button('Edit character', 'edit-character', 'subtle')}${button('Remove from party', 'roster-remove', 'subtle', `data-id="${esc(c.id)}"`)}${button('Delete character', 'roster-delete', 'danger subtle', `data-id="${esc(c.id)}"`)}${button(c.hud.expanded ? 'Collapse to portrait' : 'Expand player HUD', 'toggle-expand', c.hud.expanded ? 'active' : 'primary')}</div></div><section class="card character-scores"><div class="card-heading spread"><h3>Abilities</h3>${button('Show full sheet', 'panel', 'small', 'data-panel="sheet"')}</div><div class="card-body"><div class="stats-grid">${TL.abilities.map((a) => `<div class="stat-box"><small>${a.toUpperCase()}</small><b>${TL.signed(TL.mod(c.abilities[a]))}</b><span>${c.abilities[a]}</span></div>`).join('')}</div><div class="spread wrap space-top"><span class="hint">AC <b>${c.ac}</b> · Proficiency <b>${TL.signed(c.proficiency)}</b> · Initiative <b>${TL.signed(c.initiative)}</b></span></div></div></section><div class="combat-strip"><div class="combat-tile"><div class="tile-label">Hit points<span>♡</span></div><div class="tile-value">${c.hp}<small>/ ${c.maxHp}</small></div><div class="tile-toggle hp-controls"><span class="damage-controls">${HUD.damageConcentrationReminder(c)}${button('− Damage', 'hp-damage', 'small')}</span>${button('+ Heal', 'hp-heal', 'small')}</div>${button('Temp HP: ' + c.tempHp, 'temp-hp', 'small temp-hp-button')}</div>${economyTile(c, 'action')}${economyTile(c, 'bonus')}${economyTile(c, 'reaction')}<div class="combat-tile"><div class="tile-label">Movement <span>➝</span></div><div class="tile-value">${c.turn.movement}<small>/ ${c.speed} ft</small></div><div class="tile-toggle">${button('− 5', 'move', 'small', 'data-amount="-5"')}${button('+ 5', 'move', 'small', 'data-amount="5"')}${button('Set', 'move-set', 'small')}</div></div></div></div>${renderCharacterStatus(c)}<div class="character-abilities gap"><section class="card"><div class="tabs" role="tablist">${[
     ['action', 'Actions'],
     ['bonus', 'Bonus'],
     ['reaction', 'Reactions'],
@@ -209,7 +209,7 @@ function renderCharacter(c) {
     )
     .join(
       ''
-    )}</div>${tab === 'sheet' ? renderSheet(c) : `<div class="list-toolbar"><input id="ability-search" placeholder="Find ${esc(labels[tab]?.toLowerCase() || 'an ability')}…" aria-label="Search abilities" value="${esc(search)}">${button('+ Add', 'add-item', 'small')}${button('Show on TV', 'panel', 'small', `data-panel="${tab}"`)}</div><div id="ability-list" class="ability-list">${renderAbilityList(c)}</div>`}</section>${renderCharacterStatus(c)}</div><aside class="character-resources gap"><section class="card"><div class="card-heading spread"><h3>Spell slots</h3>${button('Edit', 'edit-character', 'small subtle')}</div><div class="card-body">${
+    )}</div>${tab === 'sheet' ? renderSheet(c) : `<div class="list-toolbar"><input id="ability-search" placeholder="Find ${esc(labels[tab]?.toLowerCase() || 'an ability')}…" aria-label="Search abilities" value="${esc(search)}">${button('+ Add', 'add-item', 'small')}${button('Show on TV', 'panel', 'small', `data-panel="${tab}"`)}</div><div id="ability-list" class="ability-list">${renderAbilityList(c)}</div>`}</section></div></div><aside class="character-side gap"><div class="character-display">${renderHudRemote(c)}</div><div class="character-resources gap"><section class="card"><div class="card-heading spread"><h3>Spell slots</h3>${button('Edit', 'edit-character', 'small subtle')}</div><div class="card-body">${
     c.slots
       .filter((s) => s.max > 0)
       .map(
@@ -218,7 +218,7 @@ function renderCharacter(c) {
       )
       .join('') ||
     '<p class="hint">Add your slot totals in Edit character. No spells are preloaded.</p>'
-  }<p class="hint space-top">Spell DC ${c.spellDC ?? 8 + c.proficiency + TL.mod(c.abilities[c.spellAbility])} · Attack ${TL.signed(c.spellAttack ?? c.proficiency + TL.mod(c.abilities[c.spellAbility]))}</p></div></section>${renderCharacterResources(c)}</aside></div>`;
+  }<p class="hint space-top">Spell DC ${c.spellDC ?? 8 + c.proficiency + TL.mod(c.abilities[c.spellAbility])} · Attack ${TL.signed(c.spellAttack ?? c.proficiency + TL.mod(c.abilities[c.spellAbility]))}</p></div></section>${renderCharacterResources(c)}</div></aside></div>`;
 }
 function filteredItems(c) {
   return c.items.filter(
@@ -876,6 +876,19 @@ document.addEventListener('click', async (event) => {
           s.current = TL.integer(s.current + Number(b.dataset.amount), 0, s.max);
         });
         break;
+      case 'add-resource':
+        addCustomResource(c.id);
+        break;
+      case 'hud-list-page':
+        commit(() =>
+          TL.hudCommand(state, {
+            type: 'list-page',
+            characterId: b.dataset.character,
+            kind: b.dataset.kind,
+            amount: Number(b.dataset.amount),
+          })
+        );
+        break;
       case 'resource':
         commit(() => {
           const r = selected().resources.find((r) => r.id === id);
@@ -905,8 +918,12 @@ document.addEventListener('click', async (event) => {
         );
         break;
       case 'hud-page':
-        commit(
-          () => (selected().hud.page = Math.max(0, selected().hud.page + Number(b.dataset.amount)))
+        commit(() =>
+          TL.hudCommand(state, {
+            type: 'page',
+            characterId: selected().id,
+            amount: Number(b.dataset.amount),
+          })
         );
         if (document.getElementById('detail-remote'))
           document.getElementById('detail-remote').innerHTML = detailRemote(selected());

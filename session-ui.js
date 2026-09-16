@@ -53,14 +53,14 @@ function renderCharacterSheet(c) {
 function renderCurrentDisplay(c) {
   const detail = c.items.find((i) => i.id === c.hud.detailId),
     total = HUD.countPages(c),
-    page = Math.min(c.hud.page, total - 1);
+    page = TL.hudPage(c);
   let content = '';
   if (detail)
     content = `<b>${HUD.abilityName(detail)}</b><p class="current-description">${esc(HUD.pages(detail.description)[page])}</p>${button('← Back to list', 'panel', 'small subtle', `data-panel="${esc(c.hud.panel)}"`)}`;
   else if (['action', 'bonus', 'reaction', 'free', 'spell', 'feature'].includes(c.hud.panel))
     content = `<div class="current-options">${
       TL.panelItems(c)
-        .slice(page * 5, page * 5 + 5)
+        .slice(page * HUD.abilityPageSize, (page + 1) * HUD.abilityPageSize)
         .map((it) =>
           button(HUD.abilityName(it), 'hud-detail', 'small subtle', `data-id="${esc(it.id)}"`)
         )
@@ -69,7 +69,7 @@ function renderCurrentDisplay(c) {
   else if (c.hud.panel === 'resources')
     content = `<div class="current-options">${
       c.resources
-        .slice(page * 6, page * 6 + 6)
+        .slice(page * TL.statusPageSize, (page + 1) * TL.statusPageSize)
         .map((r) => `<span class="hint">${esc(r.name)} · ${r.current}/${r.max}</span>`)
         .join('') || '<p class="hint">No resource pools yet.</p>'
     }</div>`;
@@ -95,28 +95,9 @@ function renderCurrentSize(c) {
     .map(([amount, label]) =>
       button(label, 'current-size', 'small', `data-id="${esc(c.id)}" data-amount="${amount}"`)
     )
-    .join('')}</div><p class="hint">The frame grows taller to keep character details visible.</p>${
-    c.hud.expanded
-      ? `<div class="current-scroll">${[['section', 'Section details']]
-          .map(
-            ([area, label]) =>
-              `<div><span>${label}</span>${[
-                [-1, '↑'],
-                [1, '↓'],
-              ]
-                .map(([direction, arrow]) =>
-                  button(
-                    arrow,
-                    'current-scroll',
-                    'small',
-                    `data-id="${esc(c.id)}" data-area="${area}" data-direction="${direction}" aria-label="Scroll ${label.toLowerCase()} ${direction < 0 ? 'up' : 'down'} on TV"`
-                  )
-                )
-                .join('')}</div>`
-          )
-          .join('')}</div>`
-      : ''
-  }</div>`;
+    .join(
+      ''
+    )}</div><p class="hint">The frame grows taller to keep character details visible.</p></div>`;
 }
 document.addEventListener('input', (event) => {
   const el = event.target.closest('[data-current-size]');

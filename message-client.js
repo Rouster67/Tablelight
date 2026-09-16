@@ -5,8 +5,8 @@
   else root.Messages = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  // Lossless, bounded pages. A scrollable reading area handles narrow displays,
-  // long words and explicit newlines; the DM has matching scroll controls.
+  // Lossless, bounded pages. The reading panel grows for narrow displays,
+  // long words and explicit newlines; the DM has matching page controls.
   function pages(text) {
     const chars = [...text],
       result = [];

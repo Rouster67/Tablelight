@@ -33,7 +33,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await wait(() => run(`return !!document.querySelector('[data-action="add-character"]');`));
     controller.setBounds({ width: 1440, height: 950 });
     await run(
-      `commit(()=>{state=TL.empty();const c=TL.character();Object.assign(c,{name:'Wide HUD test',className:'Homebrew caster',species:'Example',level:8,hp:42,maxHp:58,tempHp:6,ac:16,notes:'PRIVATE DM NOTE'});c.slots[0]={level:1,max:4,current:3};c.slots[1]={level:2,max:3,current:2};c.slots[2]={level:3,max:2,current:1};c.resources=[{id:'custom-pool',name:'Custom pool',max:3,current:2,reset:'long'}];c.hud={...c.hud,expanded:true,panel:'sheet',x:50,y:50};c.items=[TL.item({id:'custom-spell',kind:'spell',level:1,name:'Custom spell',economy:'bonus',range:'User-entered range',duration:'User-entered duration',components:'User-entered components',attack:'User-entered attack',damage:'User-entered damage',save:'User-entered save',description:('User-entered description. ').repeat(80)})];for(let i=0;i<7;i++)c.items.push(TL.item({name:'Custom action '+i,economy:'action'}));state.characters=[c];state.activeId=c.id;selectedId=c.id;state.settings.displayId=${JSON.stringify(String(screen.getPrimaryDisplay().id))};state.settings.overlayInteractive=true;view='display';});await saveQueue;`
+      `commit(()=>{state=TL.empty();const c=TL.character();Object.assign(c,{name:'Wide HUD test',className:'Homebrew caster',species:'Example',level:8,hp:42,maxHp:58,tempHp:6,ac:16,notes:'PRIVATE DM NOTE'});c.slots[0]={level:1,max:4,current:3};c.slots[1]={level:2,max:3,current:2};c.slots[2]={level:3,max:2,current:1};c.resources=[{id:'custom-pool',name:'Custom pool',max:3,current:2,reset:'long'}];c.hud={...c.hud,expanded:true,panel:'sheet',x:50,y:50};c.items=[TL.item({id:'custom-spell',kind:'spell',level:1,name:'Custom spell',economy:'bonus',range:'User-entered range',duration:'User-entered duration',components:'User-entered components',attack:'User-entered attack',damage:'User-entered damage',save:'User-entered save',description:('User-entered description. ').repeat(80)})];for(let i=0;i<17;i++)c.items.push(TL.item({name:'Custom action '+i,economy:'action'}));state.characters=[c];state.activeId=c.id;selectedId=c.id;state.settings.displayId=${JSON.stringify(String(screen.getPrimaryDisplay().id))};state.settings.overlayInteractive=true;view='display';});await saveQueue;`
     );
     await run(
       `commit(()=>{state.library[0].source='Test source '+'x'.repeat(288);});await saveQueue;`
@@ -64,7 +64,40 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await command('.hud-nav', { type: 'panel', panel: 'action' });
     await wait(() => getState().characters[0].hud.panel === 'action');
     await wait(() =>
-      tv(`return document.querySelectorAll('.hud-browser .hud-option').length===5;`)
+      tv(`return document.querySelectorAll('.hud-browser .hud-option').length===15;`)
+    );
+    await shot('02-fifteen-abilities');
+    const density = await tv(`
+      const fixture=document.createElement('div');fixture.style.cssText='position:absolute;left:0;top:0';document.body.append(fixture);
+      const c=TL.clone(state.characters[0]);
+      c.appliedConditions=Array.from({length:8},(_,i)=>({id:'layout-'+i,name:['Blinded','Frightened','Incapacitated','Unconscious','Concentrating','LongUnbrokenConditionNameForWrapping'][i%6],description:'Condition details'}));
+      c.resources=Array.from({length:4},(_,i)=>({id:'layout-pool-'+i,name:'Custom resource '+i,max:10,current:7,reset:'manual'}));
+      const reports=[];
+      for(const interactive of [false,true]) {
+        fixture.innerHTML='<div class="hud-position is-expanded">'+HUD.render(c)+'</div>';
+        const root=fixture.firstElementChild;
+        if(interactive) HUDControls.decorate(root,c,'overlay');
+        const cells=[...root.querySelectorAll('[data-condition-id]')];
+        reports.push({interactive,rows:new Set(cells.map(e=>e.offsetTop)).size,columns:new Set(cells.map(e=>e.offsetLeft)).size,conditions:cells.length,resources:root.querySelectorAll('.hud-summary .hud-resource').length,abilities:root.querySelectorAll('.hud-option').length,fits:[...root.querySelectorAll('.hud-condition-table,.hud-condition-table td,.hud-summary,.hud-section-content')].every(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),scrollbars:[...root.querySelectorAll('*')].some(e=>['auto','scroll'].includes(getComputedStyle(e).overflowY)&&(e.scrollHeight>e.clientHeight+1))});
+      }
+      fixture.remove();return reports;
+    `);
+    for (const report of density) {
+      assert.equal(report.rows, 2, JSON.stringify(report));
+      assert.equal(report.columns, 3, JSON.stringify(report));
+      assert.equal(report.conditions, 6);
+      assert.equal(report.resources, 3);
+      assert.equal(report.abilities, 15);
+      assert.ok(report.fits, JSON.stringify(report));
+      assert.equal(report.scrollbars, false);
+    }
+    results.push(
+      'Six conditions form two rows of three beside fifteen abilities and three resources, with readable wrapping and no scrollbars in either control mode.'
+    );
+    assert.ok(
+      await tv(
+        `const content=document.querySelector('.hud-section-content');return content.scrollHeight<=content.clientHeight+1 && getComputedStyle(content).overflowY==='visible';`
+      )
     );
     await command('.hud-pagination', { type: 'page', amount: 1 });
     await wait(() => getState().characters[0].hud.page === 1);
@@ -75,7 +108,18 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       await tv(`return document.querySelector('.hud-summary .hud-option')===null;`),
       true
     );
-    results.push('Action lists and their page controls stay below the right-hand navigation.');
+    const secondPageId = getState().characters[0].items.find(
+      (it) => it.name === 'Custom action 15'
+    ).id;
+    await command('.hud-options', { type: 'detail', itemId: secondPageId });
+    await wait(() => getState().characters[0].hud.detailId === secondPageId);
+    assert.equal(
+      await tv(`return document.querySelector('.ability-detail-heading h3').textContent;`),
+      'Custom action 15'
+    );
+    results.push(
+      'Ability lists show fifteen entries per page and second-page controls open the correct ability.'
+    );
     await command('.hud-nav', { type: 'panel', panel: 'bonus' });
     await wait(() => getState().characters[0].hud.panel === 'bonus');
     await wait(() => tv(`return !!document.querySelector('.hud-option');`));
@@ -88,7 +132,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await tv(
-        `const source=document.querySelector('.ability-source'),panel=document.querySelector('.hud-panel'),description=document.querySelector('.hud-description');return source.textContent.includes('x'.repeat(288)) && source.scrollWidth<=source.clientWidth && panel.lastElementChild===source && source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right' && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===${geometry.height + 50};`
+        `const source=document.querySelector('.ability-source'),panel=document.querySelector('.hud-panel'),description=document.querySelector('.hud-description');return source.textContent.includes('x'.repeat(288)) && source.scrollWidth<=source.clientWidth && panel.lastElementChild===source && source.getBoundingClientRect().top>=description.getBoundingClientRect().bottom && getComputedStyle(source).textAlign==='right' && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-section-content').scrollHeight<=document.querySelector('.hud-section-content').clientHeight+1;`
       )
     );
     await command('.hud-pagination', { type: 'page', amount: 1 });
@@ -129,7 +173,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     );
     assert.ok(
       await tv(
-        `const section=document.querySelector('.hud-section-content'),upgrade=document.querySelector('.ability-upgrades'),panel=document.querySelector('.hud-panel');section.scrollTop=section.scrollHeight;return upgrade.scrollWidth<=upgrade.clientWidth && panel.lastElementChild.classList.contains('ability-source') && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-position').offsetHeight===${geometry.height + 50};`
+        `const section=document.querySelector('.hud-section-content'),upgrade=document.querySelector('.ability-upgrades'),panel=document.querySelector('.hud-panel');section.scrollTop=section.scrollHeight;return upgrade.scrollWidth<=upgrade.clientWidth && panel.lastElementChild.classList.contains('ability-source') && document.querySelector('.hud-position').offsetWidth===880 && document.querySelector('.hud-section-content').scrollHeight<=document.querySelector('.hud-section-content').clientHeight+1;`
       )
     );
     await shot('04-long-upgrades');
@@ -211,7 +255,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await run(`commit(()=>state.settings.overlayInteractive=true);await saveQueue;`);
     await wait(() => tv(`return document.querySelectorAll('.hud-nav button').length===9;`));
     const fits = await tv(
-      `const fixture=document.createElement('div');fixture.style.cssText='position:fixed;left:0;top:0;width:1280px;height:720px';document.body.append(fixture);const sample=TL.clone(state);const reports=[];for(const angle of [0,45,90,180,270]){sample.characters[0].hud={...sample.characters[0].hud,x:98,y:98,rotation:angle,scale:0.6};HUD.mount(fixture,sample,1280,720,1,'','overlay');const el=fixture.firstElementChild,r=el.getBoundingClientRect();reports.push({angle,x:r.x,y:r.y,right:r.right,bottom:r.bottom,rotation:el.style.transform.includes('rotate('+angle+'deg)')});}fixture.remove();return reports;`
+      `const fixture=document.createElement('div');fixture.style.cssText='position:fixed;left:0;top:0;width:1280px;height:720px';document.body.append(fixture);const sample=TL.clone(state);const reports=[];for(const angle of [0,45,90,180,270]){sample.characters[0].hud={...sample.characters[0].hud,x:98,y:98,rotation:angle,scale:0.5};HUD.mount(fixture,sample,1280,720,1,'','overlay');const el=fixture.firstElementChild,r=el.getBoundingClientRect();reports.push({angle,x:r.x,y:r.y,right:r.right,bottom:r.bottom,rotation:el.style.transform.includes('rotate('+angle+'deg)')});}fixture.remove();return reports;`
     );
     for (const r of fits)
       assert.ok(
@@ -228,6 +272,88 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     assert.equal(getState().characters[0].hud.rotation, before);
     results.push(
       'Both columns fit within a 1280×720 display at multiple rotations; collapsing still returns to the small portrait bubble.'
+    );
+    await run(`await commit(()=>{
+      const c=selected(); c.resources=Array.from({length:8},(_,i)=>({id:'pool-'+i,name:'Pool '+i,max:3,current:2,reset:'manual',icon:'star',color:'#79cbd6'}));
+      state.conditionLibrary=Array.from({length:8},(_,i)=>TL.conditionEntry({id:'status-'+i,name:'Condition '+i,description:'A condition description. '.repeat(30)}));c.conditionIds=state.conditionLibrary.map(e=>e.id);
+      c.hud={...c.hud,panel:'resources',detailId:'',resourcePage:0,conditionPage:0,rotation:90,scale:0.6};
+      const other=TL.character(1);other.hud.expanded=true;other.hud.rotation=270;state.characters.push(other);
+      const hidden=TL.character(2);hidden.hud.visible=false;state.characters.push(hidden);
+      view='character';});await saveQueue;`);
+    const owner = getState().characters[0].id;
+    const untouched = JSON.stringify(getState().characters.slice(1));
+    const root = `[data-hud-id="${owner}"]`;
+    await wait(() =>
+      tv(
+        `return document.querySelectorAll('${root} .hud-summary .hud-resource').length===3 && document.querySelectorAll('${root} [data-condition-id]').length===6;`
+      )
+    );
+    await command(root + ' [data-hud-list-pages="resources"]', {
+      type: 'list-page',
+      kind: 'resources',
+      amount: 1,
+    });
+    await wait(() => getState().characters[0].hud.resourcePage === 1);
+    await wait(() =>
+      tv(
+        `return document.querySelector('${root} .hud-summary .hud-resource').dataset.resourceId==='pool-3';`
+      )
+    );
+    assert.equal(
+      await tv(
+        `return document.querySelector('${root} .hud-browser .hud-resource').dataset.resourceId;`
+      ),
+      'pool-3'
+    );
+    await command(root + ' .hud-summary [data-resource-id="pool-3"]', {
+      type: 'resource',
+      resourceId: 'pool-3',
+      amount: -1,
+    });
+    await wait(() => getState().characters[0].resources[3].current === 1);
+    await run(`await commit(()=>{state.settings.overlayInteractive=false;});await saveQueue;`);
+    await run(
+      `document.querySelector('[data-dm-list-pages="conditions"] [data-amount="1"]').click();await saveQueue;document.querySelector('[data-dm-list-pages="resources"] [data-amount="1"]').click();await saveQueue;`
+    );
+    await wait(() =>
+      tv(
+        `return document.querySelector('${root} [data-condition-id]').dataset.conditionId==='status-6' && document.querySelectorAll('${root} .hud-summary .hud-resource').length===2;`
+      )
+    );
+    assert.equal(JSON.stringify(getState().characters.slice(1)), untouched);
+    assert.equal(getState().characters[0].hud.rotation, 90);
+    assert.equal(getState().characters[0].hud.scale, 0.6);
+    assert.ok(
+      await tv(
+        `return [...document.querySelectorAll('${root} .hud-summary,${root} .hud-section-content')].every(e=>e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1);`
+      )
+    );
+    await run(
+      `await commit(()=>{selected().hud.visible=false;selected().hud.expanded=false;});await saveQueue;await commit(()=>{selected().hud.visible=true;});await saveQueue;`
+    );
+    await wait(() => tv(`return !!document.querySelector('${root} .hud-collapsed');`));
+    assert.equal(getState().characters[0].hud.resourcePage, 2);
+    assert.equal(getState().characters[0].hud.conditionPage, 1);
+    await run(
+      `await commit(()=>{selected().hud.expanded=true;state.settings.overlayInteractive=true;});await saveQueue;`
+    );
+    await wait(() =>
+      tv(`return document.querySelectorAll('${root} [data-condition-id]').length===2;`)
+    );
+    await tv(`document.querySelector('${root} [data-hud-conditions]').click();`);
+    await wait(() =>
+      tv(
+        `return document.querySelectorAll('${root} [data-hud-condition-results] .condition-choice').length===5;`
+      )
+    );
+    await tv(`document.querySelector('${root} [data-condition-picker-page="1"]').click();`);
+    assert.ok(
+      await tv(
+        `const list=document.querySelector('${root} [data-hud-condition-results]');return list.querySelectorAll('.condition-choice').length===3 && list.scrollHeight<=list.clientHeight+1;`
+      )
+    );
+    results.push(
+      'Conditions show six per page in two rows; resources show three per page, share resource paging across both columns, target the correct pool, support DM paging in click-through, and retain per-player pages through hiding and collapsing. Condition pickers also use five-item pages.'
     );
     fs.writeFileSync(
       path.join(directory, 'wide-hud-results.json'),
