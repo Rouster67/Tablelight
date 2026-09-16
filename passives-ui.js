@@ -55,7 +55,7 @@ function showPassiveItem(id, characterId = selected()?.id) {
   modal(
     HUD.abilityName(it),
     `<div id="passive-details" data-character="${esc(c.id)}" data-item="${esc(it.id)}">${passiveDetailContent(c, it)}</div>`,
-    `<div class="row wrap">${button('Edit', 'edit-item', 'subtle', `data-id="${esc(it.id)}"`)}<span id="passive-active-link">${passiveActiveLink(c, it)}</span></div>${button('Close', 'close-modal', 'subtle')}`
+    `<div class="row wrap">${button('Edit', 'edit-item', 'subtle', `data-id="${esc(it.id)}"`)}${button('Show passive effect on TV', 'hud-detail', 'subtle', `data-id="${esc(it.id)}" data-character="${esc(c.id)}" data-effect="passive"`)}<span id="passive-active-link">${passiveActiveLink(c, it)}</span></div>${button('Close', 'close-modal', 'subtle')}`
   );
   document.querySelector('.modal').classList.add('ability-modal');
 }
@@ -77,6 +77,7 @@ function handlePassiveAction(b) {
   else if (action === 'view-active-effect') showItem(id, false, character);
   else if (action === 'set-passive') {
     const fromDetails = !!b.closest('#passive-details'),
+      fromCurrent = !!b.closest('.current-display'),
       focused = document.activeElement === b;
     commit(
       () =>
@@ -84,7 +85,9 @@ function handlePassiveAction(b) {
       'Passive reminder updated'
     ).then(() => {
       if (!focused) return;
-      const scope = document.getElementById(fromDetails ? 'passive-details' : 'ability-list');
+      const scope = fromCurrent
+        ? document.querySelector('.current-display')
+        : document.getElementById(fromDetails ? 'passive-details' : 'ability-list');
       [...(scope?.querySelectorAll('[data-action="set-passive"]') || [])]
         .find((el) => el.dataset.id === id && el.dataset.character === character)
         ?.focus();

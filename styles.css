@@ -1561,6 +1561,24 @@ p {
   font-size: 9px;
   color: #a9c4a8;
 }
+.hud-passive-status {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 4px 6px;
+  border: 1px solid #889678;
+  border-radius: 4px;
+  color: #e2e3c7;
+  font-size: 10px;
+}
+.hud-passive-status[aria-checked='true'] {
+  background: #40593b;
+  border-color: #b2a174;
+}
+.hud-passive-note {
+  color: #a8b9aa;
+  font-size: 10px;
+  line-height: 1.5;
+}
 .hud-metadata {
   display: grid;
   grid-template-columns: 1fr 1fr;

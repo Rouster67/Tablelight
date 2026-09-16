@@ -14,6 +14,15 @@ module.exports = async function ({
   updates,
   updateAdapter,
 }) {
+  if (process.env.TABLELIGHT_TEST_SCENARIO === 'passives-hud')
+    return require('./passives-hud-native')({
+      app,
+      controller,
+      getOverlay,
+      getState,
+      setOverlay,
+      store,
+    });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'passives-dm')
     return require('./passives-dm-native')({ app, controller, getState, store });
   if (process.env.TABLELIGHT_TEST_SCENARIO === 'passives')

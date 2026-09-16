@@ -141,6 +141,100 @@ test('passive details omit dormant costs and keep hybrid effects separate and es
   assert.equal(HUD.passiveStatus({ trackPassive: true, passiveActive: false }), 'Inactive');
 });
 
+test('HUD passive and hybrid navigation preserves costs, personal placement and save format', () => {
+  const state = fixture(),
+    c = state.characters[0],
+    other = TL.clone(state.characters[1]);
+  const before = TL.clone(c);
+  TL.hudCommand(state, { type: 'panel', characterId: c.id, panel: 'passive' });
+  assert.deepEqual(
+    TL.panelItems(c).map((it) => it.behavior),
+    ['passive', 'hybrid', 'passive']
+  );
+  TL.hudCommand(state, { type: 'detail', characterId: c.id, itemId: c.items[1].id });
+  assert.equal(TL.hudDetailEffect(c), 'passive');
+  const html = HUD.render(c);
+  assert.match(html, /Watch the gate/);
+  assert.match(html, /Inactive/);
+  assert.doesNotMatch(html, /Signal the party|Charges spent per use|Spell Level|hud-use-controls/);
+  assert.deepEqual(TL.normalize(TL.toBackup(state)), state);
+  assert.equal(TL.toBackup(state).version, 11);
+  TL.hudCommand(state, {
+    type: 'detail',
+    characterId: c.id,
+    itemId: c.items[1].id,
+    effect: 'active',
+  });
+  assert.equal(c.hud.panel, 'reaction');
+  assert.match(HUD.render(c), /Signal the party/);
+  assert.doesNotMatch(HUD.render(c), /Watch the gate/);
+  assert.deepEqual(c, {
+    ...before,
+    hud: { ...before.hud, panel: 'reaction', detailId: c.items[1].id, page: 0 },
+  });
+  assert.deepEqual(state.characters[1], other);
+  const saved = TL.clone(state);
+  for (const effect of ['active', 'unknown']) {
+    assert.throws(
+      () =>
+        TL.hudCommand(state, { type: 'detail', characterId: c.id, itemId: c.items[0].id, effect }),
+      /effect/
+    );
+    assert.deepEqual(state, saved);
+  }
+});
+
+test('passive effect pages retain maximum text, escape markup, and clamp only changed selections', () => {
+  let state = fixture();
+  const c = state.characters[0],
+    id = c.items[1].id;
+  const text = '<lantern>' + 'x'.repeat(39991);
+  state.library[1].passiveDescription = text;
+  state.library[1].description = '';
+  state = TL.normalize(state);
+  TL.hudCommand(state, { type: 'detail', characterId: c.id, itemId: id, effect: 'passive' });
+  const current = state.characters[0];
+  assert.equal(
+    TL.abilityTextPages(current.items[1], 'passive')
+      .flat()
+      .map((s) => s.text)
+      .join(''),
+    text
+  );
+  assert.ok(TL.hudPageCount(current) > 50);
+  assert.match(HUD.render(current), /&lt;lantern&gt;/);
+  TL.hudCommand(state, { type: 'page', characterId: c.id, amount: 3 });
+  const expectedHud = TL.clone(current.hud);
+  state.characters[1].hp--;
+  assert.deepEqual(TL.normalize(state).characters[0].hud, expectedHud);
+  state.library[1].passiveDescription = 'Shorter reminder';
+  state = TL.normalize(state);
+  assert.deepEqual(state.characters[0].hud, { ...expectedHud, page: 0 });
+  assert.match(HUD.render(state.characters[0]), /Shorter reminder/);
+  state.library[1].behavior = 'active';
+  state = TL.normalize(state);
+  assert.equal(state.characters[0].hud.detailId, '');
+  assert.equal(state.characters[0].hud.panel, 'passive');
+});
+
+test('empty and many passive lists page predictably and clamp after assignments are removed', () => {
+  const state = TL.empty(),
+    c = TL.character();
+  state.characters = [c];
+  TL.hudCommand(state, { type: 'panel', characterId: c.id, panel: 'passive' });
+  assert.equal(TL.hudPageCount(c), 1);
+  assert.match(HUD.render(c), /No passives assigned yet/);
+  for (let i = 0; i < 16; i++)
+    TL.createLocalItem(state, c.id, { name: 'Passive ' + i, behavior: 'passive' });
+  assert.equal(TL.hudPageCount(c), 2);
+  TL.hudCommand(state, { type: 'page', characterId: c.id, amount: 1 });
+  assert.match(HUD.render(c), /Passive 15/);
+  assert.doesNotMatch(HUD.render(c), /Passive 14/);
+  c.items.pop();
+  const updated = TL.normalize(state);
+  assert.equal(updated.characters[0].hud.page, 0);
+});
+
 test('passive conversion clears only its active HUD detail and rejects stale detail commands', () => {
   const state = fixture(),
     c = state.characters[0];
@@ -154,8 +248,14 @@ test('passive conversion clears only its active HUD detail and rejects stale det
   assert.deepEqual(normalized.characters[1].hud, other.hud);
   const saved = TL.clone(normalized);
   assert.throws(
-    () => TL.hudCommand(normalized, { type: 'detail', characterId: c.id, itemId: c.items[1].id }),
-    /DM Passives/
+    () =>
+      TL.hudCommand(normalized, {
+        type: 'detail',
+        characterId: c.id,
+        itemId: c.items[1].id,
+        effect: 'active',
+      }),
+    /no longer has that effect/
   );
   assert.deepEqual(normalized, saved);
   assert.deepEqual(TL.normalize(TL.toBackup(normalized)), normalized);

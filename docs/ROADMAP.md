@@ -25,7 +25,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 | ID  | Idea                                          | Status                |
 | --- | --------------------------------------------- | --------------------- |
-| F01 | Passive abilities section                     | DM ready; HUD pending |
+| F01 | Passive abilities section                     | Implemented on branch |
 | F02 | Messages sent to individual player overlays   | Implemented on branch |
 | F03 | Visible application version on the DM screen  | Released              |
 | F04 | Launch update prompt and Windows installer    | Released              |
@@ -46,7 +46,7 @@ The data foundation uses Active / Passive / Passive + active independently of Ty
 manual tracking, and separate per-character reminder state. Format 11 imports formats 1–10 and
 preserves the now-merged local-copy, image, theme, and approval behavior. Passive-only use and
 concentration selection are rejected; conditional reminders never calculate statistics or spend
-costs. The player HUD Passives section and PDF remain later milestones in
+costs. The player HUD and PDF milestones are tracked in
 [the updated plan](PASSIVES_AND_ILLUSTRATED_GUIDE_PLAN.md). Existing HUD pagination and natural
 height remain unchanged.
 
@@ -60,8 +60,17 @@ Always applies or independent Active / Inactive reminders, and View/Edit/removal
 The editor supports conditional tracking and separate mixed-effect descriptions; the library
 has a Passives filter. Passive views have no spending controls, and pure passives leave ordinary
 action lists. Hybrid effect navigation does not spend or move a HUD. Existing shared/local
-copying, deletion choices, saves, and individual settings are preserved. Player HUD navigation
-is the next milestone; F01 is not yet complete.
+copying, deletion choices, saves, and individual settings are preserved.
+
+**Player HUD milestone:** Expanded player overlays now include Passives beside Features, with
+readable always/conditional reminder states, passive details without Use/cost controls, and
+back/page navigation between mixed effects. Interactive players can change their own assignment's
+reminder; click-through leaves status visible and navigation to the DM. Currently displayed shows
+the same effect pages and reminder state. Existing save format, independent HUD placement, scale,
+rotation, natural height, and base/pending-column widths are preserved. Automated desktop checks
+cover both screens and modes, long text, list paging, mixed effects, pending uses and rotated HUDs.
+F01 is implemented for this branch; the user's physical-table review, commit and release remain
+separate. F13's guide work follows.
 
 **Requested:** Give characters a section for abilities that work passively, rather than being used
 as an action. The presentation and behavior need brainstorming.

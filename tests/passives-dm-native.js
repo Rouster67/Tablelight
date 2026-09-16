@@ -71,7 +71,7 @@ module.exports = async ({ app, controller, getState, store }) => {
     assert.match(list.text, /Inactive/);
     assert.doesNotMatch(list.text, /Signal charges|Ready|Spell slot/);
     assert.match(list.html, /&lt;only&gt;/);
-    assert.equal(await run('return !!document.querySelector(\'[data-panel="passive"]\');'), false);
+    assert.equal(await run('return !!document.querySelector(\'[data-panel="passive"]\');'), true);
     await run("document.querySelector('[data-tab=\"passive\"]').scrollIntoView({block:'start'});");
     await shot('01-dm-passives');
     results.push(

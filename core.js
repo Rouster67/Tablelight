@@ -373,9 +373,9 @@
       if (it[key]?.trim()) sections.push({ label, text: it[key] });
     return sections;
   }
-  function abilityTextPages(it) {
+  function abilityTextPages(it, effect = '') {
     const result = [];
-    for (const section of abilityTextSections(it)) {
+    for (const section of abilityTextSections(it, effect)) {
       for (const text of textPages(section.text)) {
         const last = result.at(-1);
         // Short sections share a page. Repeat the upgrade heading on each longer page.
@@ -816,6 +816,7 @@
       'free',
       'spell',
       'feature',
+      'passive',
       'sheet',
       'resources',
       '',
@@ -882,11 +883,13 @@
       }
     for (const c of players) {
       const detail = c.items.find((it) => it.id === c.hud.detailId);
-      if (detail && !hasActiveEffect(detail)) {
-        // Passive authoring is available on the DM screen; player browsing follows later.
+      if (
+        detail &&
+        !(hudDetailEffect(c) === 'passive' ? hasPassiveEffect(detail) : hasActiveEffect(detail))
+      ) {
         c.hud.detailId = '';
         c.hud.page = 0;
-      } else if (detail) c.hud.page = Math.min(c.hud.page, abilityTextPages(detail).length - 1);
+      } else if (detail || c.hud.panel === 'passive') c.hud.page = hudPage(c);
       if (c.concentrationItemId) {
         const bound = c.items.find((it) => it.id === c.concentrationItemId);
         if (bound && !hasActiveEffect(bound))
@@ -1046,11 +1049,13 @@
   }
   function panelItems(c) {
     const p = c.hud.panel;
-    return c.items.filter(
-      (i) =>
-        hasActiveEffect(i) && (p === 'spell' || p === 'feature' ? i.kind === p : i.economy === p)
+    return c.items.filter((i) =>
+      p === 'passive'
+        ? hasPassiveEffect(i)
+        : hasActiveEffect(i) && (p === 'spell' || p === 'feature' ? i.kind === p : i.economy === p)
     );
   }
+  const hudDetailEffect = (c) => (c.hud.panel === 'passive' ? 'passive' : 'active');
   const abilityPageSize = 15;
   const conditionPageSize = 6;
   const resourcePageSize = 3;
@@ -1075,7 +1080,7 @@
   }
   function hudPageCount(c) {
     const detail = c.items.find((i) => i.id === c.hud.detailId);
-    if (detail) return abilityTextPages(detail).length;
+    if (detail) return abilityTextPages(detail, hudDetailEffect(c)).length;
     if (c.hud.panel === 'resources') return hudListPage(c, 'resources').total;
     return Math.max(1, Math.ceil(panelItems(c).length / abilityPageSize));
   }
@@ -1221,6 +1226,7 @@
             'free',
             'spell',
             'feature',
+            'passive',
             'sheet',
             'resources',
           ].includes(command.panel)
@@ -1231,14 +1237,26 @@
         c.hud.detailId = '';
         c.hud.page = 0;
         break;
-      case 'detail':
-        if (!c.items.some((i) => i.id === command.itemId)) throw new Error('Ability not found.');
-        if (!hasActiveEffect(c.items.find((i) => i.id === command.itemId)))
-          throw new Error('Read passive abilities in the DM Passives section.');
+      case 'detail': {
+        const it = c.items.find((i) => i.id === command.itemId);
+        if (!it) throw new Error('Ability not found.');
+        const effect =
+          command.effect ??
+          (hasPassiveEffect(it) && (c.hud.panel === 'passive' || !hasActiveEffect(it))
+            ? 'passive'
+            : 'active');
+        if (
+          !['passive', 'active'].includes(effect) ||
+          !(effect === 'passive' ? hasPassiveEffect(it) : hasActiveEffect(it))
+        )
+          throw new Error('This ability no longer has that effect.');
         show();
+        if (effect === 'passive') c.hud.panel = 'passive';
+        else if (c.hud.panel === 'passive') c.hud.panel = it.economy;
         c.hud.detailId = command.itemId;
         c.hud.page = 0;
         break;
+      }
       case 'page': {
         const lastPage = hudPageCount(c) - 1;
         const key =
@@ -1370,6 +1388,7 @@
     heal,
     rest,
     panelItems,
+    hudDetailEffect,
     abilityPageSize,
     hudPageCount,
     hudPage,

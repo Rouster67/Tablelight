@@ -53,16 +53,21 @@ function renderCharacterSheet(c) {
 function renderCurrentDisplay(c) {
   const detail = c.items.find((i) => i.id === c.hud.detailId),
     total = HUD.countPages(c),
-    page = TL.hudPage(c);
+    page = TL.hudPage(c),
+    effect = TL.hudDetailEffect(c),
+    passive = effect === 'passive';
   let content = '';
   if (detail)
-    content = `<b>${HUD.abilityName(detail)}</b><p class="current-description">${esc(HUD.pages(detail.description)[page])}</p>${button('← Back to list', 'panel', 'small subtle', `data-panel="${esc(c.hud.panel)}"`)}`;
-  else if (['action', 'bonus', 'reaction', 'free', 'spell', 'feature'].includes(c.hud.panel))
+    content = `<b>${HUD.abilityName(detail)}</b>${passive ? `<div class="space-top">${passiveReminderControl(c, detail)}</div>` : ''}${HUD.renderTextSections(TL.abilityTextPages(detail, effect)[page], 'current-description')}<div class="row wrap">${button('← Back to list', 'panel', 'small subtle', `data-panel="${esc(c.hud.panel)}"`)}${detail.behavior === 'hybrid' ? button(`Show ${passive ? 'active' : 'passive'} effect`, 'hud-detail', 'small subtle', `data-id="${esc(detail.id)}" data-effect="${passive ? 'active' : 'passive'}"`) : ''}</div>`;
+  else if (
+    ['action', 'bonus', 'reaction', 'free', 'spell', 'feature', 'passive'].includes(c.hud.panel)
+  )
     content = `<div class="current-options">${
       TL.panelItems(c)
         .slice(page * HUD.abilityPageSize, (page + 1) * HUD.abilityPageSize)
-        .map((it) =>
-          button(HUD.abilityName(it), 'hud-detail', 'small subtle', `data-id="${esc(it.id)}"`)
+        .map(
+          (it) =>
+            `<div class="row wrap">${button(HUD.abilityName(it), 'hud-detail', 'small subtle', `data-id="${esc(it.id)}" data-effect="${effect}"`)}${passive ? passiveReminderControl(c, it) : ''}</div>`
         )
         .join('') || '<p class="hint">No abilities in this list yet.</p>'
     }</div>`;
@@ -237,7 +242,14 @@ function handleSessionAction(b) {
       showInitiativeOrder();
       return true;
     case 'hud-detail':
-      commit(() => TL.hudCommand(state, { type: 'detail', characterId: selectedId, itemId: id }));
+      commit(() =>
+        TL.hudCommand(state, {
+          type: 'detail',
+          characterId: b.dataset.character || selectedId,
+          itemId: id,
+          effect: b.dataset.effect,
+        })
+      );
       return true;
     default:
       return false;

@@ -194,17 +194,31 @@ spending path. Passive-only metadata omits casting/slot/concentration/resource c
 passive views show their separate text and reference. User text is escaped throughout.
 
 The library Passives filter includes hybrids and searches their passive text. Pure-passive
-assignment omits spending controls. Character Type/cost lists and `panelItems` exclude pure
-passives. Until the player Passives milestone, normalization clears a newly passive-only HUD
-detail back to its existing panel and the `detail` command rejects stale passive requests.
-Only detail/page selection changes; HUD dimensions, placement, rotation, and other players stay
-intact. No save-format change is required beyond format 11.
+assignment omits spending controls. Character Type/cost lists exclude pure passives; `panelItems`
+includes passive/hybrid assignments only when `hud.panel` is `passive`. This existing saved panel
+also selects the effect for `hud.detailId`; `hudDetailEffect` supplies it consistently to the shared
+`abilityTextPages`, HUD renderer and DM Currently displayed preview. No extra saved effect field
+or format change beyond 11 is needed. `detail` accepts an explicit `effect`, validates it before
+showing a HUD, and selects Passives or the hybrid's active economy when switching effects.
+Normalization clears detail selection if its effect is removed and clamps invalid pages after
+text/list edits, preserving other players, valid reading pages, placement, scale and rotation.
+
+The expanded HUD adds Passives next to Features without changing its fixed width or introducing
+scrollbars. Passive views omit ordinary Use controls and cost labels. Interactive HUDs decorate
+conditional reminder text with explicit desired-state commands; click-through and layout previews
+keep readable status text. The DM can explicitly show a passive on TV or navigate its pages and
+effects through Currently displayed, including when player interaction is disabled. DM modal
+View passive/active effect links remain read-only. Stale concentration-use prompts close when
+the player switches to the passive side of the same hybrid.
 The `passives` desktop scenario verifies real IPC, editor preservation, all Type/Behavior
 combinations, cancel/Undo, concentration conversion errors, minimum-window layout, disk saving,
 and renderer reload with isolated data. Unit coverage includes formats 1–10, local copies, save failures,
 pending requests, targeted refunds, dormant state, invalid inputs, and previous-save recovery.
 The `passives-dm` scenario covers creation, assignment, search, reminders, mixed-effect text,
 stale edits, local copies, remove/delete/Undo, backups/reload, and long text at minimum size.
+The `passives-hud` scenario exercises actual player/DM controls, matching effect pages, reminders
+alongside pending requests, click-through controls, maximum text, zero/one/many assignments,
+reload, and 30 combinations of rotation/scale/interaction with fixed widths and no scrollbars.
 
 ## Conditions and concentration
 

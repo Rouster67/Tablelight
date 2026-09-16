@@ -211,7 +211,7 @@ function renderCharacter(c) {
     )
     .join(
       ''
-    )}</div>${tab === 'sheet' ? renderSheet(c) : `<div class="list-toolbar"><input id="ability-search" placeholder="Find ${esc(labels[tab]?.toLowerCase() || 'an ability')}…" aria-label="Search abilities" value="${esc(search)}">${button('+ Add', 'add-item', 'small')}${tab === 'passive' ? '' : button('Show on TV', 'panel', 'small', `data-panel="${tab}"`)}</div><div id="ability-list" class="ability-list">${renderAbilityList(c)}</div>`}</section></div></div><aside class="character-side gap"><div class="character-display">${renderHudRemote(c)}</div><div class="character-resources gap"><section class="card"><div class="card-heading spread"><h3>Spell slots</h3>${button('Edit', 'edit-character', 'small subtle')}</div><div class="card-body">${
+    )}</div>${tab === 'sheet' ? renderSheet(c) : `<div class="list-toolbar"><input id="ability-search" placeholder="Find ${esc(labels[tab]?.toLowerCase() || 'an ability')}…" aria-label="Search abilities" value="${esc(search)}">${button('+ Add', 'add-item', 'small')}${button('Show on TV', 'panel', 'small', `data-panel="${tab}"`)}</div><div id="ability-list" class="ability-list">${renderAbilityList(c)}</div>`}</section></div></div><aside class="character-side gap"><div class="character-display">${renderHudRemote(c)}</div><div class="character-resources gap"><section class="card"><div class="card-heading spread"><h3>Spell slots</h3>${button('Edit', 'edit-character', 'small subtle')}</div><div class="card-body">${
     c.slots
       .filter((s) => s.max > 0)
       .map(
@@ -542,7 +542,7 @@ function refreshAbilityDetails() {
   if (passiveLink) passiveLink.innerHTML = passiveEffectLink(c, it);
 }
 function detailRemote(c, it) {
-  if (it && c.hud.detailId !== it.id)
+  if (it && (c.hud.detailId !== it.id || TL.hudDetailEffect(c) !== 'active'))
     return button('Show active effect on TV', 'view-item', 'small', `data-id="${esc(it.id)}"`);
   const n = HUD.countPages(c);
   return `<div class="spread"><span class="hint">TV details: page ${Math.min(c.hud.page + 1, n)} / ${n}</span><div class="row">${button('← Previous', 'hud-page', 'small', `data-amount="-1" ${c.hud.page ? '' : 'disabled'}`)}${button('Next →', 'hud-page', 'small', `data-amount="1" ${c.hud.page < n - 1 ? '' : 'disabled'}`)}</div></div>`;

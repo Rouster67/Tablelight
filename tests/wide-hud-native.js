@@ -239,7 +239,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
     await run(
       `commit(()=>{selected().hud.panel='sheet';state.settings.overlayInteractive=false;});await saveQueue;`
     );
-    await wait(() => tv(`return document.querySelectorAll('.hud-nav-label').length===9;`));
+    await wait(() => tv(`return document.querySelectorAll('.hud-nav-label').length===10;`));
     assert.equal(
       await tv(`return document.querySelectorAll('.hud-card button,.hud-toolstrip').length;`),
       0
@@ -253,7 +253,7 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       'Click-through mode retains the wide layout and selected section without interactive controls.'
     );
     await run(`commit(()=>state.settings.overlayInteractive=true);await saveQueue;`);
-    await wait(() => tv(`return document.querySelectorAll('.hud-nav button').length===9;`));
+    await wait(() => tv(`return document.querySelectorAll('.hud-nav button').length===10;`));
     const fits = await tv(
       `const fixture=document.createElement('div');fixture.style.cssText='position:fixed;left:0;top:0;width:1280px;height:720px';document.body.append(fixture);const sample=TL.clone(state);const reports=[];for(const angle of [0,45,90,180,270]){sample.characters[0].hud={...sample.characters[0].hud,x:98,y:98,rotation:angle,scale:0.5};HUD.mount(fixture,sample,1280,720,1,'','overlay');const el=fixture.firstElementChild,r=el.getBoundingClientRect();reports.push({angle,x:r.x,y:r.y,right:r.right,bottom:r.bottom,rotation:el.style.transform.includes('rotate('+angle+'deg)')});}fixture.remove();return reports;`
     );

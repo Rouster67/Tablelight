@@ -1,10 +1,10 @@
 # Passive abilities and illustrated user guide — implementation plan
 
 Status: milestone 1 was published by the user as `5953c11`, followed by the Behavior/Turn cost
-editor in `eb06b48`. The user authorized the next focused change: milestone 2's DM Passives tab,
-conditional reminders, and mixed-effect authoring/navigation. That work is implemented locally;
-milestone 3's player HUD and F13 remain planned. Branch, commit, and publishing decisions stay
-with the user. Include `AGENTS.md` with this next commit. No release version has been chosen.
+editor in `eb06b48` and milestone 2's DM Passives in `aee73e9` (including `AGENTS.md`). The local
+and published branch were verified at `aee73e9` before the user-authorized next change. Milestone 3's
+player HUD and DM display controls are now implemented locally. F13 remains planned. Branch,
+commit, and publishing decisions stay with the user. No release version has been chosen.
 
 Originally prepared September 13 against Tablelight 1.10.2. Updated for the user's branch at
 `2c583f9` (package 1.12.1 plus the latest merged HUD/DM layout changes).
@@ -202,6 +202,17 @@ Completion and tests:
   HUD spending, and HP changes unless the user explicitly edited the same field.
 
 ### Milestone 3 — player HUD, DM display controls, and passive regression
+
+**Implemented locally:** Expanded HUDs and Currently displayed offer Passives, with matching
+effect text/pages, conditional reminder switches and both sides of a hybrid. Click-through keeps
+readable status and DM controls. Existing `hud.panel = 'passive'` selects passive detail text,
+avoiding an extra saved field or format change. Explicit Show on TV controls display a passive;
+ordinary DM reading links remain independent of the HUD. Widths, natural height, rotation, scale,
+and other characters are preserved. New unit/native coverage checks paging, empty active text,
+conditional switches, pending requests, click-through, reload, backups, zero/one/many passives,
+maximum-length text and 30 rotation/scale/interaction combinations. Test captures are for review,
+not final guide screenshots. The next proposed commit is milestone 4's offline guide-opening
+route, authoring setup and packaging; full guide content follows in milestone 5.
 
 Add Passives to the shared HUD section choices and DM Currently displayed controls. Put the new
 choice next to Features, with navigation contained inside the existing frame. Determine the

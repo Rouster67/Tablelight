@@ -7,7 +7,10 @@ plus merged UI changes at `2c583f9`. The final release version and screenshot fr
 DM milestone update: Behavior/Turn cost, the DM Passives tab, conditional reminder switches,
 and separate mixed-effect descriptions are implemented. Include their creation, assignment,
 independent reminders, shared/local editing, and read-only effect navigation in the guide.
-Player Passives navigation is still pending. Development test captures are not final guide images.
+Player Passives navigation is now implemented: cover list/detail reminder switches, Back to list,
+mixed-effect links, DM Show on TV and Currently displayed controls, and read-only click-through
+status. Development test captures are not final guide images; final captures still wait for the
+finished Setup & help interface and the release version.
 
 Use synthetic players Mira and Rowan, their original Lantern sense / Watchkeeper examples from
 the [implementation plan](../PASSIVES_AND_ILLUSTRATED_GUIDE_PLAN.md), and a saved inactive player.

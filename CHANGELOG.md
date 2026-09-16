@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Add a DM Passives tab, shared-library passive search/filter, optional per-character Active / Inactive reminders, and separate passive/active descriptions for mixed abilities. Passive views show no Use or cost controls, and pure passives leave ordinary action lists. Viewing either side of a mixed ability does not spend or change a HUD; shared/local definitions, saved costs, and individual reminder states remain intact. Player HUD Passives navigation follows in the next milestone.
+- Add Passives beside Features on expanded player HUDs and in the DM's Currently displayed controls. Players can read passive effects, page long descriptions, switch conditional reminders, and navigate both sides of mixed abilities. Passive views have no Use or cost controls; click-through retains readable status with DM controls. Preserve individual reading pages, saved placement/rotation/scale, and existing 880px/1150px HUD widths.
+
+- Add a DM Passives tab, shared-library passive search/filter, optional per-character Active / Inactive reminders, and separate passive/active descriptions for mixed abilities. Passive views show no Use or cost controls, and pure passives leave ordinary action lists. DM reading links for either effect do not spend or change a HUD; shared/local definitions, saved costs, and individual reminder states remain intact. Explicit Show on TV controls display the selected list or effect for players.
 
 - Add Behavior (Active, Passive, or Passive + active) to shared and character-only ability editors and place Turn cost beside it near the top. Type continues to control grouping without limiting fields, spell slots, or resource costs. Passive hides Turn cost while retaining its saved setting; hybrid costs apply only to the active effect.
 

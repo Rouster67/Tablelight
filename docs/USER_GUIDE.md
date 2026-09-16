@@ -176,10 +176,22 @@ Removing an assignment keeps the shared definition, and deleting a shared defini
 offers the existing option to keep local copies. If someone is concentrating on an ability,
 end or change that concentration before saving it as passive-only.
 
-The player HUD's dedicated Passives section is the next development milestone. At this stage,
-read passive effects on the DM screen; player HUD lists show active effects only. Converting an
-ability currently displayed on a HUD to passive-only returns that HUD to its existing list,
-preserving placement, scale, and rotation.
+**Passives on the player overlay:** Expand a player's portrait and choose **Passives**, beside
+Features. Choose **View** to read an effect, use **Previous / Next** for long text, and
+**Back to list** to return. Conditional entries have an **Active / Inactive** switch in both
+the list and detail view; it records a reminder for this character only. **Always applies**
+entries have no switch. A passive view has no Use button or action, slot, or resource cost.
+For a mixed ability, **View active effect** opens its ordinary use controls; **View passive
+effect** returns to the reminder. Changing views does not spend anything.
+
+The DM can choose **Passives → Show on TV**, or open a passive and choose **Show passive effect
+on TV**. **Currently displayed** also offers Passives, matching text pages, reminder switches,
+and navigation between effects. With click-through enabled, the overlay still shows the selected
+passive and its status; use these DM controls to change what players see. Collapsed HUDs remain
+portrait bubbles; expand one to read its passives.
+
+Unrelated updates preserve the selected effect and page. Shortening text clamps an invalid page;
+removing an effect returns its HUD to the existing list. Placement, scale, and rotation stay saved.
 
 **Ability images:** In an ability editor, choose **Upload image** to add artwork, **Replace image**
 to change it, or **Remove image** to return to the usual spell, action, or feature symbol.
