@@ -153,7 +153,7 @@
       : integer(raw.level, 0, 9);
   const freshTurn = (c) => ({ action: true, bonus: true, reaction: true, movement: c.speed });
   const abilityTextLimit = (key) =>
-    ['description', 'upgrades', 'requirements', 'special'].includes(key)
+    ['description', 'passiveDescription', 'upgrades', 'requirements', 'special'].includes(key)
       ? 40000
       : ['attack', 'save'].includes(key)
         ? 2000
@@ -230,6 +230,10 @@
       id: uid(),
       name: 'New ability',
       kind: 'action',
+      behavior: 'active',
+      trackPassive: false,
+      passiveDescription: '',
+      passiveActive: false,
       economy: 'action',
       level: null,
       usesSlot: true,
@@ -261,6 +265,9 @@
   const definitionFields = [
     'name',
     'kind',
+    'behavior',
+    'trackPassive',
+    'passiveDescription',
     'economy',
     'level',
     'usesSlot',
@@ -283,6 +290,31 @@
     'description',
     'icon',
   ];
+  function passiveDefinition(raw) {
+    const behavior = raw.behavior === undefined ? 'active' : raw.behavior;
+    if (!['active', 'passive', 'hybrid'].includes(behavior))
+      throw new Error('Choose Active, Passive, or Passive + active ability behavior.');
+    if (raw.trackPassive !== undefined && typeof raw.trackPassive !== 'boolean')
+      throw new Error('Passive tracking must be true or false.');
+    if (raw.passiveDescription !== undefined && typeof raw.passiveDescription !== 'string')
+      throw new Error('The passive effect description must be text.');
+    return {
+      behavior,
+      trackPassive: raw.trackPassive === true,
+      passiveDescription: str(raw.passiveDescription, abilityTextLimit('passiveDescription')),
+    };
+  }
+  const hasActiveEffect = (it) =>
+    it.behavior === undefined || ['active', 'hybrid'].includes(it.behavior);
+  const hasPassiveEffect = (it) => ['passive', 'hybrid'].includes(it.behavior);
+  function setPassiveActive(c, itemId, active) {
+    if (typeof itemId !== 'string' || typeof active !== 'boolean')
+      throw new Error('Choose a valid passive ability and Active or Inactive state.');
+    const it = c?.items.find((it) => it.id === itemId);
+    if (!it || !hasPassiveEffect(it) || !it.trackPassive)
+      throw new Error('Choose an assigned passive with manual tracking enabled.');
+    it.passiveActive = active;
+  }
   function libraryEntry(raw = {}) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw))
       throw new Error('Each library entry must be an object.');
@@ -301,6 +333,7 @@
     entry.level = normalizeSpellLevel(raw);
     entry.usesSlot = raw.usesSlot !== false;
     entry.requiresConcentration = raw.requiresConcentration === true;
+    Object.assign(entry, passiveDefinition(raw));
     return entry;
   }
   const definitionKey = (entry) => JSON.stringify(definitionFields.map((key) => entry[key]));
@@ -524,6 +557,7 @@
     return c.items
       .filter(
         (it) =>
+          hasActiveEffect(it) &&
           it.requiresConcentration &&
           words.every((word) => (it.name + ' ' + it.description).toLowerCase().includes(word))
       )
@@ -532,7 +566,9 @@
   function setConcentration(c, active, itemId = '') {
     if (!c || typeof active !== 'boolean' || typeof itemId !== 'string')
       throw new Error('Invalid concentration setting.');
-    const it = active && c.items.find((it) => it.id === itemId && it.requiresConcentration);
+    const it =
+      active &&
+      c.items.find((it) => it.id === itemId && hasActiveEffect(it) && it.requiresConcentration);
     if (active && !it)
       throw new Error('Choose one of this character’s abilities marked Concentration.');
     c.concentrating = active;
@@ -549,6 +585,7 @@
         resourceId: it.resourceId,
         resourceCost: it.resourceCost,
         disabled: it.disabled,
+        passiveActive: it.passiveActive,
       }));
     for (const c of allCharacters(backup)) {
       delete c.appliedConditions;
@@ -737,6 +774,10 @@
       it.requiresConcentration = r.requiresConcentration === true;
       it.resourceCost = integer(r.resourceCost ?? 1, 1, 999);
       it.disabled = r.disabled === true;
+      Object.assign(it, passiveDefinition(r));
+      if (r.passiveActive !== undefined && typeof r.passiveActive !== 'boolean')
+        throw new Error('A character’s passive state must be true or false.');
+      it.passiveActive = r.passiveActive === true;
       if (it.resourceId && !c.resources.some((x) => x.id === it.resourceId))
         throw new Error('An ability refers to a missing resource.');
       return it;
@@ -776,7 +817,7 @@
   function normalize(raw) {
     if (
       !raw ||
-      ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(raw.version) ||
+      ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(raw.version) ||
       !Array.isArray(raw.characters)
     )
       throw new Error('This is not a supported Tablelight party backup.');
@@ -829,6 +870,13 @@
       const detail = c.items.find((it) => it.id === c.hud.detailId);
       if (detail) c.hud.page = Math.min(c.hud.page, abilityTextPages(detail).length - 1);
       if (c.concentrationItemId) {
+        const bound = c.items.find((it) => it.id === c.concentrationItemId);
+        if (bound && !hasActiveEffect(bound))
+          throw new Error(
+            'End or change concentration for ' +
+              c.name +
+              ' before making this ability passive-only.'
+          );
         const current = c.items.find(
           (it) => it.id === c.concentrationItemId && it.requiresConcentration
         );
@@ -870,7 +918,7 @@
     if (conditionLibrary.length > 5000)
       throw new Error('The condition library can contain up to 5,000 entries.');
     return {
-      version: 10,
+      version: 11,
       conditionLibrary,
       libraryVersion: 1,
       library,
@@ -892,6 +940,7 @@
     return normalize({ version: 1, characters: [], settings: {} });
   }
   function availability(c, it, slotLevel) {
+    if (!hasActiveEffect(it)) return 'Passive abilities cannot be used or spend costs.';
     if (it.disabled) return 'Marked unavailable by the DM';
     if (it.economy !== 'free' && !c.turn[it.economy])
       return (
@@ -914,7 +963,7 @@
     return '';
   }
   function concentrationUseWarning(c, it) {
-    if (!c.concentrating || !it.requiresConcentration) return null;
+    if (!hasActiveEffect(it) || !c.concentrating || !it.requiresConcentration) return null;
     return {
       message: `Using ${it.name} will end concentration on ${c.concentration || 'your current ability'}.`,
       token: JSON.stringify([
@@ -1216,6 +1265,11 @@
       case 'concentration':
         setConcentration(c, command.active, command.itemId ?? '');
         break;
+      case 'passive':
+        if (!state.settings.overlayInteractive || !c.hud.visible || !c.hud.expanded)
+          throw new Error('Passive controls require a visible, expanded, interactive HUD.');
+        setPassiveActive(c, command.itemId, command.active);
+        break;
       case 'condition-remove':
         unassignCondition(state, c.id, command.conditionId);
         break;
@@ -1242,6 +1296,9 @@
     }
   }
   return {
+    hasActiveEffect,
+    hasPassiveEffect,
+    setPassiveActive,
     conditionEntry,
     searchConditions,
     assignCondition,

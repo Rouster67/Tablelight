@@ -25,7 +25,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 | ID  | Idea                                          | Status                |
 | --- | --------------------------------------------- | --------------------- |
-| F01 | Passive abilities section                     | Considering           |
+| F01 | Passive abilities section                     | Foundation ready      |
 | F02 | Messages sent to individual player overlays   | Implemented on branch |
 | F03 | Visible application version on the DM screen  | Released              |
 | F04 | Launch update prompt and Windows installer    | Released              |
@@ -39,6 +39,16 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F13 | Bundled illustrated PDF user guide            | Planned candidate     |
 
 ## F01 — Passive abilities section
+
+**September 15, 2026 — first implementation commit:** The user created
+`codex/passives-and-illustrated-guide` and authorized the first commit; publishing remains theirs.
+The data foundation uses Active / Passive / Passive + active independently of Type, optional shared
+manual tracking, and separate per-character reminder state. Format 11 imports formats 1–10 and
+preserves the now-merged local-copy, image, theme, and approval behavior. Passive-only use and
+concentration selection are rejected; conditional reminders never calculate statistics or spend
+costs. The visible editor controls, DM/HUD Passives sections, and PDF remain later milestones in
+[the updated plan](PASSIVES_AND_ILLUSTRATED_GUIDE_PLAN.md). Existing HUD pagination and natural
+height remain unchanged.
 
 **Requested:** Give characters a section for abilities that work passively, rather than being used
 as an action. The presentation and behavior need brainstorming.
@@ -193,7 +203,7 @@ Links remain outside this first milestone.
 
 **Status:** Merged in [PR #10](https://github.com/Rouster67/Tablelight/pull/10) and released in
 1.11.0. Reference retains the original source data and stays below Description at the bottom
-right. Current saves use format 10 and accept formats 1–9. Regression checks cover migration,
+right. The current development branch writes format 11 and accepts formats 1–10. Regression checks cover migration,
 active and inactive characters, persistence, text escaping, fixed rotated HUDs, and shared-editor
 saves after later HUD spending. See [the ability details plan](ABILITY_DETAILS_PLAN.md).
 

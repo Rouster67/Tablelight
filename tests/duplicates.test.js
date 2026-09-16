@@ -128,7 +128,7 @@ test('local variants survive inactive roster, save/export/import, and recovery w
     const store = new Store(dir);
     state = store.save(state);
     const raw = JSON.parse(fs.readFileSync(store.file, 'utf8'));
-    assert.equal(raw.version, 10);
+    assert.equal(raw.version, 11);
     assert.equal(raw.library.length, 1);
     assert.equal(raw.roster[0].items[1].local, true);
     assert.equal(raw.roster[0].items[1].special, 'Special text');
@@ -148,7 +148,7 @@ test('local variants survive inactive roster, save/export/import, and recovery w
     const old = TL.toBackup(fixture());
     old.version = 8;
     const upgraded = TL.normalize(old);
-    assert.equal(upgraded.version, 10);
+    assert.equal(upgraded.version, 11);
     assert.equal(upgraded.characters[0].items[0].local, undefined);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

@@ -75,7 +75,7 @@ module.exports = async ({ app, controller, store, updates, updateFixture }) => {
       assert.equal(saved.characters[0].conditionIds.length, 1);
       assert.equal(saved.roster[0].conditionIds.length, 1);
       assert.ok(saved.characters[0].avatar.startsWith('data:image/png;base64,'));
-      assert.equal(saved.version, 10);
+      assert.equal(saved.version, 11);
       assert.equal(saved.characters[0].theme, 'artificer');
       assert.equal(saved.roster[0].theme, 'wizard');
       assert.ok(saved.library[0].icon.startsWith('data:image/png;base64,'));

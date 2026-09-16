@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add the passive-ability data foundation: Active, Passive, and Passive + active behaviors, shared passive text, and independent manual reminder states. Save format 11 imports formats 1–10 and preserves shared/local abilities, icons, themes, and character settings. Passive-only entries cannot spend costs or start concentration; hybrid reminders stay independent of approval requests and active spending. Visible authoring and Passives sections follow in later commits.
+
 - Move DM Concentration & conditions directly below the combat counters, outline overlay Conditions/Spell slots/Custom resources sections, and show resource charge markers up to ten charges with current/maximum above ten.
 
 - Remove overlay scrollbars: panels grow to fit their content; conditions use six-item pages in two rows of three and custom resources use independent three-item pages with matching DM controls for click-through.

@@ -9,6 +9,7 @@ const electron = require('electron');
 const resultsRoot = path.join(root, 'test-results');
 fs.mkdirSync(resultsRoot, { recursive: true });
 const scenarios = [
+  'passives',
   'visual-improvements',
   'player-messages-ui',
   'player-messages',

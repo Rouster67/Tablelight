@@ -50,14 +50,15 @@ Only the main process accesses the file system. `storage.js` writes a temporary 
 
 ## Shared library
 
-Save format version 10 keeps `library` and `conditionLibrary` alongside `characters` (active
+Save format version 11 keeps `library` and `conditionLibrary` alongside `characters` (active
 party), `roster` (inactive saved players), `settings`, and `activeId`. Library entries own
 `name`, `kind`, `economy`, `level`, `usesSlot`, `requiresConcentration`, and the manual text
 fields: `trigger`, `duration`, `range`, `area`, `castingTime`, `components`, `school`,
 `attack`, `save`, `onSave`, `damage`, `upgrades`, `requirements`, `special`, `description`,
 and `source`. The visible Reference label retains the existing `source` storage key.
 The optional `icon` contains a validated, embedded PNG, defaulting to an empty string.
-Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`, and `disabled`.
+Library-linked assignments serialize only `id`, `libraryId`, `resourceId`, `resourceCost`,
+`disabled`, and `passiveActive`.
 Slots, resources, HP, turn state, and HUD settings belong to each character.
 
 Character-only items have `local: true` and an empty `libraryId`. They store their complete
@@ -118,11 +119,12 @@ changed-field merging preserves concurrent HUD spending. Untouched inputs retain
 text, including legacy whitespace or line breaks that a single-line input cannot display.
 DM details refresh when shared text changes.
 
-Formats 1–9 import into format 10. Older missing fields become blank; legacy unlinked items match
+Formats 1–10 import into format 11. Older missing text fields become blank; legacy unlinked items match
 by their full normalized definition content. Different same-name definitions remain separate.
 Missing references and duplicate definition IDs remain errors. IDs, selections, resources, and
-all character state are preserved. Older readers reject format 10 rather than silently discard
-ability icons; format 9 originally introduced character-only copies. Inactive roster, overlay rendering, resource spending, concentration,
+all character state are preserved. Format-10 readers reject format 11 rather than silently discard
+passive behavior/state; format 10 introduced icons and format 9 introduced character-only copies.
+Inactive roster, overlay rendering, resource spending, concentration,
 backup recovery, and session Undo all retain local items by their own stable IDs.
 
 The uncommitted calculation preview wrote format 7. Its migration preserves explicitly entered
@@ -145,6 +147,42 @@ The lower-level `removeLibraryEntry` remains restricted to unassigned definition
 Removing a character or assignment leaves the library intact. A confirmed backup restore replaces
 the party, roster, and both libraries. Ordinary Undo remains a chronological stack, now coordinated
 with approved-use History and targeted reversals by the approval service.
+
+## Passive ability foundation
+
+Format 11 adds shared `behavior` (`active`, `passive`, or `hybrid`), `trackPassive` (boolean),
+and `passiveDescription` (plain text, at most 40,000 characters). These fields also belong to
+character-only definitions. The primary `description` retains its text through behavior changes;
+it describes the passive for passive-only entries and the active effect for hybrids. Existing
+entries default to Active, no manual tracking, and blank passive text; normalization never infers
+behavior from names, Type, free turn cost, or descriptive rules. Invalid supplied values fail
+validation before saving, while omitted fields receive defaults.
+
+`passiveActive` belongs to the assignment and defaults false. Shared definition edits never
+overwrite it; it remains stored when behavior or tracking changes. Creating or duplicating an
+assignment starts Inactive. The existing Make local copies and delete operation retains the
+assignment and its state. Rests, turns, concentration changes, remove/rejoin, and backup round
+trips preserve the reminder. Shared definitions do not contain any character's reminder state.
+
+`setPassiveActive` accepts an explicit boolean for an assigned passive/hybrid with tracking on.
+It changes no statistics, turn controls, costs, conditions, or concentration. The checked HUD
+`passive` command additionally requires an active-party character and a visible, expanded,
+interactive HUD. The existing main-process approval service owns serialization, deduplication,
+saving, failures, stale-editor merging, and ordinary Undo. This assignment field is deliberately
+outside the approval definition fingerprint, so switching a hybrid reminder does not invalidate
+its pending active use or targeted refund.
+
+`hasActiveEffect` guards availability/spending and concentration selection. Passive-only abilities
+cannot request or perform use, even with dormant cost/concentration settings. An existing binding
+to a newly passive-only ability fails normalization with an instruction to end/change concentration
+first, including for inactive players. Hybrid active use keeps normal costs and approval behavior.
+No automatic statistics, rules, or conditions are derived from either description.
+
+This commit provides data and command support only; visible authoring, Passives sections, and
+hybrid detail navigation are later milestones. Current HUD dimensions/pagination remain unchanged.
+The `passives` desktop scenario verifies real IPC, editor preservation, disk saving, Undo, and
+renderer reload with isolated data. Unit coverage includes formats 1–10, local copies, save failures,
+pending requests, targeted refunds, dormant state, invalid inputs, and previous-save recovery.
 
 ## Conditions and concentration
 
@@ -285,7 +323,7 @@ The existing HUD fitting, rotation, hit regions, and resource icons remain in us
 `TL.clone` copies plain JSON containers while retaining immutable strings. Structural equality
 avoids repeatedly serializing image data for comparisons and stale-editor merges. Approval
 definition snapshots and Undo replay signatures also retain strings instead of embedding PNGs
-inside generated JSON keys. Saves still serialize each shared definition only once in format 10.
+inside generated JSON keys. Saves serialize each shared definition only once, now in format 11.
 
 The shared codec in `preload.js` boxes each distinct PNG string once per outgoing message;
 Electron's structured-clone reference table then transmits repeated image references cheaply.
@@ -308,8 +346,8 @@ character's theme after decorating controls. Missing/unknown themes add no styli
 returning to Default removes only the module's variables, attribute, and resource-icon frames.
 `TL.character` defaults `theme` to `default`. Character normalization preserves nonblank string
 identifiers (up to 300 characters), including unknown choices; missing, blank, or malformed
-values use Default. The optional field travels in both character collections and the existing
-unreleased format 10 backups. There is no new format bump within this unreleased feature branch.
+values use Default. The optional field travels in both character collections; it first shipped
+with format 10 and is retained in format 11 alongside the passive foundation.
 
 Create and Edit use the same palette registry for the Theme dropdown. An unknown identifier
 gets an escaped selected option labeled "Default (saved theme unavailable)" so saving unrelated

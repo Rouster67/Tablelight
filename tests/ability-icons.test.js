@@ -57,7 +57,7 @@ test('icons round trip once per definition and preserve active/inactive characte
   TL.createLocalItem(state, c.id, { name: 'Local user ability', icon: blue });
   const normalized = TL.normalize(state),
     backup = TL.toBackup(normalized);
-  assert.equal(backup.version, 10);
+  assert.equal(backup.version, 11);
   assert.equal(backup.library[0].icon, red);
   assert.equal(backup.library[1].icon, blue);
   for (const c of TL.allCharacters(backup)) assert.equal(c.items[0].icon, undefined);
@@ -82,10 +82,10 @@ test('formats 1–9 gain blank icons without losing state; legacy artwork stays 
     for (const entry of raw.library) delete entry.icon;
     const original = TL.clone(raw),
       restored = TL.normalize(raw);
-    assert.equal(restored.version, 10);
+    assert.equal(restored.version, 11);
     assert.equal(restored.library[0].icon, '');
     const expected = TL.clone(original);
-    expected.version = 10;
+    expected.version = 11;
     for (const entry of expected.library) entry.icon = '';
     assert.deepEqual(TL.toBackup(restored), expected);
     assert.deepEqual(raw, original);
@@ -97,7 +97,7 @@ test('formats 1–9 gain blank icons without losing state; legacy artwork stays 
   const state = TL.normalize({ version: 1, characters: [a, b] });
   assert.equal(state.library.length, 2);
   assert.notEqual(state.characters[0].items[0].libraryId, state.characters[1].items[0].libraryId);
-  assert.throws(() => TL.normalize({ ...TL.empty(), version: 11 }), /supported/);
+  assert.throws(() => TL.normalize({ ...TL.empty(), version: 12 }), /supported/);
 });
 test('stored icons reject bad types, base64, dimensions, checksums, animation, and metadata', () => {
   assert.equal(Icon.normalize(undefined), '');
