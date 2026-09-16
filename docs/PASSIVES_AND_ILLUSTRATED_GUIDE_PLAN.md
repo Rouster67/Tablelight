@@ -8,8 +8,10 @@ authoring pipeline and draft were published as `0b140ba`. Milestone 5's complete
 manual is committed as `8e3b699`, followed by the review record in `e55be28`. The user has
 authorized milestone 6's final verification. See the [release check record](PASSIVES_AND_GUIDE_RELEASE_CHECKS.md)
 for completed checks and remaining blockers. Branch, commit, and publishing decisions stay
-with the user. The user now intends a 2.0 release; applying that version and preparing its final
-guide/build remain outstanding. The current package is still 1.12.1.
+with the user. Release preparation now targets version 2.0.0, with refreshed screenshots and
+the matching complete guide. See [2.0.0 readiness](RELEASE_2.0.0.md) for the current candidate
+and the owner's explicit waiver of installer, offline-reader and physical-TV checks. Release
+preparation is complete with those recorded exceptions; publication remains the user's action.
 
 Originally prepared September 13 against Tablelight 1.10.2. Updated for the user's branch at
 `2c583f9` (package 1.12.1 plus the latest merged HUD/DM layout changes).
@@ -364,7 +366,11 @@ Completion and tests:
 
 ### Milestone 6 — combined regression, installations, and review
 
-**September 16 status:** Verification is in progress. The installer regression now includes
+**Final September 16 decision:** The user explicitly waived the three remaining manual check
+groups. The 2.0.0 guide is Final and release preparation proceeds with those checks recorded as
+untested. See [the current release record](RELEASE_2.0.0.md).
+
+**Earlier September 16 status:** Verification is in progress. The installer regression now includes
 passive/hybrid definitions, independent reminder states and HUD settings, and replacement of
 a deliberately different old guide in a custom folder with spaces and a non-ASCII name.
 Its actual installation run is blocked by Windows Application Control. Interactive PDF-reader,

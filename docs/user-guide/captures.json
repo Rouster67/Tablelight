@@ -1,7 +1,7 @@
 {
   "fixture": "guide-manual-v1",
-  "appVersion": "1.12.1",
-  "sourceRevision": "0b140ba735cdbd297a7df97b6ed67fc5be81dc67",
+  "appVersion": "2.0.0",
+  "sourceRevision": "827c03e03bae4aee492c659b4ac2d796d8f35127",
   "workingTree": "Documentation and capture harness changes; application UI unchanged.",
   "window": {
     "width": 1440,

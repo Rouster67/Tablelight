@@ -1,8 +1,8 @@
 # Full manual coverage and verification
 
-Baseline: branch `codex/passives-and-illustrated-guide`, published commit `0b140ba`, app 1.12.1
-with format 11 and the current development interface. No gameplay/UI behavior changes are part
-of this documentation commit. The manuscript covers every app section. Capture provenance is
+Release candidate: branch `codex/passives-and-illustrated-guide`, based on commit `827c03e`, app
+2.0.0 with format 11. No gameplay behavior changes are part of version preparation.
+The manuscript covers every app section. Capture provenance is
 in `captures.json`; exact PDF/page certification is in `review.json`.
 
 ## Control inventory
@@ -102,7 +102,7 @@ later release can reproduce or replace the examples after UI changes.
 - All-page visual review, exact hash, bookmark/link and font results: recorded in review.json.
 - Local testing installation: updated with the same PDF and checked against the built payload;
   the installation backup and hash records live in ignored backups/work/test-results.
-- Real default-viewer acceptance, a second viewer's interactive navigation, physical TV reading
-  distance, chosen release version, and the complete fresh-install/custom-upgrade matrix must
-  be certified for the final release. Do not infer those from a successful renderer test or
-  copied unpacked folder. The Draft release gate stays in place until that review is complete.
+- For 2.0.0, the owner explicitly waived the remaining offline/two-reader, physical TV and
+  real installer/upgrade/uninstall checks. These remain untested, not inferred from renderer
+  tests or copied folders. The final version, PDF review and hash-bound waiver are recorded
+  in `review.json`; the normal release gate accepts that documented owner decision.

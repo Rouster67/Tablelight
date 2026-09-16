@@ -4,6 +4,10 @@ The initial ideas were collected on September 11, 2026; class overlay themes and
 PDF guide were added on September 13, 2026. This document tracks planning and agreed implementation
 progress; entries do not assign a release version or authorize implementation.
 
+The user has since requested preparation of **2.0.0** for the implemented passive abilities and
+complete illustrated guide. The versioned candidate, checks and outstanding release requirements
+are recorded in [RELEASE_2.0.0.md](RELEASE_2.0.0.md). Publication remains a separate user decision.
+
 - **Planned candidate:** The requested direction is clear enough to outline. Details and priority
   still need agreement before development.
 - **Considering:** The idea needs more design discussion before choosing an approach.
@@ -36,7 +40,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 | F09 | Uploaded icons for abilities                  | Implemented on branch |
 | F10 | DM approval queue, History, and targeted undo | Released              |
 | F12 | Class overlay color themes                    | Implemented on branch |
-| F13 | Bundled illustrated PDF user guide            | In progress           |
+| F13 | Bundled illustrated PDF user guide            | Implemented on branch |
 
 ## F01 — Passive abilities section
 

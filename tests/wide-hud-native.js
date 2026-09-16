@@ -55,9 +55,14 @@ module.exports = async ({ app, controller, getOverlay, getState, screen, setOver
       `Expanded sheet uses two columns (${geometry.width}×${geometry.height}); navigation and all 18 skills and 6 saves are on the right.`
     );
     await shot('01-wide-sheet');
-    const preview = await run(
-      `const card=document.querySelector('#preview-stage .hud-card');return {width:card.offsetWidth,height:card.offsetHeight,columns:getComputedStyle(card).gridTemplateColumns};`
-    );
+    // The DM preview is painted on its own animation frame after overlay-status updates.
+    let preview;
+    await wait(async () => {
+      preview = await run(
+        `const card=document.querySelector('#preview-stage .hud-card');return card?{width:card.offsetWidth,height:card.offsetHeight,columns:getComputedStyle(card).gridTemplateColumns}:null;`
+      );
+      return preview && preview.width > 0 && preview.height > 0;
+    });
     assert.equal(preview.width, geometry.width);
     assert.equal(preview.height, geometry.height);
     results.push('The DM layout preview matches the TV’s wide sheet dimensions.');

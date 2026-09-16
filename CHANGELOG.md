@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.0.0 — 2026-09-16
+
+- Finalize the 2.0.0 app and illustrated guide. Record the owner's explicit decision to proceed without installer, offline-reader and physical-TV checks; preserve their untested status and bind the release waiver to this version and PDF. Publication remains a separate step.
+- Make the guide-packaging regression cover both Draft and Final review states, and wait for the DM preview's first painted frame in the HUD geometry test.
+- Export a party backup before upgrading. Version 2.0.0 imports save formats 1–10 and writes format 11; Tablelight 1.12.1 and earlier cannot open a format-11 save. Keep a pre-upgrade backup if you need to return to an older release.
+
 - Extend the installer regression to cover passive/hybrid definitions, independent character reminders and HUD settings, and replacement/removal of the bundled PDF in a custom folder with spaces and a non-ASCII name. Record remaining Windows installer, PDF-reader and physical TV release checks separately from automated results.
 
 - Run the same saved-party fixture through a standalone save/restart check, including passive reminder Undo, spending rejection, guide handoff, update preferences and session-message clearing. Report installer-test app launch errors immediately instead of hiding them until the update timeout.

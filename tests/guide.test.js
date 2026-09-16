@@ -104,6 +104,10 @@ test('guide packaging rejects missing, changed, stale, wrong-version and unrevie
       fs.mkdirSync(path.dirname(path.join(fixture, name)), { recursive: true });
       fs.copyFileSync(path.join(root, name), path.join(fixture, name));
     }
+    // Exercise both release states regardless of the checked-in guide's current status.
+    manifest.status = 'draft';
+    const record = path.join(fixture, 'docs/user-guide/manifest.json');
+    fs.writeFileSync(record, JSON.stringify(manifest));
     assert.equal(checkGuide(fixture, { allowDraft: true }).status, 'draft');
     assert.throws(() => checkGuide(fixture), /development draft/);
     const pdf = path.join(fixture, 'docs/Tablelight-User-Guide.pdf'),
@@ -118,11 +122,82 @@ test('guide packaging rejects missing, changed, stale, wrong-version and unrevie
     fs.appendFileSync(ui, '// changed');
     assert.throws(() => checkGuide(fixture, { allowDraft: true }), /stale source/);
     fs.writeFileSync(ui, old);
-    const record = path.join(fixture, 'docs/user-guide/manifest.json');
     fs.writeFileSync(record, JSON.stringify({ ...manifest, appVersion: '99.0.0' }));
     assert.throws(() => checkGuide(fixture, { allowDraft: true }), /version mismatch/);
     fs.writeFileSync(record, JSON.stringify({ ...manifest, status: 'final' }));
+    const reviewFile = path.join(fixture, 'docs/user-guide/review.json');
+    fs.writeFileSync(reviewFile, JSON.stringify({ status: 'draft' }));
     assert.throws(() => checkGuide(fixture), /still needs matching/);
+    const approved = {
+      status: 'approved',
+      appVersion: manifest.appVersion,
+      pdfSha256: manifest.pdfSha256,
+      coverageComplete: true,
+      walkthroughsPassed: true,
+      offlineInstallsPassed: true,
+      navigationChecked: true,
+      viewers: ['Test reader one', 'Test reader two'],
+      pagesInspected: Array.from({ length: manifest.pages }, (_, i) => i + 1),
+    };
+    fs.writeFileSync(reviewFile, JSON.stringify(approved));
+    assert.equal(checkGuide(fixture).status, 'final');
+    for (const incomplete of [
+      { offlineInstallsPassed: false },
+      { viewers: ['Test reader one', 'Test reader one'] },
+      { pagesInspected: approved.pagesInspected.slice(1) },
+      { pdfSha256: 'not the reviewed PDF' },
+    ]) {
+      fs.writeFileSync(reviewFile, JSON.stringify({ ...approved, ...incomplete }));
+      assert.throws(() => checkGuide(fixture), /still needs matching/);
+    }
+    const waived = {
+      ...approved,
+      walkthroughsPassed: false,
+      coreWalkthroughsPassed: true,
+      offlineInstallsPassed: false,
+      viewers: [],
+      releaseWaivers: {
+        appVersion: manifest.appVersion,
+        pdfSha256: manifest.pdfSha256,
+        approvedBy: 'project-owner',
+        approvedOn: '2026-09-16',
+        authorization: 'Explicit owner authorization in this synthetic test fixture.',
+        reason: 'The named manual checks cannot run in this test fixture.',
+        checks: ['installer-upgrade-uninstall', 'offline-pdf-readers', 'physical-tv'],
+      },
+    };
+    fs.writeFileSync(reviewFile, JSON.stringify(waived));
+    assert.equal(checkGuide(fixture).status, 'final');
+    for (const invalid of [
+      { appVersion: '99.0.0' },
+      { pdfSha256: 'a different guide' },
+      { approvedBy: 'assistant' },
+      { approvedOn: '' },
+      { authorization: '' },
+      { reason: '' },
+      { checks: ['all-checks'] },
+      { checks: ['physical-tv', 'physical-tv'] },
+    ]) {
+      fs.writeFileSync(
+        reviewFile,
+        JSON.stringify({
+          ...waived,
+          releaseWaivers: { ...waived.releaseWaivers, ...invalid },
+        })
+      );
+      assert.throws(() => checkGuide(fixture), /invalid release waiver/);
+    }
+    for (const incomplete of [
+      { coreWalkthroughsPassed: false },
+      { coverageComplete: false },
+      { navigationChecked: false },
+      { pagesInspected: waived.pagesInspected.slice(1) },
+      { releaseWaivers: { ...waived.releaseWaivers, checks: ['offline-pdf-readers'] } },
+      { releaseWaivers: { ...waived.releaseWaivers, checks: ['installer-upgrade-uninstall'] } },
+    ]) {
+      fs.writeFileSync(reviewFile, JSON.stringify({ ...waived, ...incomplete }));
+      assert.throws(() => checkGuide(fixture), /still needs matching/);
+    }
   } finally {
     assert.ok(path.resolve(fixture).startsWith(path.resolve(os.tmpdir()) + path.sep));
     fs.rmSync(fixture, { recursive: true, force: true });

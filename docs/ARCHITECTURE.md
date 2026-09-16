@@ -168,7 +168,10 @@ docs allowlist includes the PDF and source; QA logs/renders remain in ignored ou
 `build/before-pack.cjs` verifies the manifest, version and hashes for every builder entry point.
 Drafts cannot enter ordinary release output; the explicit no-publish testing exception is confined
 to testing folders. Final guides require an all-page, coverage, walkthrough, navigation, two-viewer
-and offline-install review bound to that exact PDF. CI skips release artifacts while it is Draft.
+and offline-install review bound to that exact PDF. Named manual checks may instead carry an
+explicit owner waiver bound to the app version and PDF hash; unperformed checks stay false.
+The gate still requires coverage, core walkthroughs, navigation, every page and input integrity.
+CI skips release artifacts while it is Draft.
 
 The `guide` native scenario tests the real bridge/UI, keyboard and duplicate activation, faults,
 retry, sender/argument rejection, license and backup controls using isolated data. `guide-capture`

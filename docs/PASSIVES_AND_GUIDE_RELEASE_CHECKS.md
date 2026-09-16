@@ -1,10 +1,14 @@
 # Passive abilities and illustrated guide — release checks
 
-Updated September 16, 2026. Milestone 6 is **not complete**. This record covers the development
+Updated September 16, 2026. The current 2.0.0 candidate and its latest evidence are recorded in
+[RELEASE_2.0.0.md](RELEASE_2.0.0.md) and `user-guide/review.json`. Release preparation is complete
+with the owner's explicit waiver of three manual check groups; their test status remains untested.
+
+The historical evidence below covers the earlier 1.12.1 development
 build on `codex/passives-and-illustrated-guide`, based on `e55be28`, plus the current verification
 changes. The app still identifies itself as 1.12.1; no new public release is approved or published.
-The user has identified **2.0** as the intended release. Version preparation is still pending;
-the user controls commits, publishing and merge.
+The user controls commits, publishing and merge. The 2.0.0 preparation supersedes the version
+preparation items below; the installer, reader and physical-TV limits still apply.
 
 ## Automated and document evidence
 
@@ -21,9 +25,10 @@ the user controls commits, publishing and merge.
 
 The guide's exact SHA-256 remains
 `4ad0e36ec39bbb7f66c7f5f86b64d8e868a2e6fcf862501b875183d389091e45`.
-Keep `review.json` Draft, with `walkthroughsPassed` and `offlineInstallsPassed` false. Add a reader
-to its completed viewer list only after its required interactive/offline checks pass. Core walkthroughs passing does not
-certify installation/update/uninstall procedures or the final release edition.
+At this earlier stage, `review.json` remained Draft and its complete walkthrough/installation
+flags remained false. The final 2.0.0 record now contains owner-authorized waivers and preserves
+those false flags and the accurate completed-reader list. Core walkthroughs passing does not
+certify installation/update/uninstall procedures.
 
 ## PDF testing on September 16
 

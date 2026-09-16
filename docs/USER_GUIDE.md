@@ -1,4 +1,4 @@
-# Tablelight 1.12.1
+# Tablelight 2.0.0
 
 A Windows app for a dungeon master’s laptop and a TV battle mat. Save as many players as you need and choose up to eight for the active party. All spells, actions, and features are entered by you; no rulebook content is bundled.
 
@@ -57,8 +57,8 @@ portable/source copies are not removed.
 offline)**. Windows opens the PDF bundled with that installation using your default PDF viewer.
 It does not need internet or change your saved party. If a viewer is unavailable, choose a default
 PDF app in Windows and retry. If the guide is missing/unreadable, repair or reinstall this app
-version. This development build includes a clearly marked layout prototype; the complete
-illustrated guide is still being prepared. This Markdown companion remains available as
+version. The complete illustrated manual covers all app sections with worked examples,
+screenshots, linked contents and bookmarks. This Markdown companion remains available as
 `START HERE.md` in the installation folder.
 
 ## Saved players and the active party
@@ -479,7 +479,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-This development branch writes save format 11 and imports formats 1–10. The new format preserves passive ability definitions and individual reminder states; the DM editor and Passives controls are available, and the player HUD Passives section is available. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before using a development build if you may need to return to a released version. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
+Tablelight 2.0.0 writes save format 11 and imports formats 1–10. The new format preserves passive ability definitions and individual reminder states; the DM editor and Passives controls are available, and the player HUD Passives section is available. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before upgrading if you may need to return to an older release. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
 
 ## Keyboard shortcuts
 

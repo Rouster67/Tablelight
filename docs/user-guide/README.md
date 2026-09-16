@@ -1,10 +1,11 @@
 # Offline illustrated manual
 
-The PDF now contains the complete 17-chapter manuscript for the current development build,
-not the original seven-page prototype. It covers the entire interface with a first-session
+The final PDF contains the complete 17-chapter manuscript for Tablelight 2.0.0.
+It covers the entire interface with a first-session
 walkthrough, field tables, focused procedures, examples, real screenshots and troubleshooting.
-The package still says 1.12.1; the cover and introduction distinguish this development edition
-from the published 1.12.1 release. Do not certify a public release until its version and review match.
+The package and guide both identify version 2.0.0. The owner explicitly waived the installer,
+remaining offline/two-reader and physical-TV checks. The review records that decision separately
+from passed checks and binds it to this exact version and PDF.
 
 ## Edit and capture
 
@@ -53,7 +54,8 @@ for walkthroughs, restore/deletion, update or uninstall tests.
 
 ## Release gate
 
-The full-content development manual retains Draft review status until release certification.
+Development manuals retain Draft review status until release review is complete or the owner
+explicitly waives the supported manual checks for the exact final edition.
 Normal builds reject missing, damaged, stale, mismatched or unapproved PDFs. CI checks drafts
 but withholds release installers. This protects public releases; it does not prevent the
 user-authorized local testing installation from receiving the complete manual.
@@ -67,3 +69,13 @@ page in pagesInspected, coverageComplete/walkthroughsPassed/offlineInstallsPasse
 and at least two distinct local viewers including the Windows default. Include real offline
 ordinary/custom installation and upgrade checks; a copied unpacked folder is only path-resolution
 coverage, not a fresh installation. Never mark pending viewer checks as passed.
+
+An explicit owner decision can waive named manual checks for a specific release. Record
+`releaseWaivers` with the app version, exact PDF hash, `approvedBy: project-owner`, approval
+date, the authorization text, reason and named checks. The supported names are
+`installer-upgrade-uninstall`, `offline-pdf-readers` and `physical-tv`. Keep unperformed test
+booleans false and the completed-reader list accurate. An installer waiver also requires
+`coreWalkthroughsPassed: true`; it cannot waive the actual app walkthroughs. Coverage,
+navigation, source/version/hash integrity and every-page inspection cannot be waived.
+Regenerating a changed PDF requires a review of the new bytes before binding an authorization
+to it. The 2.0.0 authorization is not permission to waive checks on a future release.

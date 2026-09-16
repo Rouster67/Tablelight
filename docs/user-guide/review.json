@@ -1,8 +1,8 @@
 {
-  "status": "draft",
-  "note": "Complete development-edition manuscript and all-page layout review. Final release version, interactive viewer checks and full offline installer certification remain pending; this is not a public-release approval.",
-  "appVersion": "1.12.1",
-  "pdfSha256": "4ad0e36ec39bbb7f66c7f5f86b64d8e868a2e6fcf862501b875183d389091e45",
+  "status": "approved",
+  "note": "Final 2.0.0 guide approved with the project owner's explicit waiver of three manual release checks. Those checks remain unperformed, not passed. Publication remains a separate user action.",
+  "appVersion": "2.0.0",
+  "pdfSha256": "f2dfb9601426cb983799b2d3ddb434d64c12a6192775cd76ff13830369ea0f85",
   "chapters": 17,
   "figures": 37,
   "pagesInspected": [
@@ -16,15 +16,15 @@
   "offlineInstallsPassed": false,
   "viewers": [],
   "visualReview": {
-    "renderer": "Poppler at 100 DPI; earlier readability passes at 110 DPI",
-    "method": "All 70 pages of the preceding layout were inspected individually. After removing two short trailing pages and tightening the Sheet figure, all 67 final pages were rendered again. 58 page bodies were pixel-identical to individually reviewed pages; the other 9 were individually re-inspected. Text bounds and all final footer numbers were checked on all 67 pages.",
-    "finalChangedPagesInspected": [3, 4, 26, 33, 47, 48, 49, 50, 61],
-    "result": "No clipped or overlapping PDF text, broken tables, missing glyphs or unreadable instructional close-ups. Overview and rotation figures are explicitly identified as orientation views.",
-    "evidence": "Ignored outputs/guide-complete-review, outputs/guide-delivery-review and work/guide-page-comparison.json"
+    "renderer": "Poppler and PDFium at 100 DPI",
+    "method": "Rendered all 67 final pages in Poppler and PDFium. All 66 non-cover page bodies are pixel-identical to the individually reviewed 2.0.0 draft, excluding the footer. Inspected the changed cover and spot-checked pages 2, 26, 57 and 67. Verified every final footer, page number, text boundary, embedded font/image and navigation destination.",
+    "finalChangedPagesInspected": [1],
+    "result": "No clipping, overlap, missing images or unreadable instructional close-ups. All 37 images were recaptured from 2.0.0; orientation overviews retain their explanatory captions.",
+    "evidence": "outputs/release-2.0-final-pdf-review/results.json and render folders (ignored local evidence)"
   },
   "navigation": {
     "bookmarks": 83,
-    "links": 183,
+    "links": 184,
     "allDestinationsValid": true,
     "fontsEmbedded": ["/AAAAAA+BitstreamVeraSans-Bold", "/AAAAAA+BitstreamVeraSans-Roman"],
     "textSelectable": true
@@ -33,54 +33,48 @@
     "guideManual": {
       "fixture": "guide-manual-v1",
       "checksPassed": 7,
-      "run": "test-results/guide-manual-pVwx3I"
+      "run": "test-results/guide-manual-owX7NA"
     },
-    "regression": {
-      "unitChecksPassed": 222,
-      "desktopChecksPassed": 282,
-      "logs": ["work/full-guide-unit.log", "work/full-guide-native.log"]
-    },
-    "scope": "Core worked examples replayed through real renderer controls with synthetic data; focused variants verified by the feature scenarios mapped in COVERAGE.md. Installation/uninstall walkthroughs are source-checked but await the final release matrix. No real saves used."
+    "scope": "Core 2.0.0 worked examples passed through real renderer controls with synthetic data. Installer/uninstall walkthroughs are untested and explicitly waived by the owner."
   },
   "finalVerification": {
     "date": "2026-09-16",
-    "baseCommit": "e55be289d7c6372f88ae3f252c7d880775857a17",
+    "baseCommit": "827c03e",
     "unitChecksPassed": 225,
+    "logs": [
+      "work/release-2.0-unit.log",
+      "work/release-2.0-native-final.log",
+      "work/release-2.0-finalization-unit.log"
+    ],
+    "record": "docs/RELEASE_2.0.0.md",
+    "pdfChanged": true,
     "desktopChecksPassed": 288,
-    "logs": ["work/continued-verification-unit.log", "work/continued-verification-native.log"],
-    "record": "docs/PASSIVES_AND_GUIDE_RELEASE_CHECKS.md",
-    "installerRegression": "Shared data assertions now pass independently through save/restart. Actual installation remains blocked by Windows Application Control; no signing certificate or separate Windows test PC is available.",
-    "interactiveViewers": "Partial user-observed pass: opening the installed guide from Setup & help and following the contents link to Passives both work in Firefox, identified by the user. The user subsequently confirmed that the links they tested work. Browser version, bookmark interaction, search, offline use and a second reader remain unconfirmed. Browser automation remains blocked; no workaround used.",
-    "physicalTv": "Pending; the user cannot test the TV now.",
-    "pdfChanged": false,
-    "independentRestart": {
-      "scenario": "upgrade-data",
-      "checksPassed": 6,
-      "run": "test-results/upgrade-data-PYEYsr",
-      "scope": "Same fixture and assertions as the installer test, exercised through two real Electron processes. Does not certify installation."
+    "desktopScenariosPassed": 34,
+    "testHarnessFix": "Wait for the DM preview animation frame before reading geometry. The first full attempt failed this timing assertion; a complete rerun passed after the fix.",
+    "installedTestingCopy": {
+      "version": "2.0.0",
+      "checksPassed": 42,
+      "run": "D:\\Repos\\Tablelight-source\\test-results\\release-2.0-installed-Jbuimv",
+      "realSavedFilesUnchanged": 48,
+      "scope": "Installed app behavior using isolated synthetic profiles, not an installer or real PDF-reader certification."
     },
-    "launchFailureChecksPassed": 3
+    "customGuidePaths": {
+      "checksPassed": 10,
+      "record": "work/release-2.0-guide-paths.json",
+      "scope": "Copied payload path-resolution checks; no installer execution or PDF viewer certification."
+    }
   },
   "pdfAudit": {
-    "date": "2026-09-16",
-    "pdfChanged": false,
-    "sourceMatchesInstalled": true,
-    "report": "outputs/pdf-test-20260916/results.json (ignored local evidence)",
-    "structure": "All 67 pages, 83 bookmarks and 183 internal links passed. Every contents label/page-number link resolves to its matching heading. All fonts and image streams are embedded and decode successfully; no external resources, remote actions, JavaScript or launch actions were found. Every page has selectable text, the correct development-edition footer and in-bounds text.",
-    "rendering": "Poppler and PDFium each rendered all 67 pages successfully. Every fresh Poppler page is pixel-identical to its previously inspected final page. PDFium pages with the largest rendering differences and representative contents, screenshot and table pages were individually inspected; no clipping, overlap, missing images or unreadable instructional close-ups found.",
-    "pdfiumPagesInspected": [
-      1, 2, 3, 4, 6, 9, 13, 19, 22, 25, 26, 27, 35, 39, 45, 48, 50, 54, 55, 57, 61, 67
-    ],
-    "textSearch": {
-      "date": "2026-09-16",
-      "query": "bonus action",
-      "passed": true,
-      "matches": 24,
-      "pages": [5, 8, 9, 21, 31, 32, 33, 35, 39, 44, 46, 50, 51, 63, 67],
-      "method": "Read-only PDFium case-insensitive search in the installed PDF, including matches across line breaks. Every match has valid on-page highlight bounds. Independent pypdf text extraction identifies the same pages; the installed PDF hash still matches the reviewed source.",
-      "report": "outputs/pdf-test-20260916/search-results.json (ignored local evidence)",
-      "limits": "Verifies the PDF text and search geometry. Does not exercise Firefox, its on-screen highlighting or its PDF.js search engine. The user is away from the PC; interactive search remains pending."
-    },
+    "report": "outputs/release-2.0-final-pdf-review/results.json",
+    "passed": true,
+    "pagesRenderedPerEngine": 67,
+    "embeddedImageStreams": 44,
+    "externalActions": [],
+    "limits": "File inspection and two rendering engines do not establish interactive reader behavior, disconnected Windows use or installation."
+  },
+  "priorEditionVerification": {
+    "appVersion": "1.12.1",
+    "pdfSha256": "4ad0e36ec39bbb7f66c7f5f86b64d8e868a2e6fcf862501b875183d389091e45",
     "userObserved": {
       "openFromSetupAndHelp": true,
       "contentsLinkToPassives": true,
@@ -91,12 +85,31 @@
       "offlineReopen": "pending",
       "secondReader": "pending"
     },
-    "limits": "File structure and two rendering engines do not certify interactive reader behavior, actual disconnected use or installation. Only opening and the links the user explicitly confirmed are counted as user-observed passes; the latest link confirmation does not establish search, bookmark or offline results."
+    "scope": "User confirmed Firefox opening and tested links for this prior PDF; not counted as full interactive/offline certification of the revised 2.0.0 PDF."
   },
-  "releaseChecksPending": [
-    "Prepare the user's intended 2.0 release version, refresh affected screenshots and regenerate the final edition.",
-    "Open and exercise navigation offline in the Windows default PDF viewer and a second distinct viewer.",
-    "Complete the fresh ordinary/custom installer and custom-folder upgrade/uninstall matrix with the release candidate.",
-    "Check screenshot/HUD readability from the actual TV seats and target Windows scaling."
+  "releaseChecksPending": [],
+  "coreWalkthroughsPassed": true,
+  "releaseWaivers": {
+    "appVersion": "2.0.0",
+    "pdfSha256": "f2dfb9601426cb983799b2d3ddb434d64c12a6192775cd76ff13830369ea0f85",
+    "approvedBy": "project-owner",
+    "approvedOn": "2026-09-16",
+    "authorization": "we will proceed without doing those 3 checks. let me know when i can commit",
+    "reason": "The owner elected to proceed without actual installer/upgrade/uninstall tests, remaining offline/two-reader checks, and physical TV review. Windows blocks the unsigned test installer, browser automation is unavailable, and the TV setup is unavailable.",
+    "checks": ["installer-upgrade-uninstall", "offline-pdf-readers", "physical-tv"]
+  },
+  "releaseChecksWaived": [
+    {
+      "check": "installer-upgrade-uninstall",
+      "status": "waived-not-tested"
+    },
+    {
+      "check": "offline-pdf-readers",
+      "status": "waived-not-tested"
+    },
+    {
+      "check": "physical-tv",
+      "status": "waived-not-tested"
+    }
   ]
 }

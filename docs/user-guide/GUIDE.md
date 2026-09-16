@@ -32,7 +32,7 @@ The DM window title shows **Tablelight [version] - DM Console**. The same versio
 
 Use the installer folder choice if you want a custom location. Keep exported party backups outside that folder. To avoid opening an older copy by accident, use the shortcut created by the installer or open Tablelight.exe in the intended folder, then compare its title and sidebar version.
 
-This manual matches the 1.12.1 development build with Passives and the offline guide. The already-published 1.12.1 release does not contain all these branch additions. The version number alone does not distinguish those copies; the Passives tab and offline guide link identify this development interface. A future release must regenerate the manual with its final release version.
+This manual matches Tablelight {{version}}, including Passives and the bundled illustrated guide. Compare the version on this guide's cover with the app's title or sidebar. Export a party backup before upgrading from an older release; see [Automatic saving and backup contents](#automatic-saving-and-backup-contents) for save compatibility.
 
 ## Connect the table display
 
@@ -787,7 +787,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help to Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-This development branch writes save format 11 and imports formats 1-10. The new format preserves passive ability definitions and individual reminder states; the DM editor and Passives controls are available, and the player HUD Passives section is available. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before using a development build if you may need to return to a released version. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
+Tablelight 2.0.0 writes save format 11 and imports formats 1-10. The new format preserves passive ability definitions and individual reminder states; the DM editor and Passives controls are available, and the player HUD Passives section is available. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before upgrading if you may need to return to an older release. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
 
 ## Export a recovery copy
 
@@ -914,7 +914,7 @@ portable/source copies are not removed.
 | Message says Waiting for delivery        | Show both the overlay and the recipient. Sending never unhides a player automatically.                                                            |
 | Message vanished after restart/removal   | Messages are session-only; removing the recipient clears their sent message. Resend from your own notes if necessary.                             |
 | Changes did not survive closing          | Check Saved on this laptop / Save failed and the actual running copy. Preserve files and follow Previous-save recovery before replacing anything. |
-| Backup will not load in an older release | This branch uses format 11. Released 1.12.1 and earlier cannot read it. Use a compatible build or an older exported backup.                       |
+| Backup will not load in an older release | Version 2.0.0 uses format 11. Released 1.12.1 and earlier cannot read it. Use a compatible build or an older exported backup.                     |
 | Guide does not open                      | Read the inline error, verify a default PDF viewer exists, retry, or repair the installation if the file is missing/unreadable.                   |
 | Instructions/screenshots look different  | Check the running copy and guide edition. A stale shortcut may open another installation. Report the exact version and differing label.           |
 | Update check fails offline               | Continue local play. Check again after connectivity returns; the guide and party do not require a connection.                                     |
@@ -946,7 +946,7 @@ For a useful problem report, note the running version, which installation you op
 | Player message                | 2,000 characters, one retained message per active player.                                                                                                |
 | Ability images                | PNG/JPEG/static WebP, input up to 5 MiB and 4096 pixels/side; fitted within 256 x 256; converted image up to 300 KiB; total saved ability artwork 8 MiB. |
 | Long rules and notes          | Description, upgrades, requirements, special and passive text support up to 40,000 characters; Reference up to 300.                                      |
-| Save compatibility            | This development build writes format 11 and imports formats 1-10.                                                                                        |
+| Save compatibility            | Version 2.0.0 writes format 11 and imports formats 1-10.                                                                                                 |
 
 ## Session checklist
 

@@ -1,5 +1,10 @@
 # Publishing Tablelight releases
 
+For the current 2.0.0 candidate, consult [release readiness](RELEASE_2.0.0.md) and
+[prepared release notes](RELEASE_NOTES_2.0.0.md). Its final guide review includes the owner's
+explicit waiver of installer, offline-reader and physical-TV checks. Those checks remain
+untested. Use the final files in `dist/`, not the earlier `dist/testing-*` candidates.
+
 Source changes and app releases are separate. Commit and push through GitHub Desktop, review
 GitHub's checks, and merge the feature PR into `main`. Publishing a GitHub Release is a later,
 deliberate action; neither a push nor a merge installs an update on users' computers.

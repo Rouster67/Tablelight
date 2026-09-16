@@ -43,18 +43,42 @@ function checkGuide(root, { allowDraft = false } = {}) {
     const review = JSON.parse(
       fs.readFileSync(path.join(root, 'docs/user-guide/review.json'), 'utf8')
     );
+    const waivers = review.releaseWaivers;
+    const allowedWaivers = new Set([
+      'installer-upgrade-uninstall',
+      'offline-pdf-readers',
+      'physical-tv',
+    ]);
+    if (
+      waivers !== undefined &&
+      (!waivers ||
+        waivers.appVersion !== version ||
+        waivers.pdfSha256 !== manifest.pdfSha256 ||
+        waivers.approvedBy !== 'project-owner' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(waivers.approvedOn || '') ||
+        typeof waivers.authorization !== 'string' ||
+        !waivers.authorization.trim() ||
+        typeof waivers.reason !== 'string' ||
+        !waivers.reason.trim() ||
+        !Array.isArray(waivers.checks) ||
+        !waivers.checks.length ||
+        new Set(waivers.checks).size !== waivers.checks.length ||
+        waivers.checks.some((check) => !allowedWaivers.has(check)))
+    )
+      fail('invalid release waiver; record owner authorization for this exact version and PDF.');
+    const waived = (check) => waivers?.checks.includes(check) === true;
     if (
       review.status !== 'approved' ||
       review.pdfSha256 !== manifest.pdfSha256 ||
       review.appVersion !== version ||
-      ![
-        'coverageComplete',
-        'walkthroughsPassed',
-        'offlineInstallsPassed',
-        'navigationChecked',
-      ].every((k) => review[k] === true) ||
+      !['coverageComplete', 'navigationChecked'].every((k) => review[k] === true) ||
+      !(
+        review.walkthroughsPassed === true ||
+        (review.coreWalkthroughsPassed === true && waived('installer-upgrade-uninstall'))
+      ) ||
+      !(review.offlineInstallsPassed === true || waived('installer-upgrade-uninstall')) ||
       !Array.isArray(review.viewers) ||
-      new Set(review.viewers).size < 2 ||
+      !(new Set(review.viewers).size >= 2 || waived('offline-pdf-readers')) ||
       JSON.stringify(review.pagesInspected) !==
         JSON.stringify(Array.from({ length: manifest.pages }, (_, i) => i + 1))
     )
