@@ -119,3 +119,46 @@
 .ability-turn-cost[hidden] {
   display: none;
 }
+#item-form [hidden] {
+  display: none;
+}
+.passive-list-note {
+  line-height: 1.6;
+}
+.passive-excerpt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.passive-row {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.passive-row .ability-main {
+  flex: 1 1 200px;
+}
+.passive-controls {
+  display: grid;
+  gap: 8px;
+  margin-left: auto;
+}
+.passive-switch {
+  min-width: 78px;
+}
+.ability-modal .modal-header h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.ability-modal .modal-header button {
+  flex-shrink: 0;
+}

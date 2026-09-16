@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Add Behavior (Active, Passive, or Passive + active) to shared and character-only ability editors and place Turn cost beside it near the top. Type continues to control grouping without limiting fields, spell slots, or resource costs. Passive hides Turn cost while retaining its saved setting; hybrid costs apply only to the active effect. Dedicated Passives sections and reminder controls remain planned.
+- Add a DM Passives tab, shared-library passive search/filter, optional per-character Active / Inactive reminders, and separate passive/active descriptions for mixed abilities. Passive views show no Use or cost controls, and pure passives leave ordinary action lists. Viewing either side of a mixed ability does not spend or change a HUD; shared/local definitions, saved costs, and individual reminder states remain intact. Player HUD Passives navigation follows in the next milestone.
+
+- Add Behavior (Active, Passive, or Passive + active) to shared and character-only ability editors and place Turn cost beside it near the top. Type continues to control grouping without limiting fields, spell slots, or resource costs. Passive hides Turn cost while retaining its saved setting; hybrid costs apply only to the active effect.
 
 - Add the passive-ability data foundation: Active, Passive, and Passive + active behaviors, shared passive text, and independent manual reminder states. Save format 11 imports formats 1–10 and preserves shared/local abilities, icons, themes, and character settings. Passive-only entries cannot spend costs or start concentration; hybrid reminders stay independent of approval requests and active spending.
 

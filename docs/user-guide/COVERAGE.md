@@ -4,6 +4,11 @@ Started September 15, 2026 for F13 while implementing the passive data foundatio
 outline, not the PDF or a claim that its workflows have been verified. Baseline: package 1.12.1
 plus merged UI changes at `2c583f9`. The final release version and screenshot freeze are pending.
 
+DM milestone update: Behavior/Turn cost, the DM Passives tab, conditional reminder switches,
+and separate mixed-effect descriptions are implemented. Include their creation, assignment,
+independent reminders, shared/local editing, and read-only effect navigation in the guide.
+Player Passives navigation is still pending. Development test captures are not final guide images.
+
 Use synthetic players Mira and Rowan, their original Lantern sense / Watchkeeper examples from
 the [implementation plan](../PASSIVES_AND_ILLUSTRATED_GUIDE_PLAN.md), and a saved inactive player.
 Record each procedure's prerequisites, exact controls, expected DM/HUD result, correction path,

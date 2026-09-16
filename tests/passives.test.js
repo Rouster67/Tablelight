@@ -9,6 +9,10 @@ const TL = require('../core');
 const { Service } = require('../approval-service');
 const { Store } = require('../storage');
 const { png, dataUrl } = require('./icon-fixtures');
+const vm = require('node:vm');
+const context = { window: {}, TL };
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../hud.js'), 'utf8'), context);
+const HUD = context.window.HUD;
 
 function fixture() {
   const state = TL.empty();
@@ -86,6 +90,76 @@ const command = (service, type, fields = {}) => ({
 });
 const passiveId = (state) => state.characters[0].items[0].id;
 const hybridId = (state) => state.characters[0].items[1].id;
+
+test('passive-only entries never enter active HUD lists for any type or turn cost', () => {
+  for (const kind of ['action', 'spell', 'feature']) {
+    for (const economy of ['action', 'bonus', 'reaction', 'free']) {
+      const c = TL.character();
+      c.items = ['active', 'passive', 'hybrid'].map((behavior) =>
+        TL.item({ kind, economy, behavior, name: behavior })
+      );
+      for (const panel of [economy, ...(['spell', 'feature'].includes(kind) ? [kind] : [])]) {
+        c.hud.panel = panel;
+        assert.deepEqual(
+          TL.panelItems(c).map((it) => it.behavior),
+          ['active', 'hybrid']
+        );
+      }
+    }
+  }
+});
+
+test('passive details omit dormant costs and keep hybrid effects separate and escaped', () => {
+  const state = fixture(),
+    c = state.characters[0],
+    passive = c.items[0],
+    hybrid = c.items[1];
+  const html = HUD.renderAbilityDetails(passive, c);
+  assert.match(html, /Read the marker/);
+  assert.match(html, /A lantern/);
+  assert.doesNotMatch(
+    html,
+    /Charges spent|Linked resource|Concentration|Spell Level|Retained second text/
+  );
+  hybrid.passiveDescription = '<script>passive text</script>';
+  const passiveHtml = HUD.renderAbilityDetails(hybrid, c, 'passive');
+  assert.match(passiveHtml, /&lt;script&gt;passive text&lt;\/script&gt;/);
+  assert.doesNotMatch(passiveHtml, /Signal the party|Signal charges|Charges spent|Concentration/);
+  const activeHtml = HUD.renderAbilityDetails(hybrid, c);
+  assert.match(activeHtml, /Active effect/);
+  assert.match(activeHtml, /Signal the party/);
+  assert.doesNotMatch(activeHtml, /passive text/);
+  hybrid.passiveDescription = '';
+  assert.match(HUD.renderAbilityDetails(hybrid, c, 'passive'), /No passive description entered/);
+  hybrid.description = '';
+  hybrid.passiveDescription = 'Passive text with an empty active effect';
+  assert.match(
+    HUD.renderAbilityDetails(hybrid, c, 'passive'),
+    /Passive text with an empty active effect/
+  );
+  assert.equal(HUD.passiveStatus({ trackPassive: false, passiveActive: true }), 'Always applies');
+  assert.equal(HUD.passiveStatus({ trackPassive: true, passiveActive: false }), 'Inactive');
+});
+
+test('passive conversion clears only its active HUD detail and rejects stale detail commands', () => {
+  const state = fixture(),
+    c = state.characters[0];
+  c.hud.detailId = hybridId(state);
+  c.hud.panel = 'reaction';
+  const before = TL.clone(c.hud),
+    other = TL.clone(state.characters[1]);
+  state.library[1].behavior = 'passive';
+  const normalized = TL.normalize(state);
+  assert.deepEqual(normalized.characters[0].hud, { ...before, detailId: '', page: 0 });
+  assert.deepEqual(normalized.characters[1].hud, other.hud);
+  const saved = TL.clone(normalized);
+  assert.throws(
+    () => TL.hudCommand(normalized, { type: 'detail', characterId: c.id, itemId: c.items[1].id }),
+    /DM Passives/
+  );
+  assert.deepEqual(normalized, saved);
+  assert.deepEqual(TL.normalize(TL.toBackup(normalized)), normalized);
+});
 
 test('formats 1–10 default to active without reinterpreting text or losing existing state', () => {
   const expected = TL.toBackup(fixture());

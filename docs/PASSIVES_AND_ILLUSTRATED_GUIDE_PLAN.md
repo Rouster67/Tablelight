@@ -1,9 +1,10 @@
 # Passive abilities and illustrated user guide — implementation plan
 
-Status: milestone 1 was committed and published by the user as `5953c11`. The user then
-approved a focused editor follow-up: Behavior plus a nearby Turn cost, with Type used only
-for grouping. That part of milestone 2 is implemented locally; the rest remains planned.
-Branch and publishing decisions stay with the user. No release version has been chosen.
+Status: milestone 1 was published by the user as `5953c11`, followed by the Behavior/Turn cost
+editor in `eb06b48`. The user authorized the next focused change: milestone 2's DM Passives tab,
+conditional reminders, and mixed-effect authoring/navigation. That work is implemented locally;
+milestone 3's player HUD and F13 remain planned. Branch, commit, and publishing decisions stay
+with the user. Include `AGENTS.md` with this next commit. No release version has been chosen.
 
 Originally prepared September 13 against Tablelight 1.10.2. Updated for the user's branch at
 `2c583f9` (package 1.12.1 plus the latest merged HUD/DM layout changes).
@@ -20,9 +21,11 @@ Originally prepared September 13 against Tablelight 1.10.2. Updated for the user
 3. This one branch will contain all work in this plan, divided into focused commits. The first
    commit implements passive behavior/state, compatible persistence, command safeguards and
    tests, plus the guide coverage outline. The visible editor/Passives sections and PDF follow.
-4. Source work and tests use isolated synthetic data. The working installation and real party
-   remain untouched. Publishing the branch, later milestones, merging, and releasing are separate
-   from this first commit. Recheck the branch and uncommitted changes at each work session.
+4. Automated checks use isolated synthetic data. The user subsequently designated
+   `D:\Programs\Tablelight` as their testing copy and authorized keeping it current after completed
+   changes. Back up that installation and its saves, update it, then verify the actual installed
+   app and confirm real saves are unchanged. This preference is recorded in `AGENTS.md`.
+   Recheck the branch and uncommitted changes at each work session; publishing remains the user's task.
 
 ## What the current project already provides
 
@@ -128,6 +131,20 @@ Completion and tests:
 - Confirm the agreed schema and migration can coexist with any already-merged new ability fields.
 
 ### Milestone 2 — shared authoring and the DM Passives section
+
+**Current DM implementation:** Passives is a tab next to Features. It shows always-on or
+conditional reminders, readable inactive text, and View/Edit/remove controls without Use or
+cost summaries. New entries from this tab default to Passive; the picker starts with a Passives
+filter, including hybrids. Shared and character-only editors expose tracking and separate
+hybrid descriptions. Switching between passive and active detail windows changes no HUD and
+spends nothing. Passive-only entries are excluded from ordinary DM/TV action lists; converting
+an open TV detail to passive-only returns only that HUD to its existing list. Dedicated player
+Passives navigation is intentionally reserved for milestone 3.
+
+The new `passives-dm` desktop scenario verifies the DM workflows, state preservation, shared/local
+copies, removal and Undo, export/restore/reload, and long text at 940 × 660. Existing `passives`
+checks retain concentration-conversion safeguards and all Type/Behavior combinations. Final PDF
+captures still wait for the finished player HUD and release interface.
 
 **Approved editor follow-up, September 15:** Add Behavior (Active / Passive / Passive + active)
 to shared and character-only editors, with Turn cost beside it below Name and Type. Type is

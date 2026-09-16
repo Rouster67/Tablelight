@@ -182,12 +182,29 @@ The shared/local editor exposes Behavior beside Turn cost, below Name and Type. 
 restricts detail fields or cost choices. Passive-only hides the turn-cost label without disabling
 or clearing its input, so FormData and changed-field merging preserve dormant values. Other cost
 fields remain editable with an explanation that they apply only to active effects. New entries
-default to Active. Tracking controls, separate hybrid text editing, Passives sections, and hybrid
-detail navigation remain later milestones. Current HUD dimensions/pagination remain unchanged.
+default to Active, except Create new from the DM Passives tab defaults to Passive. Shared/local
+editors expose `trackPassive` for passive and hybrid entries and `passiveDescription` for hybrids.
+Hidden inputs keep their values, and the boolean tracking field is saved separately from text.
+
+`passives-ui.js` implements the DM tab, independent reminder switches, and passive details.
+The DM uses `setPassiveActive` through ordinary `commit`, so hidden/collapsed/click-through HUDs
+do not prevent DM reminder edits. Passive views have no Use, availability, or cost controls;
+hybrid text navigation is read-only and leaves every HUD alone. Active views retain their normal
+spending path. Passive-only metadata omits casting/slot/concentration/resource costs; hybrid
+passive views show their separate text and reference. User text is escaped throughout.
+
+The library Passives filter includes hybrids and searches their passive text. Pure-passive
+assignment omits spending controls. Character Type/cost lists and `panelItems` exclude pure
+passives. Until the player Passives milestone, normalization clears a newly passive-only HUD
+detail back to its existing panel and the `detail` command rejects stale passive requests.
+Only detail/page selection changes; HUD dimensions, placement, rotation, and other players stay
+intact. No save-format change is required beyond format 11.
 The `passives` desktop scenario verifies real IPC, editor preservation, all Type/Behavior
 combinations, cancel/Undo, concentration conversion errors, minimum-window layout, disk saving,
 and renderer reload with isolated data. Unit coverage includes formats 1–10, local copies, save failures,
 pending requests, targeted refunds, dormant state, invalid inputs, and previous-save recovery.
+The `passives-dm` scenario covers creation, assignment, search, reminders, mixed-effect text,
+stale edits, local copies, remove/delete/Undo, backups/reload, and long text at minimum size.
 
 ## Conditions and concentration
 

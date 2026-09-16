@@ -13,6 +13,7 @@
     free: '✦',
     spell: '✧',
     feature: '◈',
+    passive: '◇',
     sheet: '▤',
     resources: '◉',
   };
@@ -23,6 +24,7 @@
     free: 'Free / other',
     spell: 'Spells',
     feature: 'Class features',
+    passive: 'Passives',
     sheet: 'Character sheet',
     resources: 'Resources',
   };
@@ -75,14 +77,18 @@
     `<div class="portrait" style="--accent:${c.accent};--hp:${Math.max(0, c.hp / c.maxHp) * 100}%">${c.avatar ? `<img src="${c.avatar}" alt="${esc(c.name)}">` : `<span>${esc(initial(c))}</span>`}</div>`;
   const pages = TL.textPages;
   const abilityPageSize = TL.abilityPageSize;
-  function abilityThumbnail(it, size = '') {
+  function abilityThumbnail(it, size = '', effect = '') {
     let icon = '';
     try {
       icon = TL.abilityIcon(it.icon);
     } catch {
       // A damaged image must never hide the ability or change its reserved space.
     }
-    return `<span class="ability-symbol ability-thumbnail ${size === 'large' ? 'ability-thumbnail-large' : ''}" aria-hidden="true"><span>${symbols[it.kind] || symbols[it.economy] || symbols.action}</span>${icon ? `<img src="${icon}" alt="" decoding="async">` : ''}</span>`;
+    const symbol =
+      effect === 'passive' || !TL.hasActiveEffect(it)
+        ? symbols.passive
+        : symbols[it.kind] || symbols[it.economy] || symbols.action;
+    return `<span class="ability-symbol ability-thumbnail ${size === 'large' ? 'ability-thumbnail-large' : ''}" aria-hidden="true"><span>${symbol}</span>${icon ? `<img src="${icon}" alt="" decoding="async">` : ''}</span>`;
   }
   if (typeof document !== 'undefined') {
     document.addEventListener(
@@ -118,7 +124,30 @@
       ? `<span class="pips">${Array.from({ length: max }, (_, i) => `<i class="${i < current ? 'filled' : ''}"></i>`).join('')}</span>`
       : `<b>${current} / ${max}</b>`;
   }
-  function abilityDetails(it, c) {
+  const passiveStatus = (it) =>
+    !it.trackPassive ? 'Always applies' : it.passiveActive ? 'Active' : 'Inactive';
+  function abilityDetails(it, c, effect = '') {
+    if (effect === 'passive' || !TL.hasActiveEffect(it))
+      return {
+        metadata:
+          it.behavior === 'hybrid'
+            ? []
+            : [
+                ['Trigger', it.trigger],
+                ['Duration', it.duration],
+                ['Range', it.range],
+                ['Area', it.area],
+                ['Components', it.components],
+                ['School', it.school],
+                ['Attack', it.attack],
+                ['Save', it.save],
+                ['On Save', it.onSave],
+                ['Damage / Healing', it.damage],
+              ].filter((x) => x[1]),
+        description: TL.passiveText(it),
+        sections: TL.abilityTextSections(it, 'passive'),
+        source: it.source || '',
+      };
     const pool = c?.resources.find((r) => r.id === it.resourceId);
     return {
       metadata: [
@@ -155,9 +184,9 @@
       )
       .join('');
   }
-  function renderAbilityDetails(it, c) {
-    const details = abilityDetails(it, c);
-    return `<div class="ability-detail-heading">${abilityThumbnail(it, 'large')}<b>${abilityName(it)}</b></div><div class="detail-meta">${details.metadata
+  function renderAbilityDetails(it, c, effect = '') {
+    const details = abilityDetails(it, c, effect);
+    return `<div class="ability-detail-heading">${abilityThumbnail(it, 'large', effect)}<b>${abilityName(it)}</b></div><div class="detail-meta">${details.metadata
       .map(([label, value]) => `<div><small>${esc(label)}</small>${esc(value)}</div>`)
       .join(
         ''
@@ -345,6 +374,7 @@
     abilityName,
     abilityThumbnail,
     renderAbilityDetails,
+    passiveStatus,
     render,
     mount,
     fit,

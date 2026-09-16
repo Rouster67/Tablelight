@@ -179,6 +179,7 @@ function render() {
   refreshConcentrationPicker();
   refreshDamageReminder();
   refreshAbilityDetails();
+  refreshPassiveDetails();
   renderApprovalQueue();
   maybeShowUpdateOffer();
 }
@@ -196,6 +197,7 @@ function renderCharacter(c) {
     ['reaction', 'Reactions'],
     ['spell', 'Spells'],
     ['feature', 'Features'],
+    ['passive', 'Passives'],
     ['free', 'Other'],
     ['sheet', 'Sheet'],
   ]
@@ -209,7 +211,7 @@ function renderCharacter(c) {
     )
     .join(
       ''
-    )}</div>${tab === 'sheet' ? renderSheet(c) : `<div class="list-toolbar"><input id="ability-search" placeholder="Find ${esc(labels[tab]?.toLowerCase() || 'an ability')}…" aria-label="Search abilities" value="${esc(search)}">${button('+ Add', 'add-item', 'small')}${button('Show on TV', 'panel', 'small', `data-panel="${tab}"`)}</div><div id="ability-list" class="ability-list">${renderAbilityList(c)}</div>`}</section></div></div><aside class="character-side gap"><div class="character-display">${renderHudRemote(c)}</div><div class="character-resources gap"><section class="card"><div class="card-heading spread"><h3>Spell slots</h3>${button('Edit', 'edit-character', 'small subtle')}</div><div class="card-body">${
+    )}</div>${tab === 'sheet' ? renderSheet(c) : `<div class="list-toolbar"><input id="ability-search" placeholder="Find ${esc(labels[tab]?.toLowerCase() || 'an ability')}…" aria-label="Search abilities" value="${esc(search)}">${button('+ Add', 'add-item', 'small')}${tab === 'passive' ? '' : button('Show on TV', 'panel', 'small', `data-panel="${tab}"`)}</div><div id="ability-list" class="ability-list">${renderAbilityList(c)}</div>`}</section></div></div><aside class="character-side gap"><div class="character-display">${renderHudRemote(c)}</div><div class="character-resources gap"><section class="card"><div class="card-heading spread"><h3>Spell slots</h3>${button('Edit', 'edit-character', 'small subtle')}</div><div class="card-body">${
     c.slots
       .filter((s) => s.max > 0)
       .map(
@@ -223,11 +225,18 @@ function renderCharacter(c) {
 function filteredItems(c) {
   return c.items.filter(
     (i) =>
-      (tab === 'spell' || tab === 'feature' ? i.kind === tab : i.economy === tab) &&
-      (!search || (i.name + ' ' + i.description).toLowerCase().includes(search.toLowerCase()))
+      (tab === 'passive'
+        ? TL.hasPassiveEffect(i)
+        : TL.hasActiveEffect(i) &&
+          (tab === 'spell' || tab === 'feature' ? i.kind === tab : i.economy === tab)) &&
+      (!search ||
+        (i.name + ' ' + (tab === 'passive' ? TL.passiveText(i) : i.description))
+          .toLowerCase()
+          .includes(search.toLowerCase()))
   );
 }
 function renderAbilityList(c) {
+  if (tab === 'passive') return renderPassiveList(c, filteredItems(c));
   return (
     filteredItems(c)
       .map((it) => {
@@ -504,29 +513,37 @@ function refreshDamageReminder() {
     HUD.damageConcentrationReminder(c);
   document.getElementById('modal-title').textContent = 'Damage · ' + c.name;
 }
-function showItem(id) {
-  const c = selected(),
-    it = c.items.find((i) => i.id === id);
+function showItem(id, showOnTv = true, characterId = selected()?.id) {
+  const c = TL.findCharacter(state, characterId),
+    it = c?.items.find((i) => i.id === id);
   if (!it) return;
-  commit(() => expand(selected(), it.economy, it.id));
+  if (!TL.hasActiveEffect(it)) return showPassiveItem(id, c.id);
+  if (showOnTv) commit(() => expand(TL.findCharacter(state, c.id), it.economy, it.id));
   modal(
     HUD.abilityName(it),
-    `<div class="eyebrow">${esc(it.kind)} · ${esc(labels[it.economy])}${it.local ? ' · Character only' : ''}</div><div id="ability-details" data-character="${esc(c.id)}" data-item="${esc(it.id)}">${HUD.renderAbilityDetails(it, c)}</div><div class="separator"></div><div id="detail-remote">${detailRemote(c)}</div>`,
-    `<div class="row wrap">${button('Edit', 'edit-item', 'subtle', `data-id="${esc(id)}"`)}${button(it.disabled ? 'Mark available' : 'Mark unavailable', 'disable-item', 'subtle', `data-id="${esc(id)}"`)}</div><div class="row">${button('Close', 'close-modal', 'subtle')}${button('Use ability', 'use-item', 'primary', `data-id="${esc(id)}" ${TL.availability(c, it) ? 'disabled' : ''}`)}</div>`
+    `<div class="eyebrow">${esc(it.kind)} · ${esc(labels[it.economy])}${it.local ? ' · Character only' : ''}</div><div id="ability-details" data-character="${esc(c.id)}" data-item="${esc(it.id)}">${HUD.renderAbilityDetails(it, c)}</div><div class="separator"></div><div id="detail-remote">${detailRemote(c, it)}</div>`,
+    `<div class="row wrap">${button('Edit', 'edit-item', 'subtle', `data-id="${esc(id)}"`)}<span id="active-passive-link">${passiveEffectLink(c, it)}</span>${button(it.disabled ? 'Mark available' : 'Mark unavailable', 'disable-item', 'subtle', `data-id="${esc(id)}"`)}</div><div class="row">${button('Close', 'close-modal', 'subtle')}${button('Use ability', 'use-item', 'primary', `data-id="${esc(id)}" ${TL.availability(c, it) ? 'disabled' : ''}`)}</div>`
   );
+  document.querySelector('.modal').classList.add('ability-modal');
 }
 function refreshAbilityDetails() {
   const details = document.getElementById('ability-details');
   if (!details) return;
   const c = TL.findCharacter(state, details.dataset.character),
     it = c?.items.find((it) => it.id === details.dataset.item);
-  if (!it) return;
+  if (!it) return closeModal();
+  if (!TL.hasActiveEffect(it)) return showPassiveItem(it.id, c.id);
   const html = HUD.renderAbilityDetails(it, c);
   if (details.innerHTML !== html) details.innerHTML = html;
+  document.getElementById('modal-title').innerHTML = HUD.abilityName(it);
   const remote = document.getElementById('detail-remote');
-  if (remote) remote.innerHTML = detailRemote(c);
+  if (remote) remote.innerHTML = detailRemote(c, it);
+  const passiveLink = document.getElementById('active-passive-link');
+  if (passiveLink) passiveLink.innerHTML = passiveEffectLink(c, it);
 }
-function detailRemote(c) {
+function detailRemote(c, it) {
+  if (it && c.hud.detailId !== it.id)
+    return button('Show active effect on TV', 'view-item', 'small', `data-id="${esc(it.id)}"`);
   const n = HUD.countPages(c);
   return `<div class="spread"><span class="hint">TV details: page ${Math.min(c.hud.page + 1, n)} / ${n}</span><div class="row">${button('← Previous', 'hud-page', 'small', `data-amount="-1" ${c.hud.page ? '' : 'disabled'}`)}${button('Next →', 'hud-page', 'small', `data-amount="1" ${c.hud.page < n - 1 ? '' : 'disabled'}`)}</div></div>`;
 }
@@ -705,6 +722,7 @@ document.addEventListener('click', async (event) => {
       handleRosterAction(b) ||
       handleSessionAction(b) ||
       handleLibraryAction(b) ||
+      handlePassiveAction(b) ||
       handleConditionAction(b)
     )
       return;

@@ -349,8 +349,22 @@
     out.push(rest);
     return out;
   }
-  function abilityTextSections(it) {
-    const sections = [{ label: '', text: it.description || 'No description entered.' }];
+  const passiveText = (it) =>
+    (it.behavior === 'hybrid' ? it.passiveDescription : it.description) ||
+    'No passive description entered.';
+  function abilityTextSections(it, effect = '') {
+    if (effect === 'passive' && it.behavior === 'hybrid')
+      return [{ label: 'Passive effect', text: passiveText(it) }];
+    const sections = [
+      {
+        label: !hasActiveEffect(it)
+          ? 'Passive effect'
+          : it.behavior === 'hybrid'
+            ? 'Active effect'
+            : '',
+        text: !hasActiveEffect(it) ? passiveText(it) : it.description || 'No description entered.',
+      },
+    ];
     for (const [key, label] of [
       ['upgrades', 'Upcast / upgrades'],
       ['requirements', 'Requirements'],
@@ -868,7 +882,11 @@
       }
     for (const c of players) {
       const detail = c.items.find((it) => it.id === c.hud.detailId);
-      if (detail) c.hud.page = Math.min(c.hud.page, abilityTextPages(detail).length - 1);
+      if (detail && !hasActiveEffect(detail)) {
+        // Passive authoring is available on the DM screen; player browsing follows later.
+        c.hud.detailId = '';
+        c.hud.page = 0;
+      } else if (detail) c.hud.page = Math.min(c.hud.page, abilityTextPages(detail).length - 1);
       if (c.concentrationItemId) {
         const bound = c.items.find((it) => it.id === c.concentrationItemId);
         if (bound && !hasActiveEffect(bound))
@@ -1028,8 +1046,9 @@
   }
   function panelItems(c) {
     const p = c.hud.panel;
-    return c.items.filter((i) =>
-      p === 'spell' || p === 'feature' ? i.kind === p : i.economy === p
+    return c.items.filter(
+      (i) =>
+        hasActiveEffect(i) && (p === 'spell' || p === 'feature' ? i.kind === p : i.economy === p)
     );
   }
   const abilityPageSize = 15;
@@ -1214,6 +1233,8 @@
         break;
       case 'detail':
         if (!c.items.some((i) => i.id === command.itemId)) throw new Error('Ability not found.');
+        if (!hasActiveEffect(c.items.find((i) => i.id === command.itemId)))
+          throw new Error('Read passive abilities in the DM Passives section.');
         show();
         c.hud.detailId = command.itemId;
         c.hud.page = 0;
@@ -1298,6 +1319,7 @@
   return {
     hasActiveEffect,
     hasPassiveEffect,
+    passiveText,
     setPassiveActive,
     conditionEntry,
     searchConditions,

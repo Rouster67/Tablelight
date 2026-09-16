@@ -25,7 +25,7 @@ Keep completed changes in `CHANGELOG.md` once they have actually been made.
 
 | ID  | Idea                                          | Status                |
 | --- | --------------------------------------------- | --------------------- |
-| F01 | Passive abilities section                     | Editor in progress    |
+| F01 | Passive abilities section                     | DM ready; HUD pending |
 | F02 | Messages sent to individual player overlays   | Implemented on branch |
 | F03 | Visible application version on the DM screen  | Released              |
 | F04 | Launch update prompt and Windows installer    | Released              |
@@ -46,15 +46,22 @@ The data foundation uses Active / Passive / Passive + active independently of Ty
 manual tracking, and separate per-character reminder state. Format 11 imports formats 1–10 and
 preserves the now-merged local-copy, image, theme, and approval behavior. Passive-only use and
 concentration selection are rejected; conditional reminders never calculate statistics or spend
-costs. The DM/HUD Passives sections and PDF remain later milestones in
+costs. The player HUD Passives section and PDF remain later milestones in
 [the updated plan](PASSIVES_AND_ILLUSTRATED_GUIDE_PLAN.md). Existing HUD pagination and natural
 height remain unchanged.
 
 **Editor follow-up:** Behavior now offers Active / Passive / Passive + active in shared and
 character-only editors, with Turn cost beside it near the top. Type only groups entries; no
 type limits detail fields, slots, or resource costs. Passive hides Turn cost and retains its
-saved value. Conditional tracking, separate hybrid text editing, and passive list presentation
-remain planned. This is partial milestone 2 work, not the completed F01 section.
+saved value.
+
+**DM milestone:** A Passives tab now shows passive and mixed abilities with readable text,
+Always applies or independent Active / Inactive reminders, and View/Edit/removal controls.
+The editor supports conditional tracking and separate mixed-effect descriptions; the library
+has a Passives filter. Passive views have no spending controls, and pure passives leave ordinary
+action lists. Hybrid effect navigation does not spend or move a HUD. Existing shared/local
+copying, deletion choices, saves, and individual settings are preserved. Player HUD navigation
+is the next milestone; F01 is not yet complete.
 
 **Requested:** Give characters a section for abilities that work passively, rather than being used
 as an action. The presentation and behavior need brainstorming.

@@ -140,7 +140,7 @@ At the top of a shared or character-only ability editor:
 - **Type** chooses how the ability is grouped. Every type keeps all detail and cost options;
   a class feature can spend a spell slot, for example.
 - **Behavior** chooses **Active**, **Passive**, or **Passive + active**. To flag an ability as
-  passive, choose **Passive**, write its effect in **Description**, and save. Shared changes
+  passive, choose **Passive**, write its **Passive effect**, and save. Shared changes
   apply to every character linked to that entry.
 - **Turn cost** chooses **Action**, **Bonus action**, **Reaction**, or **Free / other** for
   active use. It sits beside Behavior and disappears for Passive. Previously entered costs
@@ -148,10 +148,38 @@ At the top of a shared or character-only ability editor:
   For Passive + active, costs apply only to the active effect. **Casting Time** remains
   descriptive text and does not set Turn cost.
 
-This development step adds the editor choices. Dedicated DM/HUD Passives sections, conditional
-reminder switches, and separate hybrid-effect editing are still planned. Existing ability lists
-have not yet been adapted for passive presentation. If a character is concentrating on an ability,
+**Passives on the DM screen:** Select a character, then choose **Passives** beside Features.
+Use **+ Add → Create new** to start a passive, or **Choose existing** to open the shared library
+filtered to passives and mixed abilities. The filter searches passive descriptions too. Local
+creation and local-copy options work here as they do for other abilities. Pure passives appear
+in this tab, with no Use button or spending summary, and are excluded from ordinary action lists.
+
+Leave **Track whether the passive applies** off for an **Always applies** reminder. Turn it on
+for a conditional passive: every new character assignment starts **Inactive**. Click its
+**Inactive / Active** switch in the list or View window when the written circumstance changes.
+For example, write “Read this reminder while carrying a lantern,” then mark it Active for the
+character carrying that lantern. This setting is independent for every character and works
+from the DM screen even when the TV is hidden or click-through is on. It never spends anything
+or changes HP, AC, movement, statistics, or conditions. Make any numerical corrections yourself.
+Conditions remain a separate shared library for statuses you apply and remove.
+
+For **Passive + active**, enter separate **Passive effect** and **Active effect** descriptions.
+The ability appears in Passives for its passive part and in the usual active lists for its active
+part. **View active effect / View passive effect** switches between their text without spending
+or changing a HUD. Only the active view offers **Use ability** and **Show active effect on TV**.
+Both views refer to one ability assignment; shared edits reach every linked character.
+
+Rests do not decide whether a passive applies. Switching tracking off retains the previous
+reminder state if you turn it back on; switching behavior keeps both descriptions and existing
+cost settings. Cancel discards a draft; Undo can reverse a saved change during the session.
+Removing an assignment keeps the shared definition, and deleting a shared definition still
+offers the existing option to keep local copies. If someone is concentrating on an ability,
 end or change that concentration before saving it as passive-only.
+
+The player HUD's dedicated Passives section is the next development milestone. At this stage,
+read passive effects on the DM screen; player HUD lists show active effects only. Converting an
+ability currently displayed on a HUD to passive-only returns that HUD to its existing list,
+preserving placement, scale, and rotation.
 
 **Ability images:** In an ability editor, choose **Upload image** to add artwork, **Replace image**
 to change it, or **Remove image** to return to the usual spell, action, or feature symbol.
@@ -431,7 +459,7 @@ Changes save automatically in **%APPDATA%\Tablelight\party.json**, with a previo
 
 Use **Setup & help → Export party backup** to save every player, active party membership, portraits, and the shared library together. Transfer that file to another laptop and use **Restore backup**. Restoring replaces the entire current roster, party, and library after confirmation. Export before restoring if you want to keep both collections.
 
-This development branch writes save format 11 and imports formats 1–10. The new format preserves passive ability definitions and individual reminder states; Behavior is editable, while reminder controls and Passives sections are still being developed. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before using a development build if you may need to return to a released version. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
+This development branch writes save format 11 and imports formats 1–10. The new format preserves passive ability definitions and individual reminder states; the DM editor and Passives controls are available, while the player HUD Passives section is still being developed. Backups also retain all manual ability fields, shared and character-only ability images, active and inactive players, both libraries, resources, and each character's theme and HUD choices. If a save came from the earlier calculation preview, explicitly entered fixed numbers are retained as Attack/Save text and personal exceptions become separate library variants. Automatic modes are removed. Released Tablelight 1.12.1 and earlier cannot read format 11; keep an exported backup from before using a development build if you may need to return to a released version. Pending approvals, History, player messages, and message drafts are session-only and are not included in saves or exported backups.
 
 ## Keyboard shortcuts
 
